@@ -1,7 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext } from "@tanstack/react-router";
-import appCss from "../styles.css?url";
-import appLocalCss from "../app/app.css?url";
+
 import {
   RootComponent,
   NotFoundComponent,
