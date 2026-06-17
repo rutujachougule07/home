@@ -1,10 +1,14 @@
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  cloudflare: false,
-  tanstackStart: {
-    server: {
-      preset: "vercel"
-    }
-  },
+  plugins: [
+    tailwindcss(),
+    tsconfigPaths(),
+    TanStackRouterVite(),
+    react(),
+  ],
 });

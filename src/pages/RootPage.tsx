@@ -60,19 +60,7 @@ export function ErrorComponent({ error, reset }: { error: Error; reset: () => vo
   );
 }
 
-export function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
+
 
 export function RootComponent({ queryClient }: { queryClient: QueryClient }) {
   return (
