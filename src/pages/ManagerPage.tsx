@@ -2,11 +2,11 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useStore, User, Customer, Order } from "../app/store";
 import { DashboardLayout, StatCard, Pill, Modal, NavItem, BarChart } from "../app/DashboardLayout";
-import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection } from "./SuperAdminPage";
+import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection, ProductForm } from "./SuperAdminPage";
+import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
-  { key: "employees", label: "Employees", icon: "👥" },
   { key: "assign", label: "Assign", icon: "📋" },
   { key: "task-assign", label: "Task Assign", icon: "📝" },
   { key: "customers", label: "Customers", icon: "🧑‍💼" },
@@ -111,100 +111,59 @@ function EmployeesMgmt() {
           <h3 className="panel-title">Team ({employees.length})</h3>
           <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Employee</button>
         </div>
-        <div className="table-wrap">
-          <table className="tbl employee-table">
-            <thead>
-              <tr>
-                <th>EMP ID</th>
-                <th>NAME</th>
-                <th>ROLE</th>
-                <th>PHONE</th>
-                <th>USERNAME/EMAIL</th>
-                <th>PASSWORD</th>
-                <th>TASKS</th>
-                <th>SCORE</th>
-                <th>STATUS</th>
-                <th className="text-right">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((e) => {
-                const list = tasks.filter((t) => t.assignedTo === e.id);
-                const comp = list.filter((t) => t.status === "Completed").length;
-                const total = list.length;
-                const score = total ? Math.round((comp / total) * 100) : 0;
-                return (
-                  <tr key={e.id}>
-                    <td>{e.employeeId ?? "—"}</td>
-                    <td><strong>{e.name}</strong></td>
-                    <td>{e.jobTitle ?? "—"}</td>
-                    <td>{e.phone ?? "—"}</td>
-                    <td><code style={{ fontSize: 11 }}>{e.username ?? "—"}</code></td>
-                    <td><code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 4px", borderRadius: 4 }}>{e.password ?? "—"}</code></td>
-                    <td>{comp} / {total}</td>
-                    <td style={{ fontWeight: 600, color: "var(--success)" }}>{score}%</td>
-                    <td>
-                      <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`}>
-                        {e.status ?? "Verified"}
-                      </span>
-                    </td>
-                    <td className="text-right">
-                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)" }}>📊</button>
-                        <button className="btn btn-circle" onClick={() => setAssignTo(e)} title="Assign Work" style={{ background: "var(--biscuit-light)" }}>📋</button>
-                        <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee">✏️</button>
-                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee">🗑️</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {employees.length === 0 && (
-                <tr>
-                  <td colSpan={10} className="empty">No employees yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className={employees.length > 0 ? "card-grid" : ""}>
+          {employees.map((e) => {
+            return (
+              <UnifiedEmployeeCard
+                key={e.id}
+                employee={e}
+                userTasks={tasks.filter((t) => t.assignedTo === e.id)}
+                actions={
+                  <>
+                    <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)" }}>📊</button>
+                    <button className="btn btn-circle" onClick={() => setAssignTo(e)} title="Assign Work" style={{ background: "var(--biscuit-light)" }}>📋</button>
+                    <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee">✏️</button>
+                    <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee">🗑️</button>
+                  </>
+                }
+              />
+            );
+          })}
+          {employees.length === 0 && <div className="empty">No employees yet.</div>}
         </div>
       </div>
 
       <div className="panel">
         <div className="panel-head"><h3 className="panel-title">All Tasks</h3></div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Title</th><th>Assignee</th><th>Date</th><th>Status</th><th className="text-right">Action</th></tr></thead>
-            <tbody>
-              {tasks.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.title}</td>
-                  <td>{t.assignedToName}</td>
-                  <td>{t.date}</td>
-                  <td><Pill status={t.status} /></td>
-                  <td className="text-right">
-                    <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                      <button
-                        className="btn btn-circle btn-circle-danger"
-                        onClick={() => {
-                          if (confirm("Delete this task?")) {
-                            setState((s) => ({ ...s, tasks: s.tasks.filter((task) => task.id !== t.id) }));
-                          }
-                        }}
-                        title="Delete Task"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {tasks.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="empty">No tasks yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className={tasks.length > 0 ? "card-grid" : ""}>
+          {tasks.map((t) => (
+            <div key={t.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">{t.title}</h4>
+                  <span className="data-card-subtitle">{t.date}</span>
+                </div>
+                <div><Pill status={t.status} /></div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Assignee</span><span className="data-value">{t.assignedToName}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "flex-end" }}>
+                <button
+                  className="btn btn-circle btn-circle-danger"
+                  onClick={() => {
+                    if (confirm("Delete this task?")) {
+                      setState((s) => ({ ...s, tasks: s.tasks.filter((task) => task.id !== t.id) }));
+                    }
+                  }}
+                  title="Delete Task"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+          ))}
+          {tasks.length === 0 && <div className="empty">No tasks yet.</div>}
         </div>
       </div>
 
@@ -290,24 +249,27 @@ function CustomersMgmt() {
           <h3 className="panel-title">All Customers ({customers.length})</h3>
           <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Customer</button>
         </div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
-            <tbody>
-              {customers.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.name}</td><td>{c.email}</td><td>{c.phone}</td><td>{c.address}</td>
-                  <td><Pill status={c.status} /></td>
-                  <td className="text-right">
-                    <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                      <button className="btn btn-circle" onClick={() => setEditing(c)} title="Update Customer">✏️</button>
-                      <button className="btn btn-circle btn-circle-danger" onClick={() => remove(c.id)} title="Delete Customer">🗑️</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className={customers.length > 0 ? "card-grid" : ""}>
+          {customers.map((c) => (
+            <div key={c.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">{c.name}</h4>
+                  <span className="data-card-subtitle">{c.email}</span>
+                </div>
+                <Pill status={c.status} />
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Phone</span><span className="data-value">{c.phone}</span></div>
+                <div className="data-row"><span className="data-label">Address</span><span className="data-value" style={{ textAlign: "right", maxWidth: "60%" }}>{c.address}</span></div>
+              </div>
+              <div className="data-card-footer">
+                <button className="btn btn-circle" onClick={() => setEditing(c)} title="Update Customer">✏️</button>
+                <button className="btn btn-circle btn-circle-danger" onClick={() => remove(c.id)} title="Delete Customer">🗑️</button>
+              </div>
+            </div>
+          ))}
+          {customers.length === 0 && <div className="empty">No customers yet.</div>}
         </div>
       </div>
 
@@ -381,71 +343,60 @@ function OrdersMgmt() {
           <h3 className="panel-title">My Orders ({orders.length})</h3>
           <button className="btn btn-primary btn-sm" onClick={() => setShow(true)}>+ Create Order</button>
         </div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Total</th>
-                <th>Assigned Employee</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th className="text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => (
-                <tr key={o.id}>
-                  <td>{o.id}</td>
-                  <td>{o.customerName}</td>
-                  <td>{o.productName}</td>
-                  <td>{o.qty}</td>
-                  <td>₹{o.total.toLocaleString()}</td>
-                  <td>{o.assignedToName ?? "—"}</td>
-                  <td>{o.date}</td>
-                  <td><Pill status={o.status} /></td>
-                  <td className="text-right">
-                    <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                      {o.status === "Approved" && (
-                        o.sentToEmployee ? (
-                          <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginRight: 8 }}>Sent ✅</span>
-                        ) : (
-                          <button
-                            className="btn btn-success btn-sm"
-                            style={{ padding: "4px 8px", fontSize: 11, marginRight: 8 }}
-                            onClick={() => {
-                              setState((s) => ({
-                                ...s,
-                                orders: s.orders.map((order) => order.id === o.id ? { ...order, sentToEmployee: true } : order),
-                                notifications: [
-                                  {
-                                    id: uid("n"),
-                                    to: "employee",
-                                    from: "Manager",
-                                    message: `New approved order #${o.id} sent to your updates`,
-                                    date: new Date().toISOString().slice(0, 10),
-                                    read: false
-                                  },
-                                  ...s.notifications
-                                ]
-                              }));
-                            }}
-                          >
-                            ✉️ Send
-                          </button>
-                        )
-                      )}
-                      <button className="btn btn-circle" onClick={() => setEditingOrder(o)} title="Edit Order">✏️</button>
-                      <button className="btn btn-circle btn-circle-danger" onClick={() => remove(o.id)} title="Delete Order">🗑️</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className={orders.length > 0 ? "card-grid" : ""}>
+          {orders.map((o) => (
+            <div key={o.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle">{o.date}</span>
+                </div>
+                <div><Pill status={o.status} /></div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                <div className="actions-row">
+                  {o.status === "Approved" && (
+                    o.sentToEmployee ? (
+                      <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginRight: 8, alignSelf: "center" }}>Sent ✅</span>
+                    ) : (
+                      <button
+                        className="btn btn-success btn-sm"
+                        style={{ padding: "4px 8px", fontSize: 11, marginRight: 8 }}
+                        onClick={() => {
+                          setState((s) => ({
+                            ...s,
+                            orders: s.orders.map((order) => order.id === o.id ? { ...order, sentToEmployee: true } : order),
+                            notifications: [
+                              {
+                                id: uid("n"),
+                                to: "employee",
+                                from: "Manager",
+                                message: `New approved order #${o.id} sent to your updates`,
+                                date: new Date().toISOString().slice(0, 10),
+                                read: false
+                              },
+                              ...s.notifications
+                            ]
+                          }));
+                        }}
+                      >
+                        ✉️ Send
+                      </button>
+                    )
+                  )}
+                  <button className="btn btn-circle" onClick={() => setEditingOrder(o)} title="Edit Order">✏️</button>
+                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(o.id)} title="Delete Order">🗑️</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {orders.length === 0 && <div className="empty">No orders yet.</div>}
         </div>
       </div>
 
@@ -557,9 +508,10 @@ function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSav
 }
 
 function ProductsAvail() {
-  const { products } = useStore();
+  const { products, setState, uid } = useStore();
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
+  const [showAdd, setShowAdd] = useState(false);
 
   // Calculations for cards
   const totalProducts = products.length;
@@ -600,6 +552,9 @@ function ProductsAvail() {
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">Catalog ({filteredProducts.length})</h3>
+          <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
+          </div>
         </div>
         <div className="table-wrap">
           <table className="tbl">
@@ -641,6 +596,8 @@ function ProductsAvail() {
           </table>
         </div>
       </div>
+
+      {showAdd && <ProductForm title="Add Product" onClose={() => setShowAdd(false)} onSave={(d) => { const nextId = uid("p"); setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] })); setShowAdd(false); }} />}
     </>
   );
 }

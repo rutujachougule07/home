@@ -2,7 +2,7 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useStore, Customer, Product, Order } from "../app/store";
 import { DashboardLayout, StatCard, Pill, NavItem, Modal } from "../app/DashboardLayout";
-import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps } from "./SuperAdminPage";
+import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, ProductForm } from "./SuperAdminPage";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
@@ -63,14 +63,19 @@ function Overview() {
 
       <div className="panel">
         <div className="panel-head"><h3 className="panel-title">My Recent Tasks</h3></div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Title</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody>
-              {mine.slice(0, 5).map((t) => <tr key={t.id}><td>{t.title}</td><td>{t.date}</td><td><Pill status={t.status} /></td></tr>)}
-              {mine.length === 0 && <tr><td colSpan={3} className="empty">No tasks yet.</td></tr>}
-            </tbody>
-          </table>
+        <div className={mine.length > 0 ? "card-grid" : ""}>
+          {mine.slice(0, 5).map((t) => (
+            <div key={t.id} className="data-card">
+              <div className="data-card-header">
+                <h4 className="data-card-title">{t.title}</h4>
+                <Pill status={t.status} />
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Date</span><span className="data-value">{t.date}</span></div>
+              </div>
+            </div>
+          ))}
+          {mine.length === 0 && <div className="empty">No tasks yet.</div>}
         </div>
       </div>
     </>
@@ -104,24 +109,25 @@ function TasksSection() {
       </div>
 
       <div className="panel">
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Title</th><th>Date</th><th>Status</th><th className="text-right">Action</th></tr></thead>
-            <tbody>
-              {mine.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.title}</td><td>{t.date}</td><td><Pill status={t.status} /></td>
-                  <td className="text-right">
-                    <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                      {t.status === "Pending" && <button className="btn btn-ghost btn-sm" onClick={() => update(t.id, "In Progress")}>Start</button>}
-                      {t.status !== "Completed" && <button className="btn btn-success btn-sm" onClick={() => update(t.id, "Completed")}>Complete</button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {mine.length === 0 && <tr><td colSpan={4} className="empty">No tasks assigned.</td></tr>}
-            </tbody>
-          </table>
+        <div className={mine.length > 0 ? "card-grid" : ""}>
+          {mine.map((t) => (
+            <div key={t.id} className="data-card">
+              <div className="data-card-header">
+                <h4 className="data-card-title">{t.title}</h4>
+                <Pill status={t.status} />
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Date</span><span className="data-value">{t.date}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "flex-end" }}>
+                <div className="actions-row">
+                  {t.status === "Pending" && <button className="btn btn-ghost btn-sm" onClick={() => update(t.id, "In Progress")}>Start</button>}
+                  {t.status !== "Completed" && <button className="btn btn-success btn-sm" onClick={() => update(t.id, "Completed")}>Complete</button>}
+                </div>
+              </div>
+            </div>
+          ))}
+          {mine.length === 0 && <div className="empty">No tasks assigned.</div>}
         </div>
       </div>
     </>
@@ -141,24 +147,26 @@ function CustomerComm() {
       <h2 className="page-title">Customer Communication</h2>
       <p className="page-sub">Update customer status and handle product inquiries.</p>
       <div className="panel">
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Customer</th><th>Phone</th><th>Status</th><th className="text-right">Update</th></tr></thead>
-            <tbody>
-              {customers.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.name}</td><td>{c.phone}</td><td><Pill status={c.status} /></td>
-                  <td className="text-right">
-                    <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => setStatus(c.id, "Contacted")}>Contacted</button>
-                      <button className="btn btn-success btn-sm" onClick={() => setStatus(c.id, "Active")}>Active</button>
-                      <button className="btn btn-primary btn-sm" onClick={() => setInquiry(c)}>Inquiry</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className={customers.length > 0 ? "card-grid" : ""}>
+          {customers.map((c) => (
+            <div key={c.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">{c.name}</h4>
+                  <span className="data-card-subtitle">{c.phone}</span>
+                </div>
+                <div><Pill status={c.status} /></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "flex-end" }}>
+                <div className="actions-row">
+                  <button className="btn btn-ghost btn-sm" onClick={() => setStatus(c.id, "Contacted")}>Contacted</button>
+                  <button className="btn btn-success btn-sm" onClick={() => setStatus(c.id, "Active")}>Active</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => setInquiry(c)}>Inquiry</button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {customers.length === 0 && <div className="empty">No customers available.</div>}
         </div>
       </div>
 
@@ -187,7 +195,7 @@ function OrderUpdates() {
     <>
       <h2 className="page-title">Order Updates</h2>
       <p className="page-sub">Live order statuses from Super Admin approvals.</p>
-      
+
       {/* My Assigned Orders */}
       <div className="panel" style={{ borderLeft: "4px solid var(--accent)", background: "var(--cream)", marginBottom: 24 }}>
         <div className="panel-head">
@@ -196,68 +204,54 @@ function OrderUpdates() {
             <span className="pill pill-approved">{myOrders.length}</span>
           </h3>
         </div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th className="text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myOrders.map((o) => (
-                <tr key={o.id} style={{ fontWeight: 500 }}>
-                  <td><code>{o.id}</code></td>
-                  <td><strong>{o.customerName}</strong></td>
-                  <td>{o.productName}</td>
-                  <td>{o.qty}</td>
-                  <td>₹{o.total.toLocaleString()}</td>
-                  <td><Pill status={o.status} /></td>
-                  <td className="text-right">
-                    {o.status === "Approved" ? (
-                      <button
-                        className="btn btn-success btn-sm"
-                        style={{ padding: "4px 8px", fontSize: 11 }}
-                        onClick={() => {
-                          if (confirm("Mark this order as delivered? (ही ऑर्डर डिलीव्हर झाली म्हणून नोंदवायची का?)")) {
-                            setState((s) => ({
-                              ...s,
-                              orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order),
-                              notifications: [
-                                {
-                                  id: uid("n"),
-                                  to: "manager",
-                                  from: currentUser?.name || "Employee",
-                                  message: `Order #${o.id} for ${o.customerName} (${o.qty}x ${o.productName}) has been delivered`,
-                                  date: new Date().toISOString().slice(0, 10),
-                                  read: false
-                                },
-                                ...s.notifications
-                              ]
-                            }));
-                          }
-                        }}
-                      >
-                        🚚 Mark Delivered
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {myOrders.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="empty">No orders currently assigned to you.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className={myOrders.length > 0 ? "card-grid" : ""}>
+          {myOrders.map((o) => (
+            <div key={o.id} className="data-card" style={{ borderLeft: "4px solid var(--accent)" }}>
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle">{o.customerName}</span>
+                </div>
+                <div><Pill status={o.status} /></div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "flex-end" }}>
+                {o.status === "Approved" ? (
+                  <button
+                    className="btn btn-success btn-sm"
+                    style={{ padding: "4px 8px", fontSize: 11 }}
+                    onClick={() => {
+                      if (confirm("Mark this order as delivered? (ही ऑर्डर डिलीव्हर झाली म्हणून नोंदवायची का?)")) {
+                        setState((s) => ({
+                          ...s,
+                          orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order),
+                          notifications: [
+                            {
+                              id: uid("n"),
+                              to: "manager",
+                              from: currentUser?.name || "Employee",
+                              message: `Order #${o.id} for ${o.customerName} (${o.qty}x ${o.productName}) has been delivered`,
+                              date: new Date().toISOString().slice(0, 10),
+                              read: false
+                            },
+                            ...s.notifications
+                          ]
+                        }));
+                      }
+                    }}
+                  >
+                    🚚 Mark Delivered
+                  </button>
+                ) : (
+                  <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
+                )}
+              </div>
+            </div>
+          ))}
+          {myOrders.length === 0 && <div className="empty">No orders currently assigned to you.</div>}
         </div>
       </div>
 
@@ -266,38 +260,24 @@ function OrderUpdates() {
         <div className="panel-head">
           <h3 className="panel-title">All Other Orders (इतर सर्व ऑर्डर्स)</h3>
         </div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Total</th>
-                <th>Assigned Employee</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {otherOrders.map((o) => (
-                <tr key={o.id}>
-                  <td><code>{o.id}</code></td>
-                  <td>{o.customerName}</td>
-                  <td>{o.productName}</td>
-                  <td>{o.qty}</td>
-                  <td>₹{o.total.toLocaleString()}</td>
-                  <td>{o.assignedToName ?? "—"}</td>
-                  <td><Pill status={o.status} /></td>
-                </tr>
-              ))}
-              {otherOrders.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="empty">No other orders.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className={otherOrders.length > 0 ? "card-grid" : ""}>
+          {otherOrders.map((o) => (
+            <div key={o.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle">{o.customerName}</span>
+                </div>
+                <div><Pill status={o.status} /></div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+                <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
+              </div>
+            </div>
+          ))}
+          {otherOrders.length === 0 && <div className="empty">No other orders.</div>}
         </div>
       </div>
     </>
@@ -305,8 +285,9 @@ function OrderUpdates() {
 }
 
 function ProductsSection() {
-  const { products } = useStore();
+  const { products, setState, uid } = useStore();
   const [categoryFilter] = useState("All");
+  const [showAdd, setShowAdd] = useState(false);
 
   // Filter products list
   const filteredProducts = useMemo(() => {
@@ -324,6 +305,9 @@ function ProductsSection() {
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">Catalog ({filteredProducts.length})</h3>
+          <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
+          </div>
         </div>
         <div className="table-wrap">
           <table className="tbl">
@@ -373,6 +357,8 @@ function ProductsSection() {
           </table>
         </div>
       </div>
+
+      {showAdd && <ProductForm title="Add Product" onClose={() => setShowAdd(false)} onSave={(d) => { const nextId = uid("p"); setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] })); setShowAdd(false); }} />}
     </>
   );
 }
@@ -384,13 +370,13 @@ function HistorySection() {
 
   // Calculate incentive for approved orders
   const approvedOrders = orders.filter(o => o.status === "Approved");
-  
+
   const incentiveDetails = approvedOrders.map(o => {
     // Find the product to get the incentive amount
     const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
     const incentivePerUnit = product ? product.incentive : 1000;
     const totalIncentive = o.qty * incentivePerUnit;
-    
+
     return {
       orderId: o.id,
       customerName: o.customerName,
@@ -553,29 +539,29 @@ function HistorySection() {
 
       {/* Sub tabs navigation */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, borderBottom: "1px solid var(--border)", paddingBottom: 10, flexWrap: "wrap" }}>
-        <button 
-          className={`btn ${subTab === "stocking" ? "btn-primary" : "btn-ghost"}`} 
+        <button
+          className={`btn ${subTab === "stocking" ? "btn-primary" : "btn-ghost"}`}
           onClick={() => setSubTab("stocking")}
           style={{ padding: "8px 16px", borderRadius: 8 }}
         >
           📦 Stocking History
         </button>
-        <button 
-          className={`btn ${subTab === "bill" ? "btn-primary" : "btn-ghost"}`} 
+        <button
+          className={`btn ${subTab === "bill" ? "btn-primary" : "btn-ghost"}`}
           onClick={() => setSubTab("bill")}
           style={{ padding: "8px 16px", borderRadius: 8 }}
         >
           🧾 Bill History
         </button>
-        <button 
-          className={`btn ${subTab === "customers" ? "btn-primary" : "btn-ghost"}`} 
+        <button
+          className={`btn ${subTab === "customers" ? "btn-primary" : "btn-ghost"}`}
           onClick={() => setSubTab("customers")}
           style={{ padding: "8px 16px", borderRadius: 8 }}
         >
           🧑‍💼 Customer Details
         </button>
-        <button 
-          className={`btn ${subTab === "incentive" ? "btn-primary" : "btn-ghost"}`} 
+        <button
+          className={`btn ${subTab === "incentive" ? "btn-primary" : "btn-ghost"}`}
           onClick={() => setSubTab("incentive")}
           style={{ padding: "8px 16px", borderRadius: 8 }}
         >
@@ -589,46 +575,34 @@ function HistorySection() {
           <div className="panel-head">
             <h3 className="panel-title">Stocking Inventory Records</h3>
           </div>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>SKU</th>
-                  <th>Category</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      <div className="product-cell-flex">
-                        {p.image ? (
-                          <img src={p.image} className="product-image-cell" alt={p.name} />
-                        ) : (
-                          <div className="product-image-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--biscuit-light)", fontSize: 16 }}>📦</div>
-                        )}
-                        <div>
-                          <div style={{ fontWeight: 600 }}>{p.name}</div>
-                          {p.brand && <div style={{ fontSize: 11, color: "var(--brown)" }}>Brand: {p.brand}</div>}
-                        </div>
-                      </div>
-                    </td>
-                    <td>{p.sku}</td>
-                    <td>{p.category}</td>
-                    <td>{p.qty}</td>
-                    <td>₹{p.cost.toLocaleString()}</td>
-                  </tr>
-                ))}
-                {products.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="empty">No stocking records found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className={products.length > 0 ? "card-grid" : ""}>
+            {products.map((p) => (
+              <div key={p.id} className="data-card">
+                <div className="data-card-header">
+                  <div className="product-cell-flex">
+                    {p.image ? (
+                      <img src={p.image} className="product-image-cell" alt={p.name} />
+                    ) : (
+                      <div className="product-image-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--biscuit-light)", fontSize: 16 }}>📦</div>
+                    )}
+                    <div>
+                      <h4 className="data-card-title">{p.name}</h4>
+                      {p.brand && <span className="data-card-subtitle">Brand: {p.brand}</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">SKU</span><span className="data-value">{p.sku}</span></div>
+                  <div className="data-row"><span className="data-label">Category</span><span className="data-value">{p.category}</span></div>
+                  <div className="data-row"><span className="data-label">Quantity</span><span className="data-value">{p.qty}</span></div>
+                </div>
+                <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <span className="data-label" style={{ alignSelf: "center" }}>Unit Cost</span>
+                  <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{p.cost.toLocaleString()}</span>
+                </div>
+              </div>
+            ))}
+            {products.length === 0 && <div className="empty">No stocking records found.</div>}
           </div>
         </div>
       )}
@@ -639,48 +613,33 @@ function HistorySection() {
           <div className="panel-head">
             <h3 className="panel-title">Billing & Orders List</h3>
           </div>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer Name</th>
-                  <th>Product Sold</th>
-                  <th>Qty</th>
-                  <th>Total Amount</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th className="text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id}>
-                    <td><code>{o.id}</code></td>
-                    <td><strong>{o.customerName}</strong></td>
-                    <td>{o.productName}</td>
-                    <td>{o.qty}</td>
-                    <td style={{ fontWeight: 600 }}>₹{o.total.toLocaleString()}</td>
-                    <td>{o.date}</td>
-                    <td><Pill status={o.status} /></td>
-                    <td className="text-right">
-                      <button 
-                        className="btn btn-ghost btn-sm"
-                        style={{ padding: "4px 10px", fontSize: 12, background: "var(--biscuit-light)", borderColor: "var(--border)", fontWeight: 600 }}
-                        onClick={() => setSelectedBill(o)}
-                      >
-                        📄 View Bill
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {orders.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="empty">No billing history found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className={orders.length > 0 ? "card-grid" : ""}>
+            {orders.map((o) => (
+              <div key={o.id} className="data-card">
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">Order #{o.id}</h4>
+                    <span className="data-card-subtitle">{o.date}</span>
+                  </div>
+                  <div><Pill status={o.status} /></div>
+                </div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
+                </div>
+                <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ padding: "4px 10px", fontSize: 12, background: "var(--biscuit-light)", borderColor: "var(--border)", fontWeight: 600 }}
+                    onClick={() => setSelectedBill(o)}
+                  >
+                    📄 View Bill
+                  </button>
+                </div>
+              </div>
+            ))}
+            {orders.length === 0 && <div className="empty">No billing history found.</div>}
           </div>
         </div>
       )}
@@ -691,34 +650,23 @@ function HistorySection() {
           <div className="panel-head">
             <h3 className="panel-title">Customer Directory</h3>
           </div>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Customer Name</th>
-                  <th>Email</th>
-                  <th>Phone Number</th>
-                  <th>Address</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.map((c) => (
-                  <tr key={c.id}>
-                    <td><strong>{c.name}</strong></td>
-                    <td>{c.email}</td>
-                    <td>{c.phone}</td>
-                    <td>{c.address}</td>
-                    <td><Pill status={c.status} /></td>
-                  </tr>
-                ))}
-                {customers.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="empty">No customers registered.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className={customers.length > 0 ? "card-grid" : ""}>
+            {customers.map((c) => (
+              <div key={c.id} className="data-card">
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">{c.name}</h4>
+                    <span className="data-card-subtitle">{c.email}</span>
+                  </div>
+                  <div><Pill status={c.status} /></div>
+                </div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Phone</span><span className="data-value">{c.phone}</span></div>
+                  <div className="data-row"><span className="data-label">Address</span><span className="data-value" style={{ textAlign: "right", maxWidth: "60%" }}>{c.address}</span></div>
+                </div>
+              </div>
+            ))}
+            {customers.length === 0 && <div className="empty">No customers registered.</div>}
           </div>
         </div>
       )}
@@ -747,38 +695,27 @@ function HistorySection() {
             <div className="panel-head">
               <h3 className="panel-title">Incentive Earnings Log</h3>
             </div>
-            <div className="table-wrap">
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer Name</th>
-                    <th>Product</th>
-                    <th>Quantity Sold</th>
-                    <th>Incentive / Unit</th>
-                    <th>Total Earning</th>
-                    <th>Date Approved</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incentiveDetails.map((item, idx) => (
-                    <tr key={idx}>
-                      <td><code>{item.orderId}</code></td>
-                      <td>{item.customerName}</td>
-                      <td>{item.productName}</td>
-                      <td>{item.qty}</td>
-                      <td>₹{item.incentivePerUnit.toLocaleString()}</td>
-                      <td style={{ fontWeight: 700, color: "var(--success)" }}>₹{item.totalIncentive.toLocaleString()}</td>
-                      <td>{item.date}</td>
-                    </tr>
-                  ))}
-                  {incentiveDetails.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="empty">No incentives earned yet. Make a sale to earn!</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+            <div className={incentiveDetails.length > 0 ? "card-grid" : ""}>
+              {incentiveDetails.map((item, idx) => (
+                <div key={idx} className="data-card">
+                  <div className="data-card-header">
+                    <div>
+                      <h4 className="data-card-title">Order #{item.orderId}</h4>
+                      <span className="data-card-subtitle">{item.date}</span>
+                    </div>
+                  </div>
+                  <div className="data-card-body">
+                    <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{item.customerName}</span></div>
+                    <div className="data-row"><span className="data-label">Product</span><span className="data-value">{item.productName} (x{item.qty})</span></div>
+                    <div className="data-row"><span className="data-label">Incentive/Unit</span><span className="data-value">₹{item.incentivePerUnit.toLocaleString()}</span></div>
+                  </div>
+                  <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                    <span className="data-label" style={{ alignSelf: "center" }}>Total Earning</span>
+                    <span style={{ fontWeight: 700, color: "var(--success)", fontSize: 16 }}>₹{item.totalIncentive.toLocaleString()}</span>
+                  </div>
+                </div>
+              ))}
+              {incentiveDetails.length === 0 && <div className="empty">No incentives earned yet. Make a sale to earn!</div>}
             </div>
           </div>
         </>
@@ -884,8 +821,8 @@ function HistorySection() {
 
           {/* Modal Actions */}
           <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 10 }}>
-            <button 
-              className="btn btn-primary" 
+            <button
+              className="btn btn-primary"
               onClick={() => handlePrint(selectedBill, selectedBillCustomer || null, selectedBillProduct || null)}
               style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))", color: "#fff" }}
             >

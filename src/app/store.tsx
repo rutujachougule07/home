@@ -5,7 +5,7 @@ import { db, auth } from "../pages/firebase";
 export type Role = "superadmin" | "manager" | "employee";
 
 export interface User { id: string; name: string; username: string; role: Role; email?: string; phone?: string; employeeId?: string; jobTitle?: string; password?: string; address?: string; status?: string; }
-export interface Product { id: string; name: string; category: string; price: number; stock: number; status: string; sku: string; image: string; qty: number; cost: number; incentive: number; supplier: string; date: string; warranty?: string; brand?: string; }
+export interface Product { id: string; name: string; category: string; price: number; stock: number; status: string; sku: string; image: string; qty: number; cost: number; incentive: number; supplier: string; date: string; warranty?: string; brand?: string; location?: "Shop" | "Godown 1" | "Godown 2"; }
 export interface Customer { id: string; name: string; email: string; phone: string; address: string; status: string; }
 export interface Order { id: string; customerId: string; customerName: string; productId: string; productName: string; qty: number; total: number; createdBy: string; status: "Pending" | "Approved" | "Rejected" | "Delivered"; date: string; assignedTo?: string; assignedToName?: string; sentToEmployee?: boolean; }
 export interface Task { id: string; title: string; assignedTo: string; assignedToName: string; customerId?: string; status: "Pending" | "In Progress" | "Completed"; date: string; }
@@ -45,7 +45,8 @@ const initialProducts: Product[] = [
     supplier: "vaishnavi",
     date: "2026-05-21",
     status: "Verified",
-    image: ""
+    image: "",
+    location: "Shop"
   },
   {
     id: "p2",
@@ -60,7 +61,8 @@ const initialProducts: Product[] = [
     supplier: "rutuja",
     date: "2026-05-21",
     status: "Verified",
-    image: ""
+    image: "",
+    location: "Godown 1"
   }
 ];
 

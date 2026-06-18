@@ -1,6 +1,7 @@
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useStore, Product, User, Order, Lead } from "../app/store";
+import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../app/DashboardLayout";
 import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
 
@@ -727,24 +728,27 @@ function ManagersSection() {
           <h3 className="panel-title">All Managers ({managers.length})</h3>
           <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Manager</button>
         </div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Name</th><th>ID / Username</th><th>Password</th><th>Email</th><th>Phone</th><th className="text-right">Actions</th></tr></thead>
-            <tbody>
-              {managers.map((m) => (
-                <tr key={m.id}>
-                  <td>{m.name}</td><td>{m.username}</td><td>{m.password ?? "—"}</td><td>{m.email}</td><td>{m.phone ?? "—"}</td>
-                  <td className="text-right">
-                    <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                      <button className="btn btn-circle" onClick={() => setEditing(m)} title="Edit Manager">✏️</button>
-                      <button className="btn btn-circle btn-circle-danger" onClick={() => remove(m.id)} title="Delete Manager">🗑️</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {managers.length === 0 && <tr><td colSpan={6} className="empty">No managers yet.</td></tr>}
-            </tbody>
-          </table>
+        <div className={managers.length > 0 ? "card-grid" : ""}>
+          {managers.map((m) => (
+            <div key={m.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">{m.name}</h4>
+                  <span className="data-card-subtitle">{m.email}</span>
+                </div>
+                <div className="actions-row">
+                  <button className="btn btn-circle" onClick={() => setEditing(m)} title="Edit Manager" style={{ width: 32, height: 32, fontSize: 14 }}>✏️</button>
+                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(m.id)} title="Delete Manager" style={{ width: 32, height: 32, fontSize: 14 }}>🗑️</button>
+                </div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">ID / Username</span><span className="data-value">{m.username}</span></div>
+                <div className="data-row"><span className="data-label">Password</span><span className="data-value">{m.password ?? "—"}</span></div>
+                <div className="data-row"><span className="data-label">Phone</span><span className="data-value">{m.phone ?? "—"}</span></div>
+              </div>
+            </div>
+          ))}
+          {managers.length === 0 && <div className="empty">No managers yet.</div>}
         </div>
       </div>
 
@@ -1214,11 +1218,18 @@ function ProductsSection() {
   // Filter states
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
+  const [locationFilter, setLocationFilter] = useState("All");
 
   // Calculations for cards
-  const totalProducts = products.length;
-  const lowStockCount = products.filter((p) => (p.qty ?? p.stock ?? 0) < 20).length;
-  const highStockCount = products.filter((p) => (p.qty ?? p.stock ?? 0) >= 50).length;
+  const locProducts = locationFilter === "All" ? products : products.filter(p => (p.location || "Unassigned") === locationFilter);
+  const totalProducts = locProducts.length;
+  const lowStockCount = locProducts.filter((p) => (p.qty ?? p.stock ?? 0) < 20).length;
+  const highStockCount = locProducts.filter((p) => (p.qty ?? p.stock ?? 0) >= 50).length;
+
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const oldProductsForIncentive = locProducts.filter(p => p.date && new Date(p.date) < threeMonthsAgo);
+  const totalIncentive = oldProductsForIncentive.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.incentive || 0)), 0);
 
   // Gather unique categories dynamically
   const categories = useMemo(() => {
@@ -1236,9 +1247,10 @@ function ProductsSection() {
       } else if (stockFilter === "High") {
         matchStock = (p.qty ?? p.stock ?? 0) >= 50;
       }
-      return matchCat && matchStock;
+      const matchLoc = locationFilter === "All" || (p.location || "Unassigned") === locationFilter;
+      return matchCat && matchStock && matchLoc;
     });
-  }, [products, categoryFilter, stockFilter]);
+  }, [products, categoryFilter, stockFilter, locationFilter]);
 
   const remove = (id: string) => {
     if (!confirm("Delete this product?")) return;
@@ -1250,10 +1262,44 @@ function ProductsSection() {
       <h2 className="page-title">Product Management</h2>
       <p className="page-sub">Maintain catalog, stock, and status.</p>
 
+      <div className="tabs" style={{ marginBottom: 20, display: "flex", gap: "10px", padding: "8px", background: "var(--cream)", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)", border: "1px solid var(--border)", overflowX: "auto" }}>
+        {["All", "Shop", "Godown 1", "Godown 2"].map((loc) => (
+          <button
+            key={loc}
+            className={`tab ${locationFilter === loc ? "active" : ""}`}
+            onClick={() => setLocationFilter(loc)}
+            style={{
+              flex: 1,
+              minWidth: "120px",
+              padding: "10px 20px",
+              border: "none",
+              background: locationFilter === loc ? "var(--primary)" : "transparent",
+              color: locationFilter === loc ? "#fff" : "var(--brown)",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "14px",
+              transition: "all 0.3s ease",
+              boxShadow: locationFilter === loc ? "0 4px 10px rgba(17, 34, 51, 0.2)" : "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px"
+            }}
+            onMouseOver={(e) => { if (locationFilter !== loc) e.currentTarget.style.background = "var(--biscuit-light)" }}
+            onMouseOut={(e) => { if (locationFilter !== loc) e.currentTarget.style.background = "transparent" }}
+          >
+            <span>{loc === "All" ? "📦" : loc === "Shop" ? "🏪" : "🏭"}</span>
+            {loc === "All" ? "All Stock" : loc}
+          </button>
+        ))}
+      </div>
+
       <div className="stat-grid" style={{ marginBottom: 20 }}>
         <StatCard icon="📦" label="Total Products" value={totalProducts} onClick={() => setStockFilter("All")} />
         <StatCard icon="⚠️" label="Low Stock (< 20)" value={lowStockCount} onClick={() => setStockFilter("Low")} />
         <StatCard icon="📈" label="High Stock (≥ 50)" value={highStockCount} onClick={() => setStockFilter("High")} />
+        <StatCard icon="💰" label="Incentive (> 3 Months)" value={`₹${totalIncentive.toLocaleString()}`} />
       </div>
 
       <div className="panel">
@@ -1271,6 +1317,7 @@ function ProductsSection() {
                 <th>PRODUCT</th>
                 <th>SKU</th>
                 <th>CATEGORY</th>
+                <th>LOCATION</th>
                 <th>QTY</th>
                 <th>COST</th>
                 <th style={{ whiteSpace: "nowrap" }}>INCENTIVE/UNIT</th>
@@ -1310,6 +1357,7 @@ function ProductsSection() {
                     </td>
                     <td>{p.sku}</td>
                     <td>{p.category}</td>
+                    <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
                     <td>{p.qty ?? p.stock}</td>
                     <td>₹{p.cost.toLocaleString()}</td>
                     <td>₹{p.incentive.toLocaleString()}</td>
@@ -1358,6 +1406,10 @@ const PRODUCT_BRAND_MAP: { keywords: string[]; brands: string[] }[] = [
   {
     keywords: ["microwave", "oven", "microwave oven"],
     brands: ["IFB", "LG", "Samsung", "Bajaj", "Morphy Richards", "Panasonic", "Haier"]
+  },
+  {
+    keywords: ["air purifier"],
+    brands: ["Philips", "Dyson", "Coway", "Honeywell", "Sharp", "Xiaomi", "Levoit", "Blueair", "Kent", "Eureka Forbes"]
   },
   {
     keywords: ["water purifier", "purifier", "aquaguard", "pureit", "livpure"],
@@ -1501,7 +1553,7 @@ function CustomSelect({
 }
 
 
-function ProductForm({ title, initial, onSave, onClose }: { title: string; initial?: Product; onSave: (d: Omit<Product, "id">) => void; onClose: () => void }) {
+export function ProductForm({ title, initial, onSave, onClose }: { title: string; initial?: Product; onSave: (d: Omit<Product, "id">) => void; onClose: () => void }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [sku, setSku] = useState(initial?.sku ?? "");
   const [brand, setBrand] = useState(initial?.brand ?? "");
@@ -1511,6 +1563,7 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
   const [cost, setCost] = useState(initial?.cost ?? 0);
   const [incentive, setIncentive] = useState(initial?.incentive ?? 0);
   const [supplier, setSupplier] = useState(initial?.supplier ?? "");
+  const [location, setLocation] = useState<"Shop" | "Godown 1" | "Godown 2" | "">(initial?.location ?? "");
   const [date, setDate] = useState(initial?.date ?? new Date().toISOString().slice(0, 10));
   const [status, setStatus] = useState(initial?.status ?? "Verified");
   const [image, setImage] = useState(initial?.image ?? "");
@@ -1729,6 +1782,7 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
       price: cost,
       incentive,
       supplier,
+      location: location as any,
       date,
       status,
       image
@@ -1959,7 +2013,21 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
         </div>
       </div>
 
-      <div className="form-row-2" style={{ marginBottom: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 14 }}>
+        <div className="form-group">
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
+          <select
+            className="form-input"
+            value={location}
+            onChange={(e) => setLocation(e.target.value as any)}
+            style={{ appearance: "auto" }}
+          >
+            <option value="">-- Select --</option>
+            <option value="Shop">Shop (Sell)</option>
+            <option value="Godown 1">Godown 1</option>
+            <option value="Godown 2">Godown 2</option>
+          </select>
+        </div>
         <div className="form-group">
           <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SUPPLIER</label>
           <input
@@ -2000,19 +2068,24 @@ export function CustomersSection() {
       <p className="page-sub">All customers and their order history.</p>
       <div className="panel">
         <div className="panel-head"><h3 className="panel-title">All Customers</h3></div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Orders</th><th>Status</th></tr></thead>
-            <tbody>
-              {customers.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.name}</td><td>{c.email}</td><td>{c.phone}</td><td>{c.address}</td>
-                  <td>{orders.filter((o) => o.customerId === c.id).length}</td>
-                  <td><Pill status={c.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className={customers.length > 0 ? "card-grid" : ""}>
+          {customers.map((c) => (
+            <div key={c.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">{c.name}</h4>
+                  <span className="data-card-subtitle">{c.email}</span>
+                </div>
+                <div><Pill status={c.status} /></div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Phone</span><span className="data-value">{c.phone}</span></div>
+                <div className="data-row"><span className="data-label">Address</span><span className="data-value" style={{ textAlign: "right", maxWidth: "60%" }}>{c.address}</span></div>
+                <div className="data-row"><span className="data-label">Orders</span><span className="data-value">{orders.filter((o) => o.customerId === c.id).length}</span></div>
+              </div>
+            </div>
+          ))}
+          {customers.length === 0 && <div className="empty">No customers yet.</div>}
         </div>
       </div>
 
@@ -2027,18 +2100,28 @@ export function CustomersSection() {
 export function OrdersTable() {
   const { orders } = useStore();
   return (
-    <div className="table-wrap">
-      <table className="tbl">
-        <thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th><th>Assigned Employee</th><th>Date</th><th>Status</th></tr></thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={o.id}>
-              <td>{o.id}</td><td>{o.customerName}</td><td>{o.productName}</td><td>{o.qty}</td>
-              <td>₹{o.total.toLocaleString()}</td><td>{o.assignedToName ?? "—"}</td><td>{o.date}</td><td><Pill status={o.status} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className={orders.length > 0 ? "card-grid" : ""}>
+      {orders.map((o) => (
+        <div key={o.id} className="data-card">
+          <div className="data-card-header">
+            <div>
+              <h4 className="data-card-title">Order #{o.id}</h4>
+              <span className="data-card-subtitle">{o.date}</span>
+            </div>
+            <div><Pill status={o.status} /></div>
+          </div>
+          <div className="data-card-body">
+            <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+            <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
+            <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+          </div>
+          <div className="data-card-footer" style={{ justifyContent: "space-between" }}>
+            <span className="data-label" style={{ alignSelf: "center" }}>Total</span>
+            <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+          </div>
+        </div>
+      ))}
+      {orders.length === 0 && <div className="empty">No orders yet.</div>}
     </div>
   );
 }
@@ -2109,28 +2192,33 @@ function OrderApprovalSection() {
             <option value="Rejected">Rejected</option>
           </select>
         </div>
-        <div className="table-wrap">
-          <table className="tbl">
-            <thead><tr><th>ID</th><th>Customer</th><th>Product</th><th>Qty</th><th>Total</th><th>Assigned Employee</th><th>Created By</th><th>Status</th><th className="text-right">Action</th></tr></thead>
-            <tbody>
-              {list.map((o) => (
-                <tr key={o.id}>
-                  <td>{o.id}</td><td>{o.customerName}</td><td>{o.productName}</td><td>{o.qty}</td>
-                  <td>₹{o.total.toLocaleString()}</td><td>{o.assignedToName ?? "—"}</td><td>{o.createdBy}</td>
-                  <td><Pill status={o.status} /></td>
-                  <td className="text-right">
-                    {o.status === "Pending" ? (
-                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved")}>Approve</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
-                      </div>
-                    ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
-                  </td>
-                </tr>
-              ))}
-              {list.length === 0 && <tr><td colSpan={9} className="empty">No orders.</td></tr>}
-            </tbody>
-          </table>
+        <div className={list.length > 0 ? "card-grid" : ""}>
+          {list.map((o) => (
+            <div key={o.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle">By: {o.createdBy}</span>
+                </div>
+                <div><Pill status={o.status} /></div>
+              </div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                {o.status === "Pending" ? (
+                  <div className="actions-row">
+                    <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved")}>Approve</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
+                  </div>
+                ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
+              </div>
+            </div>
+          ))}
+          {list.length === 0 && <div className="empty">No orders.</div>}
         </div>
       </div>
     </>
@@ -2138,7 +2226,7 @@ function OrderApprovalSection() {
 }
 
 export function NotificationsSection({ role }: { role: "superadmin" | "manager" | "employee" }) {
-  const { notifications, setState, orders, users, uid } = useStore();
+  const { notifications, setState, orders, users, tasks, uid } = useStore();
   const navigate = useNavigate();
 
   const seen = new Set<string>();
@@ -2298,6 +2386,10 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
               // Find assigned employee
               let assignedEmployee: User | undefined = undefined;
               let order: Order | undefined = undefined;
+              let empTasks = 0;
+              let empCompleted = 0;
+              let empScore = 0;
+
               const match = n.message.match(/order\s*#?([a-z0-9]+)/i);
               if (match) {
                 const orderId = match[1];
@@ -2305,6 +2397,13 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                 if (foundOrder && foundOrder.assignedTo) {
                   order = foundOrder;
                   assignedEmployee = users.find(u => u.id === foundOrder.assignedTo);
+                  if (assignedEmployee) {
+                    const empId = assignedEmployee.id;
+                    const uTasks = tasks.filter(t => t.assignedTo === empId);
+                    empTasks = uTasks.length;
+                    empCompleted = uTasks.filter(t => t.status === "Completed").length;
+                    empScore = empTasks > 0 ? Math.round((empCompleted / empTasks) * 100) : 0;
+                  }
                 }
               }
 
@@ -2358,62 +2457,74 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                       </div>
                       <div style={{ fontSize: 13, marginTop: 3, color: "var(--brown)" }}>{getEnrichedMessage(n.message)}</div>
 
-                      {assignedEmployee && role === "manager" && (
-                        <div style={{
-                          marginTop: 8,
-                          padding: "6px 10px",
-                          background: "rgba(122, 90, 50, 0.05)",
-                          borderRadius: 8,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 10,
-                          flexWrap: "wrap",
-                          border: "1px solid rgba(122, 90, 50, 0.1)"
-                        }}
-                          onClick={(e) => e.stopPropagation()} // Prevent triggering markAsRead when clicking action buttons
-                        >
-                          <span style={{ fontSize: 12, fontWeight: 500, color: "var(--brown)" }}>
-                            Assigned to: <strong style={{ color: "var(--brown-dark)" }}>{assignedEmployee.name}</strong>
-                          </span>
+                      {role === "manager" && (
+                        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }} onClick={(e) => e.stopPropagation()}>
+                          {assignedEmployee && (
+                            <div style={{
+                              padding: "6px 10px",
+                              background: "rgba(122, 90, 50, 0.05)",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 10,
+                              flexWrap: "wrap",
+                              border: "1px solid rgba(122, 90, 50, 0.1)"
+                            }}>
+                              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--brown)" }}>
+                                Assigned to: <strong style={{ color: "var(--brown-dark)" }}>{assignedEmployee.name}</strong>
+                              </span>
 
-                          {order && !order.sentToEmployee ? (
-                            <button
-                              className="btn btn-sm"
-                              style={{
-                                padding: "2px 8px",
-                                fontSize: 11,
-                                background: "var(--success)",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: 6,
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                boxShadow: "var(--shadow-sm)"
-                              }}
-                              onClick={() => {
-                                const currentOrder = order!;
-                                setState((s) => ({
-                                  ...s,
-                                  orders: s.orders.map((o) => o.id === currentOrder.id ? { ...o, sentToEmployee: true } : o),
-                                  notifications: [
-                                    {
-                                      id: uid("n"),
-                                      to: "employee",
-                                      from: "Manager",
-                                      message: `New approved order #${currentOrder.id} sent to your updates`,
-                                      date: new Date().toISOString().slice(0, 10),
-                                      read: false
-                                    },
-                                    ...s.notifications
-                                  ]
-                                }));
-                              }}
-                            >
-                              ✉️ Send to Employee
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Sent ✅</span>
+                              {order && !order.sentToEmployee ? (
+                                <button
+                                  className="btn btn-sm"
+                                  style={{
+                                    padding: "2px 8px",
+                                    fontSize: 11,
+                                    background: "var(--success)",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: 6,
+                                    cursor: "pointer",
+                                    fontWeight: 600,
+                                    boxShadow: "var(--shadow-sm)"
+                                  }}
+                                  onClick={() => {
+                                    const currentOrder = order!;
+                                    setState((s) => ({
+                                      ...s,
+                                      orders: s.orders.map((o) => o.id === currentOrder.id ? { ...o, sentToEmployee: true } : o),
+                                      notifications: [
+                                        {
+                                          id: uid("n"),
+                                          to: "employee",
+                                          from: "Manager",
+                                          message: `New approved order #${currentOrder.id} sent to your updates`,
+                                          date: new Date().toISOString().slice(0, 10),
+                                          read: false
+                                        },
+                                        ...s.notifications
+                                      ]
+                                    }));
+                                  }}
+                                >
+                                  ✉️ Send to Employee
+                                </button>
+                              ) : (
+                                <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>✓ Sent to Employee Updates</span>
+                              )}
+                            </div>
                           )}
+
+                          <div style={{ background: "#faf7f2", borderRadius: "12px", padding: "12px 16px", display: "flex", justifyContent: "space-between", maxWidth: "250px" }}>
+                            <div>
+                              <div style={{ color: "#a18265", fontSize: "11px", fontWeight: 600, marginBottom: "4px" }}>TASKS</div>
+                              <div style={{ color: "#5c3a21", fontSize: "16px", fontWeight: 800 }}>{empCompleted} / {empTasks}</div>
+                            </div>
+                            <div style={{ textAlign: "right" }}>
+                              <div style={{ color: "#a18265", fontSize: "11px", fontWeight: 600, marginBottom: "4px" }}>SCORE</div>
+                              <div style={{ color: "var(--success, #059669)", fontSize: "16px", fontWeight: 800 }}>{empScore}%</div>
+                            </div>
+                          </div>
                         </div>
                       )}
 
@@ -2794,7 +2905,7 @@ export function UpcomingFollowUps() {
 
 
 export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } = {}) {
-  const { users, setState, uid } = useStore();
+  const { users, tasks, setState, uid } = useStore();
   const managers = users.filter(u => u.role === "manager");
   const employees = users.filter(u => u.role === "employee");
 
@@ -2890,63 +3001,29 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               }}>+ Add Employee</button>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
             {employees.map(e => (
-              <div key={e.id} style={{
-                background: "#fff", borderRadius: "12px", padding: "14px",
-                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
-                display: "flex", flexDirection: "column", justifyContent: "space-between",
-                transition: "transform 0.2s ease, box-shadow 0.2s ease",
-              }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                    <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21" }}>{e.name}</div>
-                    {!readOnly && (
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        <button onClick={() => setEditingEmployee(e)} title="Edit" style={{
-                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #f5e3cc",
-                          background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
-                          alignItems: "center", justifyContent: "center", fontSize: "11px"
-                        }}>✏️</button>
-                        <button onClick={() => removeUser(e.id, "employee")} title="Delete" style={{
-                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #fee2e2",
-                          background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
-                          alignItems: "center", justifyContent: "center"
-                        }}>
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Briefcase size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.jobTitle || "Employee"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <UserIcon size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.username || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Key size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Password:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.password || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Mail size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Email:</span>
-                      <strong style={{ color: "#543d2b", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }} title={e.email}>{e.email || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Phone size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.phone || "—"}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <UnifiedEmployeeCard
+                key={e.id}
+                employee={e}
+                userTasks={tasks.filter(t => t.assignedTo === e.id)}
+                actions={!readOnly ? (
+                  <>
+                    <button onClick={() => setEditingEmployee(e)} title="Edit" style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #f5e3cc",
+                      background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
+                    }}>✏️</button>
+                    <button onClick={() => removeUser(e.id, "employee")} title="Delete" style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #fee2e2",
+                      background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", transition: "all 0.2s"
+                    }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                ) : undefined}
+              />
             ))}
             {employees.length === 0 && (
               <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No employees yet. Click + Add Employee to create one.</div>
@@ -3218,57 +3295,36 @@ export function TaskAssignmentSection() {
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
           <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👤 Employees Tasks</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
             {employeesWithTasks.map(e => (
-              <div key={e.id} style={{
-                background: "#fff", borderRadius: "12px", padding: "14px",
-                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
-                display: "flex", flexDirection: "column", justifyContent: "space-between",
-              }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21", marginBottom: "10px" }}>{e.name}</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Briefcase size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.jobTitle || "Employee"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <UserIcon size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.username || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Phone size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
-                      <strong style={{ color: "#543d2b" }}>{e.phone || "—"}</strong>
-                    </div>
-                  </div>
-
-                  {/* Tasks Section */}
-                  <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
-                    <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {tasks.filter(t => t.assignedTo === e.id).map(t => (
-                        <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fdfbfa", border: "1px solid #efe8df", padding: "4px 8px", borderRadius: "6px", fontSize: "11px" }}>
-                          <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span style={{
-                              fontSize: "9px",
-                              padding: "2px 4px",
-                              borderRadius: "3px",
-                              background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
-                              color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
-                              fontWeight: 700
-                            }}>{t.status}</span>
-                            <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
-                          </div>
+              <UnifiedEmployeeCard
+                key={e.id}
+                employee={e}
+                userTasks={tasks.filter(t => t.assignedTo === e.id)}
+              >
+                {/* Tasks Section */}
+                <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
+                  <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    {tasks.filter(t => t.assignedTo === e.id).map(t => (
+                      <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fdfbfa", border: "1px solid #efe8df", padding: "4px 8px", borderRadius: "6px", fontSize: "11px" }}>
+                        <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span style={{
+                            fontSize: "9px",
+                            padding: "2px 4px",
+                            borderRadius: "3px",
+                            background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
+                            color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
+                            fontWeight: 700
+                          }}>{t.status}</span>
+                          <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              </UnifiedEmployeeCard>
             ))}
             {employeesWithTasks.length === 0 && (
               <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No employees with assigned tasks.</div>
@@ -3530,8 +3586,6 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
     <div className="panel animate fadeIn" style={{ padding: "28px", border: "1px solid #f1ece4", borderRadius: "20px", background: "#ffffff", marginBottom: "24px", boxShadow: "0 10px 30px rgba(122, 90, 50, 0.04)" }}>
       {/* Top Profile & Header Row */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "20px" }}>
-        <input type="checkbox" style={{ marginTop: "12px", width: "16px", height: "16px", accentColor: "#d97706" }} />
-
         <div style={{
           width: "42px", height: "42px", borderRadius: "50%", background: "#fffbeb",
           display: "flex", alignItems: "center", justifyContent: "center", color: "#d97706", fontSize: "18px",
@@ -3551,12 +3605,12 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
             }}>
               👤 {lead.status}
             </span>
-            {lead.brand && (
+            {lead.product && (
               <span style={{
                 background: "#fff7ed", color: "#ea580c", fontSize: "12px", fontWeight: 600,
                 padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #ffedd5"
               }}>
-                📋 {lead.brand}
+                📋 {lead.product}{lead.brand ? ` - ${lead.brand}` : ""}
               </span>
             )}
           </div>
@@ -3757,7 +3811,8 @@ export function DashboardLeadPipelineOverview({
 
   const getCount = (status: Lead["status"]) => leads.filter(l => l.status === status).length;
 
-  const cards: { key: Lead["status"]; label: string; count: number; color: string; bg: string; border: string; icon: any }[] = [
+  const cards: { key: Lead["status"] | "All"; label: string; count: number; color: string; bg: string; border: string; icon: any }[] = [
+    { key: "All", label: "All Leads", count: leads.length, color: "#8b5cf6", bg: "#f5f3ff", border: "#ede9fe", icon: MessageSquare },
     { key: "New", label: "New Leads", count: getCount("New"), color: "#3b82f6", bg: "#eff6ff", border: "#dbeafe", icon: AlertCircle },
     { key: "Cold", label: "Cold", count: getCount("Cold"), color: "#6b7280", bg: "#f3f4f6", border: "#e5e7eb", icon: Snowflake },
     { key: "Warm", label: "Warm", count: getCount("Warm"), color: "#d97706", bg: "#fffbeb", border: "#fef3c7", icon: Clock },
@@ -3782,7 +3837,7 @@ export function DashboardLeadPipelineOverview({
           </button>
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px" }}>
+      <div style={{ display: "flex", flexWrap: "nowrap", width: "100%", gap: "8px", paddingBottom: "10px" }}>
         {cards.map((c, idx) => {
           const Icon = c.icon;
           const isSelected = activeFilter === c.key;
@@ -3791,10 +3846,13 @@ export function DashboardLeadPipelineOverview({
               key={idx}
               onClick={() => onFilterChange && onFilterChange(c.key)}
               style={{
+                flex: 1,
+                minWidth: 0,
                 display: "flex",
                 alignItems: "center",
-                gap: "12px",
-                padding: "12px 16px",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "10px 8px",
                 background: c.bg,
                 border: isSelected ? `2.5px solid ${c.color}` : `1px solid ${c.border}`,
                 borderRadius: "12px",
@@ -3859,6 +3917,14 @@ export function LeadsSection() {
   }, [formProduct]);
 
   useEffect(() => {
+    if (availableBrands.length > 0 && !availableBrands.includes(formBrand)) {
+      setFormBrand("");
+    } else if (availableBrands.length === 0 && formBrand !== "") {
+      setFormBrand("");
+    }
+  }, [availableBrands, formBrand]);
+
+  useEffect(() => {
     if (editingLead) {
       setFormName(editingLead.name || "");
       setFormPhone(editingLead.phone || "");
@@ -3888,20 +3954,7 @@ export function LeadsSection() {
     }
   }, [editingLead, showAddModal, products]);
 
-  if (currentUser?.role === "superadmin") {
-    return (
-      <>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <div>
-            <h2 className="page-title">Lead Generation</h2>
-            <p className="page-sub">Track customer inquiries, status updates, and assign them to staff members.</p>
-          </div>
-        </div>
 
-        <DashboardLeadPipelineOverview showTitle={false} />
-      </>
-    );
-  }
 
   const handleSave = () => {
     if (!formName || !formPhone) return;
@@ -3945,7 +3998,7 @@ export function LeadsSection() {
         notes: formNotes || undefined,
         assignedTo: formAssignedTo || undefined,
         city: formCity || undefined,
-        date: new Date().toISOString().slice(0, 10),
+        date: new Date().toISOString(),
       };
       setState((s) => ({
         ...s,
@@ -3989,25 +4042,23 @@ export function LeadsSection() {
           <h2 className="page-title">Lead Generation</h2>
           <p className="page-sub">Track customer inquiries, status updates, and assign them to staff members.</p>
         </div>
-        {(currentUser?.role as string) !== "superadmin" && (
-          <button
-            className="btn btn-primary"
-            style={{
-              background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "10px 20px",
-              fontWeight: 700,
-              boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-            onClick={() => setShowAddModal(true)}
-          >
-            <span style={{ fontSize: "18px", lineHeight: 1 }}>+</span> Add New Lead
-          </button>
-        )}
+        <button
+          className="btn btn-primary"
+          style={{
+            background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+            border: "none",
+            borderRadius: "8px",
+            padding: "10px 20px",
+            fontWeight: 700,
+            boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+          onClick={() => setShowAddModal(true)}
+        >
+          <span style={{ fontSize: "18px", lineHeight: 1 }}>+</span> Add New Lead
+        </button>
       </div>
 
       <DashboardLeadPipelineOverview
@@ -4026,7 +4077,7 @@ export function LeadsSection() {
 
             {/* Search Box */}
             <div style={{ position: "relative", display: "flex", alignItems: "center", minWidth: "260px" }}>
-              <span style={{ position: "absolute", left: "10px", color: "var(--text-muted)", fontSize: "14px" }}>≡ƒöì</span>
+              <span style={{ position: "absolute", left: "10px", color: "var(--text-muted)", fontSize: "14px" }}>🔍</span>
               <input
                 className="form-input"
                 style={{ paddingLeft: "32px", margin: 0, height: "36px", fontSize: "13px" }}
@@ -4149,18 +4200,32 @@ export function LeadsSection() {
 
             <div className="form-group">
               <label className="form-label">Product Brand</label>
-              <select
-                className="form-input"
-                value={formBrand}
-                onChange={(e) => setFormBrand(e.target.value)}
-                disabled={availableBrands.length === 0}
-              >
-                <option value="">{availableBrands.length > 0 ? "Select a Brand" : "No Brands Available"}</option>
-                {availableBrands.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-                {availableBrands.length > 0 && <option value="Other">Other</option>}
-              </select>
+              {availableBrands.length === 0 ? (
+                <div style={{ fontSize: "13px", color: "#a8a29e", padding: "10px", background: "#f5f5f5", borderRadius: "8px", border: "1px solid #e5e5e5" }}>No Brands Available</div>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
+                  {[...availableBrands, "Other"].map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setFormBrand(b)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: "20px",
+                        border: formBrand === b ? "1px solid #d97706" : "1px solid #d6d3d1",
+                        background: formBrand === b ? "#fef3c7" : "#ffffff",
+                        color: formBrand === b ? "#92400e" : "#57534e",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -4191,26 +4256,7 @@ export function LeadsSection() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Schedule Follow-up Date</label>
-              <input
-                type="date"
-                className="form-input"
-                value={formFollowUpDate}
-                onChange={(e) => setFormFollowUpDate(e.target.value)}
-              />
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Inquiry Notes / Details</label>
-              <textarea
-                className="form-textarea"
-                style={{ height: "100px", resize: "none" }}
-                placeholder="Enter client expectations, requirements or past follow-up remarks..."
-                value={formNotes}
-                onChange={(e) => setFormNotes(e.target.value)}
-              />
-            </div>
 
             <div className="modal-actions" style={{ marginTop: "10px" }}>
               <button
