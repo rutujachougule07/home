@@ -1,13 +1,15 @@
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useStore, Product, User, Order } from "../app/store";
+import { useStore, Product, User, Order, Lead } from "../app/store";
 import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../app/DashboardLayout";
+import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
 
 const NAV: NavItem[] = [
   { key: "live", label: "Live Status", icon: "📡" },
   { key: "products", label: "Stocking Inventory", icon: "📦" },
-  { key: "managers", label: "Managers", icon: "👔" },
-  { key: "employees", label: "Employees", icon: "👥" },
+  { key: "leads", label: "Lead Generation", icon: "🧲" },
+  { key: "assign", label: "Assign", icon: "📋" },
+  { key: "task-assign", label: "Task Assign", icon: "📝" },
   { key: "orders", label: "Order Approvals", icon: "✅" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
 ];
@@ -29,6 +31,9 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
   return (
     <DashboardLayout role="superadmin" title="Super Admin" nav={NAV} active={active} onNav={setActive}>
       {active === "live" && <LiveDashboard />}
+      {active === "leads" && <LeadsSection />}
+      {active === "assign" && <TasksAssignSection />}
+      {active === "task-assign" && <TaskAssignmentSection />}
       {active === "managers" && <ManagersSection />}
       {active === "employees" && <EmployeesSection />}
       {active === "products" && <ProductsSection />}
@@ -521,6 +526,9 @@ function LiveDashboard() {
         </div>
       </div>
 
+      <DashboardLeadPipelineOverview />
+      <UpcomingFollowUps />
+
       <div className="live-row-top">
         <div className="telemetry-grid">
           <div className="telemetry-card">
@@ -962,9 +970,9 @@ export function EmployeeForm({
       </div>
 
       <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12 }}>
-        <button 
-          className="btn btn-primary" 
-          onClick={handleSave} 
+        <button
+          className="btn btn-primary"
+          onClick={handleSave}
           disabled={isSaving}
           style={{ background: "linear-gradient(135deg, #c39864, #a07542)", borderColor: "#906532", color: "#fff", opacity: isSaving ? 0.7 : 1 }}
         >
@@ -1023,36 +1031,25 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
               <h4 style={{ margin: "0 0 10px 0", color: "var(--brown-dark)", display: "flex", alignItems: "center", gap: 6 }}>
                 📝 Task List
               </h4>
-              <div className="table-wrap" style={{ maxHeight: 250, overflowY: "auto" }}>
-                <table className="tbl" style={{ fontSize: 12 }}>
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {empTasks.map((t) => (
-                      <tr key={t.id}>
-                        <td>{t.title}</td>
-                        <td>{t.date}</td>
-                        <td>
-                          <span className={`pill pill-${t.status === "Completed" ? "completed" : t.status === "In Progress" ? "progress" : "pending"}`}>
-                            {t.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {empTasks.length === 0 && (
-                      <tr>
-                        <td colSpan={3} style={{ textAlign: "center", padding: "20px 0", color: "var(--light-brown)" }}>
-                          No tasks assigned.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+              <div style={{ maxHeight: 250, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 5 }}>
+                {empTasks.map((t) => (
+                  <div key={t.id} style={{ padding: 12, border: "1px solid var(--border)", borderRadius: 8, background: "var(--warm-white)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <strong style={{ color: "var(--brown-dark)", fontSize: 13 }}>{t.title}</strong>
+                      <span className={`pill pill-${t.status === "Completed" ? "completed" : t.status === "In Progress" ? "progress" : "pending"}`} style={{ fontSize: 10 }}>
+                        {t.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--light-brown)", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Clock size={12} /> {t.date}
+                    </div>
+                  </div>
+                ))}
+                {empTasks.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "20px 0", color: "var(--light-brown)", fontSize: 12 }}>
+                    No tasks assigned.
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1061,38 +1058,28 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
               <h4 style={{ margin: "0 0 10px 0", color: "var(--brown-dark)", display: "flex", alignItems: "center", gap: 6 }}>
                 📦 Assigned Orders
               </h4>
-              <div className="table-wrap" style={{ maxHeight: 250, overflowY: "auto" }}>
-                <table className="tbl" style={{ fontSize: 12 }}>
-                  <thead>
-                    <tr>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Product</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {empOrders.map((o) => (
-                      <tr key={o.id}>
-                        <td>{o.id}</td>
-                        <td>{o.customerName}</td>
-                        <td>{o.qty}x {o.productName}</td>
-                        <td>
-                          <span className={`pill pill-${o.status.toLowerCase()}`}>
-                            {o.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {empOrders.length === 0 && (
-                      <tr>
-                        <td colSpan={4} style={{ textAlign: "center", padding: "20px 0", color: "var(--light-brown)" }}>
-                          No orders assigned.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+              <div style={{ maxHeight: 250, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 5 }}>
+                {empOrders.map((o) => (
+                  <div key={o.id} style={{ padding: 12, border: "1px solid var(--border)", borderRadius: 8, background: "var(--warm-white)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <strong style={{ color: "var(--brown-dark)", fontSize: 13 }}>{o.id}</strong>
+                      <span className={`pill pill-${o.status.toLowerCase()}`} style={{ fontSize: 10 }}>
+                        {o.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--brown-dark)", marginBottom: 4 }}>
+                      {o.customerName}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--light-brown)", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Briefcase size={12} /> {o.qty}x {o.productName}
+                    </div>
+                  </div>
+                ))}
+                {empOrders.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "20px 0", color: "var(--light-brown)", fontSize: 12 }}>
+                    No orders assigned.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1123,61 +1110,67 @@ function EmployeesSection() {
           <h3 className="panel-title">All Employees ({employees.length})</h3>
           <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Employee</button>
         </div>
-        <div className="table-wrap">
-          <table className="tbl employee-table">
-            <thead>
-              <tr>
-                <th>EMP ID</th>
-                <th>NAME</th>
-                <th>ROLE</th>
-                <th>PHONE</th>
-                <th>USERNAME/EMAIL</th>
-                <th>PASSWORD</th>
-                <th>TASKS</th>
-                <th>SCORE</th>
-                <th>STATUS</th>
-                <th className="text-right">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((e) => {
-                const list = tasks.filter((t) => t.assignedTo === e.id);
-                const comp = list.filter((t) => t.status === "Completed").length;
-                const total = list.length;
-                const score = total ? Math.round((comp / total) * 100) : 0;
-                
-                return (
-                  <tr key={e.id}>
-                    <td>{e.employeeId ?? "—"}</td>
-                    <td><strong>{e.name}</strong></td>
-                    <td>{e.jobTitle ?? "—"}</td>
-                    <td>{e.phone ?? "—"}</td>
-                    <td><code style={{ fontSize: 11 }}>{e.username ?? "—"}</code></td>
-                    <td><code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 4px", borderRadius: 4 }}>{e.password ?? "—"}</code></td>
-                    <td>{comp} / {total}</td>
-                    <td style={{ fontWeight: 600, color: "var(--success)" }}>{score}%</td>
-                    <td>
-                      <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`}>
-                        {e.status ?? "Verified"}
-                      </span>
-                    </td>
-                    <td className="text-right">
-                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)" }}>📊</button>
-                        <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee">✏️</button>
-                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee">🗑️</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {employees.length === 0 && (
-                <tr>
-                  <td colSpan={10} className="empty">No employees yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20, marginTop: 15 }}>
+          {employees.map((e) => {
+            const list = tasks.filter((t) => t.assignedTo === e.id);
+            const comp = list.filter((t) => t.status === "Completed").length;
+            const total = list.length;
+            const score = total ? Math.round((comp / total) * 100) : 0;
+
+            return (
+              <div key={e.id} style={{ background: "#fffdf9", borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6", boxShadow: "0 4px 12px rgba(139, 107, 74, 0.05)", display: "flex", flexDirection: "column", gap: 15 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <h4 style={{ margin: "0 0 4px 0", color: "#4a3c31", fontSize: 16 }}>{e.name}</h4>
+                    <span style={{ fontSize: 12, color: "#8b6b4a", fontWeight: 500 }}>ID: {e.employeeId ?? "—"}</span>
+                  </div>
+                  <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`} style={{ fontSize: 10 }}>
+                    {e.status ?? "Verified"}
+                  </span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
+                  <div>
+                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>ROLE</span>
+                    <strong style={{ color: "#5a4a3a" }}>{e.jobTitle ?? "—"}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>PHONE</span>
+                    <strong style={{ color: "#5a4a3a" }}>{e.phone ?? "—"}</strong>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>CREDENTIALS</span>
+                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.username ?? "—"}</code>
+                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.password ?? "—"}</code>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ background: "#faf7f2", borderRadius: 8, padding: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>TASKS</span>
+                    <strong style={{ color: "#5a4a3a", fontSize: 14 }}>{comp} / {total}</strong>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>SCORE</span>
+                    <strong style={{ color: "var(--success)", fontSize: 14 }}>{score}%</strong>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "auto" }}>
+                  <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)", color: "var(--brown-dark)" }}>📊</button>
+                  <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee" style={{ background: "#fff9e6", color: "#d97706" }}>✏️</button>
+                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee" style={{ background: "#fef2f2", color: "#ef4444" }}>🗑️</button>
+                </div>
+              </div>
+            );
+          })}
+          {employees.length === 0 && (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px", color: "var(--light-brown)" }}>
+              No employees yet.
+            </div>
+          )}
         </div>
       </div>
 
@@ -1428,18 +1421,18 @@ const PRODUCT_BRAND_MAP: { keywords: string[]; brands: string[] }[] = [
   }
 ];
 
-function CustomSelect({ 
-  value, 
-  options, 
-  onChange, 
-  onDelete, 
+function CustomSelect({
+  value,
+  options,
+  onChange,
+  onDelete,
   placeholder,
-  hasOther = true 
-}: { 
-  value: string; 
-  options: string[]; 
-  onChange: (val: string) => void; 
-  onDelete: (val: string) => void; 
+  hasOther = true
+}: {
+  value: string;
+  options: string[];
+  onChange: (val: string) => void;
+  onDelete: (val: string) => void;
   placeholder: string;
   hasOther?: boolean;
 }) {
@@ -1458,8 +1451,8 @@ function CustomSelect({
 
   return (
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
-      <div 
-        className="form-input" 
+      <div
+        className="form-input"
         onClick={() => setOpen(!open)}
         style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--warm-white)" }}
       >
@@ -1469,7 +1462,7 @@ function CustomSelect({
       {open && (
         <div style={{ position: "absolute", top: "100%", left: 0, minWidth: "100%", width: options.length > 6 ? "220%" : "100%", background: "var(--warm-white)", border: "1px solid var(--border)", zIndex: 100, boxShadow: "var(--shadow-md)", borderRadius: 8, marginTop: 6, padding: 6 }}>
           {hasOther && (
-            <div 
+            <div
               style={{ padding: "8px 12px", cursor: "pointer", color: "var(--accent-dark)", fontWeight: 600, background: "var(--biscuit-light)", borderRadius: 6, marginBottom: 6, display: "flex", alignItems: "center", gap: 6, transition: "background 0.2s" }}
               onClick={() => { onChange("Other"); setOpen(false); }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "var(--biscuit)")}
@@ -1480,16 +1473,16 @@ function CustomSelect({
           )}
           <div style={{ display: "grid", gridTemplateColumns: options.length > 6 ? "1fr 1fr" : "1fr", gap: 4 }}>
             {options.map(opt => (
-              <div 
-                key={opt} 
+              <div
+                key={opt}
                 style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", cursor: "pointer", borderRadius: 6, transition: "background 0.2s" }}
                 onClick={() => { onChange(opt); setOpen(false); }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--cream)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 <span style={{ flex: 1, fontWeight: value === opt ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: value === opt ? "var(--accent-dark)" : "var(--brown-dark)" }}>{opt}</span>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={(e) => { e.stopPropagation(); onDelete(opt); }}
                   style={{ background: "transparent", border: "none", color: "#bbb", cursor: "pointer", padding: "2px 6px", fontSize: 12, flexShrink: 0, borderRadius: 4, transition: "color 0.2s, background 0.2s" }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = "var(--danger)"; e.currentTarget.style.background = "#f4d6d2"; }}
@@ -1526,7 +1519,7 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
   const [isDragging, setIsDragging] = useState(false);
   const [totalCost, setTotalCost] = useState(initial ? parseFloat((initial.qty * initial.cost).toFixed(2)) : 0);
   const { products } = useStore();
-  
+
   const [isCustomBrand, setIsCustomBrand] = useState(() => {
     if (initial?.brand) {
       const initialName = (initial?.name ?? "").toLowerCase();
@@ -1615,12 +1608,12 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
 
     const customBrands = products
       .filter((p) => p.brand && match.keywords.some((kw) => p.name.toLowerCase().includes(kw)))
-      .map((p) => p.brand)
+      .map((p) => p.brand as string)
       .filter((b) => b && !match.brands.includes(b));
-    
+
     const uniqueCustomBrands = Array.from(new Set([...customBrands, ...localCustomBrands]));
 
-    return [...match.brands, ...uniqueCustomBrands].filter(b => !localDeletedBrands.includes(b));
+    return ([...match.brands, ...uniqueCustomBrands].filter((b): b is string => !!b && !localDeletedBrands.includes(b)));
   }, [lowercaseName, products, localCustomBrands, localDeletedBrands]);
 
   useEffect(() => {
@@ -1869,8 +1862,8 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
 
       <div className="form-group" style={{ marginBottom: 10 }}>
         <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UPLOAD PHOTO</label>
-        <div 
-          className={`form-file-input ${isDragging ? "dragging" : ""}`} 
+        <div
+          className={`form-file-input ${isDragging ? "dragging" : ""}`}
           style={{
             border: isDragging ? "2px dashed var(--accent)" : "1px dashed var(--border)",
             background: isDragging ? "var(--biscuit-light)" : "var(--cream)",
@@ -1898,10 +1891,10 @@ function ProductForm({ title, initial, onSave, onClose }: { title: string; initi
           />
           <span style={{ fontSize: 20 }}>{isDragging ? "📥" : "📁"}</span>
           <span style={{ fontSize: 12, color: isDragging ? "var(--accent)" : "var(--brown)", fontWeight: 500, flex: 1, textAlign: "left" }}>
-            {isDragging 
-              ? "Drop photo here..." 
-              : imageName 
-                ? imageName 
+            {isDragging
+              ? "Drop photo here..."
+              : imageName
+                ? imageName
                 : (initial?.image ? "Change Photo" : "Choose File or Drag & Drop here")}
           </span>
           {image && <img src={image} className="image-preview-thumbnail" style={{ width: 36, height: 36 }} alt="Preview" />}
@@ -2071,8 +2064,8 @@ function OrderApprovalSection() {
           return p;
         });
       }
-      const orderDetailsStr = order 
-        ? `Order #${id} for ${order.customerName} (${order.qty}x ${order.productName}) has been ${status.toLowerCase()}` 
+      const orderDetailsStr = order
+        ? `Order #${id} for ${order.customerName} (${order.qty}x ${order.productName}) has been ${status.toLowerCase()}`
         : `Order #${id} has been ${status.toLowerCase()}`;
       const updatedNotifications = s.notifications.map((n) => {
         if (n.to === "superadmin" && n.message.toLowerCase().includes("pending")) {
@@ -2147,16 +2140,16 @@ function OrderApprovalSection() {
 export function NotificationsSection({ role }: { role: "superadmin" | "manager" | "employee" }) {
   const { notifications, setState, orders, users, uid } = useStore();
   const navigate = useNavigate();
-  
+
   const seen = new Set<string>();
   const list = notifications.filter((n) => {
     if (n.to !== role && n.to !== "all") return false;
-    
+
     // Filter out duplicates
     const key = `${n.to}-${n.message}`;
     if (seen.has(key)) return false;
     seen.add(key);
-    
+
     const msg = n.message.toLowerCase();
     if (msg.includes("pending")) {
       const match = n.message.match(/pending for\s+(.+)/i);
@@ -2179,7 +2172,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
         const visibleUnreadIds = s.notifications
           .filter((n) => (n.to === role || n.to === "all") && !n.read)
           .map((n) => n.id);
-        
+
         if (visibleUnreadIds.length > 0) {
           return {
             ...s,
@@ -2223,7 +2216,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
     if (match) {
       const orderId = match[1];
       const action = match[2].toLowerCase();
-      
+
       const order = orders.find(o => o.id.toLowerCase() === orderId.toLowerCase());
       if (order) {
         return `Order #${order.id} for ${order.customerName} (${order.qty}x ${order.productName}) has been ${action}`;
@@ -2236,9 +2229,9 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
     let title = "System Update";
     let icon = "🔔";
     let color = "var(--info)";
-    
+
     const msg = n.message.toLowerCase();
-    
+
     if (msg.includes("approved")) {
       title = "Order Approved";
       icon = "✅";
@@ -2260,7 +2253,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
       icon = "📝";
       color = "var(--accent)";
     }
-    
+
     return { title, icon, color };
   };
 
@@ -2316,8 +2309,8 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
               }
 
               return (
-                <li 
-                  key={n.id} 
+                <li
+                  key={n.id}
                   className={`notif-card ${n.read ? "read" : "unread"}`}
                   style={{
                     borderLeft: `5px solid ${color}`
@@ -2364,25 +2357,25 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                         )}
                       </div>
                       <div style={{ fontSize: 13, marginTop: 3, color: "var(--brown)" }}>{getEnrichedMessage(n.message)}</div>
-                      
+
                       {assignedEmployee && role === "manager" && (
-                        <div style={{ 
-                          marginTop: 8, 
-                          padding: "6px 10px", 
-                          background: "rgba(122, 90, 50, 0.05)", 
-                          borderRadius: 8, 
-                          display: "inline-flex", 
-                          alignItems: "center", 
+                        <div style={{
+                          marginTop: 8,
+                          padding: "6px 10px",
+                          background: "rgba(122, 90, 50, 0.05)",
+                          borderRadius: 8,
+                          display: "inline-flex",
+                          alignItems: "center",
                           gap: 10,
                           flexWrap: "wrap",
                           border: "1px solid rgba(122, 90, 50, 0.1)"
                         }}
-                        onClick={(e) => e.stopPropagation()} // Prevent triggering markAsRead when clicking action buttons
+                          onClick={(e) => e.stopPropagation()} // Prevent triggering markAsRead when clicking action buttons
                         >
                           <span style={{ fontSize: 12, fontWeight: 500, color: "var(--brown)" }}>
                             Assigned to: <strong style={{ color: "var(--brown-dark)" }}>{assignedEmployee.name}</strong>
                           </span>
-                          
+
                           {order && !order.sentToEmployee ? (
                             <button
                               className="btn btn-sm"
@@ -2433,7 +2426,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(e) => e.stopPropagation()}>
                     <button
                       className="btn btn-circle btn-circle-danger"
-                      style={{ 
+                      style={{
                         width: 30,
                         height: 30,
                         display: "flex",
@@ -2516,7 +2509,7 @@ export function ProfileSection() {
         {/* Banner Area containing Avatar & Name inside the brown banner! */}
         <div className="profile-banner">
           <div className="profile-banner-pattern" />
-          
+
           <div className="profile-header-wrap">
             <div className="profile-avatar-large">
               {initials}
@@ -2533,7 +2526,7 @@ export function ProfileSection() {
         {/* Profile Details Body */}
         <div className="profile-body-content">
           <h4 className="profile-section-title">📌 Personal Specifications</h4>
-          
+
           <div className="profile-info-grid">
             <div className="profile-info-card">
               <div className="profile-info-icon">📧</div>
@@ -2576,8 +2569,8 @@ export function ProfileSection() {
                     <span style={{ fontFamily: showPassword ? "monospace" : "inherit", letterSpacing: showPassword ? "0.5px" : "normal", fontWeight: 600 }}>
                       {showPassword ? currentUser.password : "••••••••"}
                     </span>
-                    <button 
-                      onClick={() => setShowPassword(!showPassword)} 
+                    <button
+                      onClick={() => setShowPassword(!showPassword)}
                       style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 0, opacity: 0.8, display: "inline-flex", alignSelf: "center" }}
                       title={showPassword ? "Hide Password" : "Show Password"}
                     >
@@ -2621,5 +2614,1626 @@ export function ProfileSection() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function UpcomingFollowUps() {
+  const { leads, currentUser, setState, users } = useStore();
+  const navigate = useNavigate();
+
+  const handleViewAll = () => {
+    if (!currentUser) return;
+    const path = currentUser.role === "superadmin" ? "/super-admin" : `/${currentUser.role}`;
+    navigate({ to: path, search: { tab: "leads" } });
+  };
+
+  const handleClearReminder = (leadId: string) => {
+    if (!confirm("Are you sure you want to remove this follow-up reminder?")) return;
+    setState(s => ({
+      ...s,
+      leads: s.leads.map(lead => lead.id === leadId ? { ...lead, followUpDate: undefined } : lead)
+    }));
+  };
+
+  const getRelativeDays = (dateStr: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(dateStr);
+    target.setHours(0, 0, 0, 0);
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "In 1 days";
+    if (diffDays > 1) return `In ${diffDays} days`;
+    return `${Math.abs(diffDays)} days ago`;
+  };
+
+  const formatFollowUpDate = (dStr: string) => {
+    try {
+      const date = new Date(dStr);
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+    } catch {
+      return dStr;
+    }
+  };
+
+  const getStatusColor = (status: Lead["status"]) => {
+    const colors: Record<Lead["status"], string> = {
+      New: "#3b82f6",
+      Cold: "#6b7280",
+      Warm: "#d97706",
+      Hot: "#ef4444",
+      Enrolled: "#10b981",
+      Cancelled: "#db2777"
+    };
+    return colors[status] || "#3b82f6";
+  };
+
+  const upcoming = leads.filter(l => l.followUpDate && new Date(l.followUpDate) >= new Date(new Date().setHours(0, 0, 0, 0)));
+  upcoming.sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime());
+
+  return (
+    <div className="panel" style={{ padding: "24px", background: "#fffdf7", borderColor: "#f2e6d0" }}>
+      <div className="panel-head" style={{ marginBottom: upcoming.length ? "16px" : "0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "20px", color: "#d97706" }}>🔔</span>
+          <h3 className="panel-title" style={{ fontSize: "22px", color: "#5c4115", fontWeight: 700 }}>Upcoming Follow-ups</h3>
+        </div>
+        {currentUser?.role !== "superadmin" && (
+          <button className="btn btn-ghost" style={{ color: "#8a6632", fontWeight: 600, border: "1px solid #e1ceab" }} onClick={handleViewAll}>View All Inquiries</button>
+        )}
+      </div>
+
+      {upcoming.length === 0 ? (
+        <div style={{
+          textAlign: "center",
+          padding: "24px",
+          color: "#8a6632",
+          fontSize: "14px"
+        }}>
+          No upcoming follow-ups scheduled.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "16px" }}>
+          {upcoming.map(l => {
+            const assignedUser = users.find(u => u.id === l.assignedTo);
+            const assignedName = assignedUser ? assignedUser.name : "Unassigned";
+            return (
+              <div
+                key={l.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  padding: "16px 20px",
+                  background: "#fff",
+                  border: "1px solid #f2e6d0",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(122, 90, 50, 0.01)"
+                }}
+              >
+                {/* Header Row */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: getStatusColor(l.status),
+                        marginRight: "10px",
+                        display: "inline-block"
+                      }}
+                    />
+                    <strong style={{ fontSize: "15px", fontWeight: 700, color: "#5c4115" }}>{l.name}</strong>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span
+                      style={{
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        padding: "4px 10px",
+                        borderRadius: "99px"
+                      }}
+                    >
+                      {getRelativeDays(l.followUpDate!)}
+                    </span>
+                    <button
+                      onClick={() => handleClearReminder(l.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#991b1b",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "4px",
+                        borderRadius: "6px"
+                      }}
+                      title="Clear Reminder"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Details Section */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
+                    <Briefcase size={14} style={{ color: "#a8a29e" }} />
+                    <span>{l.product || "N/A"}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
+                    <Calendar size={14} style={{ color: "#a8a29e" }} />
+                    <span>{formatFollowUpDate(l.followUpDate!)}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
+                    <Phone size={14} style={{ color: "#a8a29e" }} />
+                    <span>{l.phone}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
+                    <UserIcon size={14} style={{ color: "#a8a29e" }} />
+                    <span>Employee: <strong style={{ color: "#5c4115" }}>{assignedName}</strong></span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } = {}) {
+  const { users, setState, uid } = useStore();
+  const managers = users.filter(u => u.role === "manager");
+  const employees = users.filter(u => u.role === "employee");
+
+  const [editingManager, setEditingManager] = useState<User | null>(null);
+  const [showAddManager, setShowAddManager] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<User | null>(null);
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+
+  const removeUser = (id: string, role: string) => {
+    if (!confirm(`Delete this ${role}?`)) return;
+    setState((s: any) => ({ ...s, users: s.users.filter((u: User) => u.id !== id) }));
+  };
+
+  const [activeTab, setActiveTab] = useState<"employee" | "manager">("employee");
+
+  return (
+    <>
+      <h2 className="page-title">Assign</h2>
+      <p className="page-sub">Manage your team — add, edit, or remove managers and employees.</p>
+
+      {/* ── Tab Buttons ── */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
+        <button onClick={() => setActiveTab("employee")} style={{
+          padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+          borderRadius: "20px",
+          borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+          background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
+          color: activeTab === "employee" ? "#92400e" : "#a18265",
+          transition: "all 0.3s ease",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px"
+        }}>
+          <span>👤 Employees</span>
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            fontSize: "11px",
+            background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+            color: activeTab === "employee" ? "#fff" : "#7c6249",
+            fontWeight: 800,
+          }}>{employees.length}</span>
+        </button>
+        <button onClick={() => setActiveTab("manager")} style={{
+          padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+          borderRadius: "20px",
+          borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+          background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
+          color: activeTab === "manager" ? "#92400e" : "#a18265",
+          transition: "all 0.3s ease",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px"
+        }}>
+          <span>👔 Managers</span>
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            fontSize: "11px",
+            background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+            color: activeTab === "manager" ? "#fff" : "#7c6249",
+            fontWeight: 800,
+          }}>{managers.length}</span>
+        </button>
+      </div>
+
+      {/* ── Employee Tab Content ── */}
+      {activeTab === "employee" && (
+        <div style={{
+          background: "#fffdf9",
+          borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6",
+          boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#78350f", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>👤 All Employees</span>
+            </h3>
+            {!readOnly && (
+              <button onClick={() => setShowAddEmployee(true)} style={{
+                padding: "8px 16px", borderRadius: "20px", border: "none",
+                background: "linear-gradient(135deg, #d97706, #b45309)", color: "#fff",
+                cursor: "pointer", fontSize: "12px", fontWeight: 600,
+                boxShadow: "0 2px 8px rgba(217, 119, 6, 0.2)",
+                transition: "transform 0.2s ease",
+              }}>+ Add Employee</button>
+            )}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+            {employees.map(e => (
+              <div key={e.id} style={{
+                background: "#fff", borderRadius: "12px", padding: "14px",
+                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+              }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                    <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21" }}>{e.name}</div>
+                    {!readOnly && (
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button onClick={() => setEditingEmployee(e)} title="Edit" style={{
+                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #f5e3cc",
+                          background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
+                          alignItems: "center", justifyContent: "center", fontSize: "11px"
+                        }}>✏️</button>
+                        <button onClick={() => removeUser(e.id, "employee")} title="Delete" style={{
+                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #fee2e2",
+                          background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
+                          alignItems: "center", justifyContent: "center"
+                        }}>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Briefcase size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.jobTitle || "Employee"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <UserIcon size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.username || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Key size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Password:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.password || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Mail size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Email:</span>
+                      <strong style={{ color: "#543d2b", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }} title={e.email}>{e.email || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Phone size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.phone || "—"}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {employees.length === 0 && (
+              <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No employees yet. Click + Add Employee to create one.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Manager Tab Content ── */}
+      {activeTab === "manager" && (
+        <div style={{
+          background: "#fffdf9",
+          borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6",
+          boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#78350f", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>👔 All Managers</span>
+            </h3>
+            {!readOnly && (
+              <button onClick={() => setShowAddManager(true)} style={{
+                padding: "8px 16px", borderRadius: "20px", border: "none",
+                background: "linear-gradient(135deg, #d97706, #b45309)", color: "#fff",
+                cursor: "pointer", fontSize: "12px", fontWeight: 600,
+                boxShadow: "0 2px 8px rgba(217, 119, 6, 0.2)",
+                transition: "transform 0.2s ease",
+              }}>+ Add Manager</button>
+            )}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+            {managers.map(m => (
+              <div key={m.id} style={{
+                background: "#fff", borderRadius: "12px", padding: "14px",
+                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+              }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                    <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21" }}>{m.name}</div>
+                    {!readOnly && (
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button onClick={() => setEditingManager(m)} title="Edit" style={{
+                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #f5e3cc",
+                          background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
+                          alignItems: "center", justifyContent: "center", fontSize: "11px"
+                        }}>✏️</button>
+                        <button onClick={() => removeUser(m.id, "manager")} title="Delete" style={{
+                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #fee2e2",
+                          background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
+                          alignItems: "center", justifyContent: "center"
+                        }}>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Briefcase size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.jobTitle || "Manager"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <UserIcon size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.username || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Key size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Password:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.password || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Mail size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Email:</span>
+                      <strong style={{ color: "#543d2b", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }} title={m.email}>{m.email || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Phone size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.phone || "—"}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {managers.length === 0 && (
+              <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No managers yet. Click + Add Manager to create one.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Manager */}
+      {showAddManager && (
+        <UserForm title="Add Manager" onClose={() => setShowAddManager(false)}
+          onSave={(data) => { setState((s: any) => ({ ...s, users: [...s.users, { id: uid("u"), role: "manager", ...data }] })); setShowAddManager(false); }} />
+      )}
+      {editingManager && (
+        <UserForm title="Edit Manager" initial={editingManager} onClose={() => setEditingManager(null)}
+          onSave={(data) => { setState((s: any) => ({ ...s, users: s.users.map((u: User) => u.id === editingManager.id ? { ...u, ...data } : u) })); setEditingManager(null); }} />
+      )}
+
+      {/* Add/Edit Employee */}
+      {showAddEmployee && (
+        <EmployeeForm title="Add Employee" onClose={() => setShowAddEmployee(false)}
+          onSave={(data) => { setState((s: any) => ({ ...s, users: [...s.users, { id: uid("u"), role: "employee", ...data }] })); setShowAddEmployee(false); }} />
+      )}
+      {editingEmployee && (
+        <EmployeeForm title="Edit Employee" initial={editingEmployee} onClose={() => setEditingEmployee(null)}
+          onSave={(data) => { setState((s: any) => ({ ...s, users: s.users.map((u: User) => u.id === editingEmployee.id ? { ...u, ...data } : u) })); setEditingEmployee(null); }} />
+      )}
+    </>
+  );
+}
+
+export function TaskAssignmentSection() {
+  const { users, tasks, setState, uid, currentUser } = useStore();
+  const [showAssignModal, setShowAssignModal] = useState(false);
+
+  const isSuperAdmin = currentUser?.role === "superadmin";
+
+  const managers = users.filter(u => u.role === "manager");
+  const employees = users.filter(u => u.role === "employee");
+
+  // Only show employees/managers who currently have at least one task assigned
+  const employeesWithTasks = employees.filter(e => tasks.some(t => t.assignedTo === e.id));
+  const managersWithTasks = managers.filter(m => tasks.some(t => t.assignedTo === m.id));
+
+  const [activeTab, setActiveTab] = useState<"employee" | "manager">("employee");
+
+  const eligibleAssignees = useMemo(() => {
+    if (isSuperAdmin) {
+      return users.filter(u => u.role === "employee" || u.role === "manager");
+    } else {
+      return users.filter(u => u.role === "employee");
+    }
+  }, [users, isSuperAdmin]);
+
+  const handleAssignTaskSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const title = formData.get("taskTitle") as string;
+    const assigneeId = formData.get("assigneeId") as string;
+
+    if (!title.trim() || !assigneeId) return;
+
+    const assignee = users.find(u => u.id === assigneeId);
+    if (!assignee) return;
+
+    const taskId = uid("t");
+    const notifId = uid("n");
+    const today = new Date().toISOString().slice(0, 10);
+
+    setState((s: any) => ({
+      ...s,
+      tasks: [
+        ...s.tasks,
+        {
+          id: taskId,
+          title: title.trim(),
+          assignedTo: assigneeId,
+          assignedToName: assignee.name,
+          status: "Pending",
+          date: today,
+        }
+      ],
+      notifications: [
+        {
+          id: notifId,
+          to: assignee.role,
+          from: isSuperAdmin ? "Super Admin" : "Manager",
+          message: `New task assigned: ${title.trim()}`,
+          date: today,
+          read: false,
+        },
+        ...s.notifications,
+      ]
+    }));
+
+    setShowAssignModal(false);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    if (!confirm("Delete this task?")) return;
+    setState((s: any) => ({
+      ...s,
+      tasks: s.tasks.filter((t: any) => t.id !== taskId)
+    }));
+  };
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h2 className="page-title" style={{ margin: 0 }}>Task Assign</h2>
+          <p className="page-sub" style={{ margin: "4px 0 0 0" }}>View members with assigned tasks and track progress.</p>
+        </div>
+        <button onClick={() => setShowAssignModal(true)} style={{
+          padding: "8px 18px", borderRadius: "20px", border: "none",
+          background: "linear-gradient(135deg, #d97706, #b45309)", color: "#fff",
+          cursor: "pointer", fontSize: "13px", fontWeight: 600,
+          boxShadow: "0 2px 8px rgba(217, 119, 6, 0.2)",
+        }}>+ Assign Task</button>
+      </div>
+
+      {/* ── Tab Buttons (Show only if Admin) ── */}
+      {isSuperAdmin ? (
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
+          <button onClick={() => setActiveTab("employee")} style={{
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
+            color: activeTab === "employee" ? "#92400e" : "#a18265",
+            transition: "all 0.3s ease",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px"
+          }}>
+            <span>👤 Employees</span>
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              fontSize: "11px",
+              background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "employee" ? "#fff" : "#7c6249",
+              fontWeight: 800,
+            }}>{employeesWithTasks.length}</span>
+          </button>
+          <button onClick={() => setActiveTab("manager")} style={{
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
+            color: activeTab === "manager" ? "#92400e" : "#a18265",
+            transition: "all 0.3s ease",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px"
+          }}>
+            <span>👔 Managers</span>
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              fontSize: "11px",
+              background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "manager" ? "#fff" : "#7c6249",
+              fontWeight: 800,
+            }}>{managersWithTasks.length}</span>
+          </button>
+        </div>
+      ) : null}
+
+      {/* ── Employee List (Active Tab = Employee or if user is Manager) ── */}
+      {(activeTab === "employee" || !isSuperAdmin) && (
+        <div style={{
+          background: "#fffdf9",
+          borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6",
+          boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
+        }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👤 Employees Tasks</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+            {employeesWithTasks.map(e => (
+              <div key={e.id} style={{
+                background: "#fff", borderRadius: "12px", padding: "14px",
+                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21", marginBottom: "10px" }}>{e.name}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Briefcase size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.jobTitle || "Employee"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <UserIcon size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.username || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Phone size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
+                      <strong style={{ color: "#543d2b" }}>{e.phone || "—"}</strong>
+                    </div>
+                  </div>
+
+                  {/* Tasks Section */}
+                  <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
+                    <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {tasks.filter(t => t.assignedTo === e.id).map(t => (
+                        <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fdfbfa", border: "1px solid #efe8df", padding: "4px 8px", borderRadius: "6px", fontSize: "11px" }}>
+                          <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{
+                              fontSize: "9px",
+                              padding: "2px 4px",
+                              borderRadius: "3px",
+                              background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
+                              color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
+                              fontWeight: 700
+                            }}>{t.status}</span>
+                            <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {employeesWithTasks.length === 0 && (
+              <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No employees with assigned tasks.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Manager List (Only if Admin & Tab = Manager) ── */}
+      {isSuperAdmin && activeTab === "manager" && (
+        <div style={{
+          background: "#fffdf9",
+          borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6",
+          boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
+        }}>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👔 Managers Tasks</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+            {managersWithTasks.map(m => (
+              <div key={m.id} style={{
+                background: "#fff", borderRadius: "12px", padding: "14px",
+                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
+                display: "flex", flexDirection: "column", justifyContent: "space-between",
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21", marginBottom: "10px" }}>{m.name}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Briefcase size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.jobTitle || "Manager"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <UserIcon size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.username || "—"}</strong>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Phone size={12} style={{ color: "#c29153" }} />
+                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
+                      <strong style={{ color: "#543d2b" }}>{m.phone || "—"}</strong>
+                    </div>
+                  </div>
+
+                  {/* Tasks Section */}
+                  <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
+                    <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {tasks.filter(t => t.assignedTo === m.id).map(t => (
+                        <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fdfbfa", border: "1px solid #efe8df", padding: "4px 8px", borderRadius: "6px", fontSize: "11px" }}>
+                          <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{
+                              fontSize: "9px",
+                              padding: "2px 4px",
+                              borderRadius: "3px",
+                              background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
+                              color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
+                              fontWeight: 700
+                            }}>{t.status}</span>
+                            <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {managersWithTasks.length === 0 && (
+              <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No managers with assigned tasks.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Assign Task Modal ── */}
+      {showAssignModal && (
+        <Modal title="Assign Task" onClose={() => setShowAssignModal(false)}>
+          <form onSubmit={handleAssignTaskSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#9c8069", marginBottom: "6px" }}>Task Description</label>
+              <textarea
+                name="taskTitle"
+                placeholder="Describe the task details..."
+                rows={3}
+                style={{
+                  width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #eaddca",
+                  fontSize: "13px", outline: "none", resize: "none", boxSizing: "border-box"
+                }}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#9c8069", marginBottom: "6px" }}>Select Assignee</label>
+              <select
+                name="assigneeId"
+                style={{
+                  width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #eaddca",
+                  fontSize: "13px", outline: "none", boxSizing: "border-box", background: "#fff"
+                }}
+                required
+              >
+                <option value="">-- Choose Member --</option>
+                {eligibleAssignees.map(u => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role === "manager" ? "Manager" : "Employee"}{u.jobTitle ? ` - ${u.jobTitle}` : ""})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
+              <button className="btn btn-ghost" type="button" onClick={() => setShowAssignModal(false)}>Cancel</button>
+              <button className="btn btn-primary" type="submit" style={{
+                background: "linear-gradient(135deg, #d97706, #b45309)", border: "none"
+              }}>Assign</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </>
+  );
+}
+
+export function LeadPipelineOverview({ activeFilter, onFilterChange }: { activeFilter?: string, onFilterChange?: (status: string) => void }) {
+  const { leads } = useStore();
+  const getCount = (status: string) => leads.filter(l => l.status === status).length;
+
+  const getCardStyle = (status: string) => ({
+    cursor: onFilterChange ? "pointer" : "default",
+    border: activeFilter === status ? "2px solid #d97706" : undefined,
+    boxShadow: activeFilter === status ? "0 4px 12px rgba(217, 119, 6, 0.2)" : undefined,
+    transform: activeFilter === status ? "scale(1.02)" : "none",
+    transition: "all 0.2s ease"
+  });
+
+  const statuses = [
+    { key: "New", label: "New Leads", color: "#3b82f6", bg: "#eff6ff", icon: "🆕" },
+    { key: "Cold", label: "Cold Leads", color: "#6b7280", bg: "#f3f4f6", icon: "❄️" },
+    { key: "Warm", label: "Warm Leads", color: "#f59e0b", bg: "#fef3c7", icon: "🌤️" },
+    { key: "Hot", label: "Hot Leads", color: "#ef4444", bg: "#fee2e2", icon: "🔥" },
+    { key: "Enrolled", label: "Enrolled", color: "#10b981", bg: "#d1fae5", icon: "🎓" },
+    { key: "Cancelled", label: "Cancelled", color: "#ec4899", bg: "#fce7f3", icon: "❌" },
+  ];
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+      {statuses.map(st => (
+        <div
+          key={st.key}
+          className="panel"
+          style={{
+            ...getCardStyle(st.key),
+            background: st.bg,
+            borderColor: activeFilter === st.key ? st.color : "transparent",
+            padding: "16px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "12px",
+            textAlign: "center"
+          }}
+          onClick={() => onFilterChange && onFilterChange(st.key)}
+        >
+          <span style={{ fontSize: "24px", marginBottom: "8px" }}>{st.icon}</span>
+          <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase" }}>{st.label}</div>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: st.color, marginTop: "4px" }}>{getCount(st.key)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id: string) => void; onEdit: (lead: Lead) => void }) {
+  const { setState, users } = useStore();
+  const [localNotes, setLocalNotes] = useState(lead.notes || "");
+  const [localDate, setLocalDate] = useState(lead.followUpDate || "");
+
+  useEffect(() => {
+    setLocalNotes(lead.notes || "");
+    setLocalDate(lead.followUpDate || "");
+  }, [lead]);
+
+  const updateStatus = (status: Lead["status"]) => {
+    setState((s) => ({
+      ...s,
+      leads: s.leads.map((l) => (l.id === lead.id ? { ...l, status } : l)),
+    }));
+  };
+
+  const handleNotesBlur = () => {
+    if (localNotes !== (lead.notes || "")) {
+      setState((s) => ({
+        ...s,
+        leads: s.leads.map((l) => (l.id === lead.id ? { ...l, notes: localNotes || undefined } : l)),
+      }));
+    }
+  };
+
+  const handleSetReminder = () => {
+    setState((s) => ({
+      ...s,
+      leads: s.leads.map((l) => (l.id === lead.id ? { ...l, followUpDate: localDate || undefined } : l)),
+    }));
+  };
+
+  const handleClearReminder = () => {
+    setLocalDate("");
+    setState((s) => ({
+      ...s,
+      leads: s.leads.map((l) => (l.id === lead.id ? { ...l, followUpDate: undefined } : l)),
+    }));
+  };
+
+  const handleAssignChange = (assignedTo: string) => {
+    setState((s) => ({
+      ...s,
+      leads: s.leads.map((l) => (l.id === lead.id ? { ...l, assignedTo: assignedTo || undefined } : l)),
+    }));
+  };
+
+  const getStatusBadgeStyle = (status: Lead["status"]) => {
+    const styles: Record<Lead["status"], { bg: string; color: string }> = {
+      New: { bg: "#eff6ff", color: "#1d4ed8" },
+      Cold: { bg: "#f3f4f6", color: "#475569" },
+      Warm: { bg: "#fffbeb", color: "#d97706" },
+      Hot: { bg: "#fef2f2", color: "#dc2626" },
+      Enrolled: { bg: "#ecfdf5", color: "#059669" },
+      Cancelled: { bg: "#fdf2f8", color: "#db2777" },
+    };
+    return styles[status] || styles.New;
+  };
+
+  const formatReminderDate = (dStr: string) => {
+    try {
+      const date = new Date(dStr);
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+    } catch {
+      return dStr;
+    }
+  };
+
+  const statusOptions: { key: Lead["status"]; label: string; color: string; border: string; dot: string }[] = [
+    { key: "Cold", label: "Cold", color: "#4b5563", border: "#d1d5db", dot: "#6b7280" },
+    { key: "Warm", label: "Warm", color: "#d97706", border: "#fde68a", dot: "#d97706" },
+    { key: "Hot", label: "Hot", color: "#dc2626", border: "#fecaca", dot: "#dc2626" },
+    { key: "Enrolled", label: "Enrolled", color: "#059669", border: "#a7f3d0", dot: "#059669" },
+    { key: "Cancelled", label: "Cancel", color: "#db2777", border: "#fbcfe8", dot: "#db2777" },
+    { key: "New", label: "New", color: "#1d4ed8", border: "#bfdbfe", dot: "#1d4ed8" }
+  ];
+
+  const badgeStyle = getStatusBadgeStyle(lead.status);
+
+  return (
+    <div className="panel animate fadeIn" style={{ padding: "28px", border: "1px solid #f1ece4", borderRadius: "20px", background: "#ffffff", marginBottom: "24px", boxShadow: "0 10px 30px rgba(122, 90, 50, 0.04)" }}>
+      {/* Top Profile & Header Row */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "20px" }}>
+        <input type="checkbox" style={{ marginTop: "12px", width: "16px", height: "16px", accentColor: "#d97706" }} />
+
+        <div style={{
+          width: "42px", height: "42px", borderRadius: "50%", background: "#fffbeb",
+          display: "flex", alignItems: "center", justifyContent: "center", color: "#d97706", fontSize: "18px",
+          marginTop: "2px"
+        }}>
+          👤
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <h3 style={{ margin: "0 0 8px 0", fontSize: "24px", fontWeight: 700, color: "#1c1917", fontFamily: "Georgia, serif", textTransform: "uppercase", letterSpacing: "1px" }}>
+            {lead.name}
+          </h3>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <span style={{
+              background: "#f3f4f6", color: "#4b5563", fontSize: "12px", fontWeight: 600,
+              padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #e5e7eb"
+            }}>
+              👤 {lead.status}
+            </span>
+            {lead.brand && (
+              <span style={{
+                background: "#fff7ed", color: "#ea580c", fontSize: "12px", fontWeight: 600,
+                padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #ffedd5"
+              }}>
+                📋 {lead.brand}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Button Row: Status switches + Remove */}
+      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px", paddingBottom: "20px", borderBottom: "1px solid #f5ede0", marginBottom: "24px" }}>
+        {statusOptions.map(opt => {
+          const isActive = lead.status === opt.key;
+          return (
+            <button
+              key={opt.key}
+              onClick={() => updateStatus(opt.key)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
+                fontSize: "12px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease",
+                backgroundColor: isActive ? opt.color : "#ffffff", color: isActive ? "#ffffff" : opt.color,
+                border: `1px solid ${isActive ? opt.color : opt.border}`,
+              }}
+            >
+              {opt.key === "Cancelled" ? <span>🚫</span> : <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: isActive ? "#ffffff" : opt.dot }} />}
+              {opt.label}
+            </button>
+          );
+        })}
+
+        <div style={{ width: "1px", height: "24px", backgroundColor: "#f5ede0", margin: "0 6px" }} />
+
+        <button
+          onClick={() => onDelete(lead.id)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
+            fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fee2e2", transition: "all 0.2s ease"
+          }}
+        >
+          🗑 Remove
+        </button>
+
+        <button
+          onClick={() => onEdit(lead)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
+            fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fafaf9", color: "#5c4115", border: "1px solid #e7e5e4", transition: "all 0.2s ease", marginLeft: "auto"
+          }}
+        >
+          ✏ Edit Details
+        </button>
+      </div>
+
+      {/* Grid of detail list items */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "24px", color: "#57534e", fontSize: "14px", fontWeight: 500 }}>
+        {/* Left Column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "16px" }}>✉</span>
+            <span>{lead.email || "--"}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "16px" }}>📖</span>
+            <span>{lead.gender ? `Gender: ${lead.gender}` : "NA"}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "16px" }}>📍</span>
+            <span style={{ textTransform: "uppercase" }}>{lead.city || "UNKNOWN"}</span>
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "16px" }}>📞</span>
+            <span>{lead.phone}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "16px" }}>📅</span>
+            <span>{new Date(lead.date).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
+        {/* Info Boxes */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: "12px", fontWeight: 800, color: "#8a6632", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Lead Details</div>
+          <div style={{ background: "#fcfaf5", border: "1px solid #f1ece1", borderRadius: "12px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#8a6632" }}>
+              PRODUCT: <span style={{ color: "#5c4115", fontSize: "14px", marginLeft: "6px" }}>{lead.product || "N/A"}{lead.brand ? ` (${lead.brand})` : ""}</span>
+            </div>
+            <div style={{ fontSize: "12px", fontWeight: 700, color: "#8a6632" }}>
+              SOURCE: <span style={{ color: "#5c4115", fontSize: "14px", marginLeft: "6px", textTransform: "uppercase" }}>{lead.source || "N/A"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Admin Comments Box */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: "12px", fontWeight: 800, color: "#8a6632", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Admin Comments</div>
+          <textarea
+            className="form-textarea"
+            style={{ flex: 1, minHeight: "72px", resize: "none", background: "#fcfaf5", borderColor: "#f1ece1", padding: "12px" }}
+            placeholder="Add your comments here..."
+            value={localNotes}
+            onChange={(e) => setLocalNotes(e.target.value)}
+            onBlur={handleNotesBlur}
+          />
+        </div>
+      </div>
+
+      {/* Bottom Row: Date / Reminder Panel */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+            <span>📅</span>
+            <span style={{ fontSize: "12px", fontWeight: 800, color: "#8a6632", textTransform: "uppercase", letterSpacing: "0.5px" }}>Next Follow-up Date</span>
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+            <input
+              type="date"
+              className="form-input"
+              style={{ margin: 0, height: "42px", background: "#ffffff" }}
+              value={localDate}
+              onChange={(e) => setLocalDate(e.target.value)}
+            />
+            <button
+              onClick={handleSetReminder}
+              className="btn btn-primary"
+              style={{
+                backgroundColor: "#d97706",
+                border: "none",
+                borderRadius: "8px",
+                color: "#ffffff",
+                fontWeight: 700,
+                padding: "0 20px",
+                height: "42px",
+                whiteSpace: "nowrap",
+                cursor: "pointer"
+              }}
+            >
+              Set Reminder
+            </button>
+          </div>
+
+          {/* Alert Set Banner */}
+          {lead.followUpDate && (
+            <div style={{
+              background: "#fffdf0",
+              border: "1px solid #fde047",
+              borderRadius: "8px",
+              padding: "8px 12px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 600, color: "#854d0e" }}>
+                <span>🔔</span>
+                <span>Reminder set for: {formatReminderDate(lead.followUpDate)}</span>
+              </div>
+              <button
+                onClick={handleClearReminder}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  color: "#dc2626",
+                  padding: 0
+                }}
+                title="Remove Reminder"
+              >
+                🗑
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function DashboardLeadPipelineOverview({
+  activeFilter,
+  onFilterChange,
+  showTitle = true,
+}: {
+  activeFilter?: string;
+  onFilterChange?: (status: string) => void;
+  showTitle?: boolean;
+} = {}) {
+  const { leads, currentUser } = useStore();
+  const navigate = useNavigate();
+
+  const handleViewAll = () => {
+    if (!currentUser) return;
+    const path = currentUser.role === "superadmin" ? "/super-admin" : `/${currentUser.role}`;
+    navigate({ to: path, search: { tab: "leads" } });
+  };
+
+  const getCount = (status: Lead["status"]) => leads.filter(l => l.status === status).length;
+
+  const cards: { key: Lead["status"]; label: string; count: number; color: string; bg: string; border: string; icon: any }[] = [
+    { key: "New", label: "New Leads", count: getCount("New"), color: "#3b82f6", bg: "#eff6ff", border: "#dbeafe", icon: AlertCircle },
+    { key: "Cold", label: "Cold", count: getCount("Cold"), color: "#6b7280", bg: "#f3f4f6", border: "#e5e7eb", icon: Snowflake },
+    { key: "Warm", label: "Warm", count: getCount("Warm"), color: "#d97706", bg: "#fffbeb", border: "#fef3c7", icon: Clock },
+    { key: "Hot", label: "Hot", count: getCount("Hot"), color: "#ef4444", bg: "#fdf2f2", border: "#fee2e2", icon: Flame },
+    { key: "Enrolled", label: "Enrolled", count: getCount("Enrolled"), color: "#10b981", bg: "#ecfdf5", border: "#d1fae5", icon: CheckCircle2 },
+    { key: "Cancelled", label: "Cancelled", count: getCount("Cancelled"), color: "#db2777", bg: "#fdf2f8", border: "#fce7f3", icon: XCircle }
+  ];
+
+  return (
+    <div className="panel" style={{ padding: "24px", background: "#fff", borderRadius: "16px", border: "1px solid #f2e6d0", boxShadow: "0 4px 15px rgba(122, 90, 50, 0.02)", marginBottom: "24px" }}>
+      {showTitle && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <MessageSquare className="size-5" style={{ color: "#d97706" }} />
+            <h3 style={{ fontSize: "20px", color: "#5c4115", fontWeight: 700, margin: 0 }}>Lead Pipeline Overview</h3>
+          </div>
+          <button
+            onClick={handleViewAll}
+            style={{ color: "#d97706", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", outline: "none" }}
+          >
+            View All Inquiries
+          </button>
+        </div>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "16px" }}>
+        {cards.map((c, idx) => {
+          const Icon = c.icon;
+          const isSelected = activeFilter === c.key;
+          return (
+            <div
+              key={idx}
+              onClick={() => onFilterChange && onFilterChange(c.key)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "12px 16px",
+                background: c.bg,
+                border: isSelected ? `2.5px solid ${c.color}` : `1px solid ${c.border}`,
+                borderRadius: "12px",
+                cursor: onFilterChange ? "pointer" : "default",
+                transform: isSelected ? "scale(1.03)" : "none",
+                boxShadow: isSelected ? `0 4px 12px ${c.color}30` : "none",
+                transition: "all 0.2s ease"
+              }}
+            >
+              <div
+                style={{
+                  width: "38px",
+                  height: "38px",
+                  borderRadius: "50%",
+                  background: `${c.color}15`,
+                  color: c.color,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0
+                }}
+              >
+                <Icon size={18} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "11px", color: "var(--brown)", fontWeight: 500 }}>{c.label}</span>
+                <span style={{ fontSize: "22px", fontWeight: 800, color: c.color, lineHeight: "1.2", marginTop: "2px" }}>{c.count}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function LeadsSection() {
+  const { leads, users, products, setState, uid, currentUser } = useStore();
+  const [activeFilter, setActiveFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+
+  const [formName, setFormName] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formSource, setFormSource] = useState("Walk-in");
+  const [formProduct, setFormProduct] = useState("");
+  const [formBrand, setFormBrand] = useState("");
+  const [formGender, setFormGender] = useState<"Male" | "Female" | "Other" | "">("");
+  const [formStatus, setFormStatus] = useState<Lead["status"]>("New");
+  const [formFollowUpDate, setFormFollowUpDate] = useState("");
+  const [formNotes, setFormNotes] = useState("");
+  const [formAssignedTo, setFormAssignedTo] = useState("");
+  const [formCity, setFormCity] = useState("");
+
+  const availableBrands = useMemo(() => {
+    if (!formProduct) return [];
+    const match = PRODUCT_BRAND_MAP.find(m => m.keywords.some(k => formProduct.toLowerCase().includes(k)));
+    return match ? match.brands : [];
+  }, [formProduct]);
+
+  useEffect(() => {
+    if (editingLead) {
+      setFormName(editingLead.name || "");
+      setFormPhone(editingLead.phone || "");
+      setFormEmail(editingLead.email || "");
+      setFormSource(editingLead.source || "Walk-in");
+      setFormProduct(editingLead.product || "");
+      setFormBrand(editingLead.brand || "");
+      setFormGender(editingLead.gender || "");
+      setFormStatus(editingLead.status || "New");
+      setFormFollowUpDate(editingLead.followUpDate || "");
+      setFormNotes(editingLead.notes || "");
+      setFormAssignedTo(editingLead.assignedTo || "");
+      setFormCity(editingLead.city || "");
+    } else {
+      setFormName("");
+      setFormPhone("");
+      setFormEmail("");
+      setFormSource("Walk-in");
+      setFormProduct(products[0]?.name || "");
+      setFormBrand("");
+      setFormGender("");
+      setFormStatus("New");
+      setFormFollowUpDate("");
+      setFormNotes("");
+      setFormAssignedTo("");
+      setFormCity("");
+    }
+  }, [editingLead, showAddModal, products]);
+
+  if (currentUser?.role === "superadmin") {
+    return (
+      <>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <div>
+            <h2 className="page-title">Lead Generation</h2>
+            <p className="page-sub">Track customer inquiries, status updates, and assign them to staff members.</p>
+          </div>
+        </div>
+
+        <DashboardLeadPipelineOverview showTitle={false} />
+      </>
+    );
+  }
+
+  const handleSave = () => {
+    if (!formName || !formPhone) return;
+
+    if (editingLead) {
+      setState((s) => ({
+        ...s,
+        leads: s.leads.map((l) =>
+          l.id === editingLead.id
+            ? {
+              ...l,
+              name: formName,
+              phone: formPhone,
+              email: formEmail || undefined,
+              source: formSource || undefined,
+              product: formProduct || undefined,
+              brand: formBrand || undefined,
+              gender: (formGender as any) || undefined,
+              status: formStatus,
+              followUpDate: formFollowUpDate || undefined,
+              notes: formNotes || undefined,
+              assignedTo: formAssignedTo || undefined,
+              city: formCity || undefined,
+            }
+            : l
+        ),
+      }));
+      setEditingLead(null);
+    } else {
+      const newLead: Lead = {
+        id: uid("l"),
+        name: formName,
+        phone: formPhone,
+        email: formEmail || undefined,
+        source: formSource || undefined,
+        product: formProduct || undefined,
+        brand: formBrand || undefined,
+        gender: (formGender as any) || undefined,
+        status: formStatus,
+        followUpDate: formFollowUpDate || undefined,
+        notes: formNotes || undefined,
+        assignedTo: formAssignedTo || undefined,
+        city: formCity || undefined,
+        date: new Date().toISOString().slice(0, 10),
+      };
+      setState((s) => ({
+        ...s,
+        leads: [newLead, ...s.leads],
+      }));
+      setShowAddModal(false);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("Are you sure you want to delete this lead?")) return;
+    setState((s) => ({
+      ...s,
+      leads: s.leads.filter((l) => l.id !== id),
+    }));
+  };
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter((l) => {
+      const matchesFilter = activeFilter ? l.status === activeFilter : true;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch =
+        l.name.toLowerCase().includes(q) ||
+        l.phone.toLowerCase().includes(q) ||
+        (l.product && l.product.toLowerCase().includes(q)) ||
+        (l.email && l.email.toLowerCase().includes(q)) ||
+        (l.city && l.city.toLowerCase().includes(q)) ||
+        (l.source && l.source.toLowerCase().includes(q));
+      return matchesFilter && matchesSearch;
+    });
+  }, [leads, activeFilter, searchQuery]);
+
+  const assignableUsers = useMemo(() => {
+    return users.filter((u) => u.role === "manager" || u.role === "employee");
+  }, [users]);
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div>
+          <h2 className="page-title">Lead Generation</h2>
+          <p className="page-sub">Track customer inquiries, status updates, and assign them to staff members.</p>
+        </div>
+        {(currentUser?.role as string) !== "superadmin" && (
+          <button
+            className="btn btn-primary"
+            style={{
+              background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 20px",
+              fontWeight: 700,
+              boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+            onClick={() => setShowAddModal(true)}
+          >
+            <span style={{ fontSize: "18px", lineHeight: 1 }}>+</span> Add New Lead
+          </button>
+        )}
+      </div>
+
+      <DashboardLeadPipelineOverview
+        activeFilter={activeFilter}
+        onFilterChange={(st) => setActiveFilter((prev) => (prev === st ? "" : st))}
+        showTitle={false}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px", alignItems: "start" }}>
+        {/* Left Column: Leads Custom Cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#5c4115", margin: 0 }}>
+              {activeFilter ? `${activeFilter} Leads` : "All Leads"} ({filteredLeads.length})
+            </h3>
+
+            {/* Search Box */}
+            <div style={{ position: "relative", display: "flex", alignItems: "center", minWidth: "260px" }}>
+              <span style={{ position: "absolute", left: "10px", color: "var(--text-muted)", fontSize: "14px" }}>≡ƒöì</span>
+              <input
+                className="form-input"
+                style={{ paddingLeft: "32px", margin: 0, height: "36px", fontSize: "13px" }}
+                placeholder="Search name, phone, product, city..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {filteredLeads.map((l) => (
+              <LeadCard key={l.id} lead={l} onDelete={handleDelete} onEdit={(lead) => setEditingLead(lead)} />
+            ))}
+            {filteredLeads.length === 0 && (
+              <div className="panel" style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", border: "1px solid #f2e6d0", borderRadius: "12px" }}>
+                No inquiry leads found matching current filters.
+              </div>
+            )}
+          </div>
+        </div>
+
+
+      </div>
+
+      {/* Add / Edit Modal */}
+      {(showAddModal || editingLead !== null) && (
+        <Modal
+          title={editingLead ? "Edit Lead Details" : "Create New Inquiry Lead"}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingLead(null);
+          }}
+        >
+          <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div className="form-group">
+              <label className="form-label">Full Name <span style={{ color: "#dc2626" }}>*</span></label>
+              <input
+                className="form-input"
+                placeholder="Enter your full name"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">WhatsApp No</label>
+              <input
+                className="form-input"
+                placeholder="+91 XXXXX XXXXX"
+                value={formPhone}
+                onChange={(e) => setFormPhone(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Email</label>
+              <input
+                className="form-input"
+                placeholder="example@gmail.com"
+                value={formEmail}
+                onChange={(e) => setFormEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">City</label>
+              <input
+                className="form-input"
+                placeholder="Your City"
+                value={formCity}
+                onChange={(e) => setFormCity(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" style={{ textTransform: "none", fontSize: "14px", fontWeight: 600 }}>Gender</label>
+              <div style={{ display: "flex", gap: "24px", marginTop: "12px", marginBottom: "8px" }}>
+                {(["Male", "Female", "Other"] as const).map(g => (
+                  <label key={g} style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }} onClick={() => setFormGender(g)}>
+                    <div style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: formGender === g ? "2px solid #d97706" : "1px solid #d6d3d1",
+                      display: "flex", alignItems: "center", justifyContent: "center", background: "#ffffff",
+                      transition: "all 0.2s"
+                    }}>
+                      {formGender === g && <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#d97706", animation: "fade-in 0.2s ease" }} />}
+                    </div>
+                    <span style={{ fontSize: "14px", fontWeight: 600, color: "#4a3411" }}>{g}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Product of Interest</label>
+              <select className="form-input" value={formProduct} onChange={(e) => setFormProduct(e.target.value)}>
+                <option value="">Select a Product</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.name}>{p.name}</option>
+                ))}
+                <option value="Other Product">Other Product</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Product Brand</label>
+              <select
+                className="form-input"
+                value={formBrand}
+                onChange={(e) => setFormBrand(e.target.value)}
+                disabled={availableBrands.length === 0}
+              >
+                <option value="">{availableBrands.length > 0 ? "Select a Brand" : "No Brands Available"}</option>
+                {availableBrands.map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+                {availableBrands.length > 0 && <option value="Other">Other</option>}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Lead Source</label>
+              <select className="form-input" value={formSource} onChange={(e) => setFormSource(e.target.value)}>
+                <option value="Walk-in">Walk-in</option>
+                <option value="Phone">Phone Call</option>
+                <option value="Online">Online Form</option>
+                <option value="Referral">Referral</option>
+                <option value="Advertisement">Advertisement</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Assign Lead to Staff</label>
+              <select
+                className="form-input"
+                value={formAssignedTo}
+                onChange={(e) => setFormAssignedTo(e.target.value)}
+                disabled={!!(editingLead && editingLead.assignedTo)}
+              >
+                <option value="" disabled hidden>Select Staff</option>
+                {assignableUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Schedule Follow-up Date</label>
+              <input
+                type="date"
+                className="form-input"
+                value={formFollowUpDate}
+                onChange={(e) => setFormFollowUpDate(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Inquiry Notes / Details</label>
+              <textarea
+                className="form-textarea"
+                style={{ height: "100px", resize: "none" }}
+                placeholder="Enter client expectations, requirements or past follow-up remarks..."
+                value={formNotes}
+                onChange={(e) => setFormNotes(e.target.value)}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: "10px" }}>
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingLead(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleSave}
+                disabled={!formName || !formPhone}
+                style={{ background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)", border: "none" }}
+              >
+                {editingLead ? "Update Lead" : "Add Lead"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }

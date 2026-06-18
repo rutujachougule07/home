@@ -2,12 +2,15 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useStore, User, Customer, Order } from "../app/store";
 import { DashboardLayout, StatCard, Pill, Modal, NavItem, BarChart } from "../app/DashboardLayout";
-import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal } from "./SuperAdminPage";
+import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection } from "./SuperAdminPage";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
   { key: "employees", label: "Employees", icon: "👥" },
+  { key: "assign", label: "Assign", icon: "📋" },
+  { key: "task-assign", label: "Task Assign", icon: "📝" },
   { key: "customers", label: "Customers", icon: "🧑‍💼" },
+  { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "orders", label: "Orders", icon: "🧾" },
   { key: "products", label: "Product Availability", icon: "📦" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
@@ -32,7 +35,10 @@ export function ManagerPage({ tab = "overview" }: ManagerPageProps) {
     <DashboardLayout role="manager" title="Manager" nav={NAV} active={active} onNav={setActive}>
       {active === "overview" && <Overview />}
       {active === "employees" && <EmployeesMgmt />}
+      {active === "assign" && <TasksAssignSection readOnly={true} />}
+      {active === "task-assign" && <TaskAssignmentSection />}
       {active === "customers" && <CustomersMgmt />}
+      {active === "leads" && <LeadsSection />}
       {active === "orders" && <OrdersMgmt />}
       {active === "products" && <ProductsAvail />}
       {active === "notifications" && <NotificationsSection role="manager" />}
@@ -49,6 +55,8 @@ function Overview() {
     <>
       <h2 className="page-title">Manager Dashboard</h2>
       <p className="page-sub">Coordinate employees, customers, and orders.</p>
+      <DashboardLeadPipelineOverview />
+      <UpcomingFollowUps />
       <div className="stat-grid">
         <StatCard icon="👥" label="Employees" value={emp} />
         <StatCard icon="🧑‍💼" label="Customers" value={customers.length} />

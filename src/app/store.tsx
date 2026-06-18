@@ -10,6 +10,7 @@ export interface Customer { id: string; name: string; email: string; phone: stri
 export interface Order { id: string; customerId: string; customerName: string; productId: string; productName: string; qty: number; total: number; createdBy: string; status: "Pending" | "Approved" | "Rejected" | "Delivered"; date: string; assignedTo?: string; assignedToName?: string; sentToEmployee?: boolean; }
 export interface Task { id: string; title: string; assignedTo: string; assignedToName: string; customerId?: string; status: "Pending" | "In Progress" | "Completed"; date: string; }
 export interface Notification { id: string; to: Role | "all"; from: string; message: string; date: string; read: boolean; }
+export interface Lead { id: string; name: string; phone: string; email?: string; source?: string; product?: string; brand?: string; gender?: "Male" | "Female" | "Other"; status: "New" | "Cold" | "Warm" | "Hot" | "Enrolled" | "Cancelled"; followUpDate?: string; notes?: string; date: string; assignedTo?: string; city?: string; }
 
 interface State {
   currentUser: User | null;
@@ -19,6 +20,7 @@ interface State {
   orders: Order[];
   tasks: Task[];
   notifications: Notification[];
+  leads: Lead[];
 }
 
 const initialUsers: User[] = [
@@ -86,6 +88,14 @@ const initialNotifications: Notification[] = [
   { id: "n3", to: "employee", from: "Manager Rohan", message: "New task assigned: follow up Mahesh", date: "2026-05-22", read: false },
 ];
 
+const initialLeads: Lead[] = [
+  { id: "l1", name: "Amit Deshmukh", phone: "9876500001", email: "amit@mail.com", source: "Walk-in", product: "Smart AC", status: "Hot", followUpDate: "2026-06-20", notes: "Interested in 1.5 ton split AC", date: "2026-06-15", assignedTo: "u3", city: "Mumbai" },
+  { id: "l2", name: "Snehal Patil", phone: "9876500002", email: "snehal@mail.com", source: "Phone", product: "Washing Machine", status: "Warm", followUpDate: "2026-06-22", notes: "Comparing prices", date: "2026-06-14", assignedTo: "u5", city: "Pune" },
+  { id: "l3", name: "Ravi Kulkarni", phone: "9876500003", source: "Referral", product: "Refrigerator", status: "New", date: "2026-06-17", city: "Sangli" },
+  { id: "l4", name: "Pooja Sharma", phone: "9876500004", source: "Online", product: "Smart TV", status: "Cold", followUpDate: "2026-06-25", date: "2026-06-10", city: "Kolhapur" },
+  { id: "l5", name: "Kiran Jadhav", phone: "9876500005", source: "Walk-in", product: "Ceiling Fan", status: "Enrolled", date: "2026-06-08", city: "Satara" },
+];
+
 const USER_STORAGE_KEY = "sham_current_user_v2";
 
 function loadCurrentUser(): User | null {
@@ -116,6 +126,7 @@ function defaultState(): State {
     orders: initialOrders,
     tasks: initialTasks,
     notifications: initialNotifications,
+    leads: initialLeads,
   };
 }
 
@@ -193,6 +204,7 @@ const syncStateToFirestore = (oldState: State, newState: State) => {
     "orders",
     "tasks",
     "notifications",
+    "leads",
   ];
 
   collections.forEach((col) => {
@@ -261,6 +273,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         onSnapshot(collection(db, "notifications"), (snap) => {
           const list = snap.docs.map((d) => d.data() as Notification);
           setStateRaw((s) => ({ ...s, notifications: list }));
+        }),
+        onSnapshot(collection(db, "leads"), (snap) => {
+          const list = snap.docs.map((d) => d.data() as Lead);
+          setStateRaw((s) => ({ ...s, leads: list }));
         }),
       ];
 

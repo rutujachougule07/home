@@ -2,11 +2,12 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useStore, Customer, Product, Order } from "../app/store";
 import { DashboardLayout, StatCard, Pill, NavItem, Modal } from "../app/DashboardLayout";
-import { NotificationsSection, ProfileSection } from "./SuperAdminPage";
+import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps } from "./SuperAdminPage";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
   { key: "tasks", label: "Assigned Tasks", icon: "📝" },
+  { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "orders", label: "Order Updates", icon: "🧾" },
   { key: "products", label: "Products", icon: "📦" },
   { key: "history", label: "History", icon: "📜" },
@@ -34,6 +35,7 @@ export function EmployeePage({ tab = "overview" }: EmployeePageProps) {
     <DashboardLayout role="employee" title="Employee" nav={NAV} active={active} onNav={setActive}>
       {active === "overview" && <Overview />}
       {active === "tasks" && <TasksSection />}
+      {active === "leads" && <LeadsSection />}
       {active === "orders" && <OrderUpdates />}
       {active === "products" && <ProductsSection />}
       {active === "history" && <HistorySection />}
@@ -49,6 +51,8 @@ function Overview() {
     <>
       <h2 className="page-title">Welcome, {currentUser?.name?.split(" ")[0]}</h2>
       <p className="page-sub">Here's your work overview for today.</p>
+      <DashboardLeadPipelineOverview />
+      <UpcomingFollowUps />
       <div className="stat-grid">
         <StatCard icon="📝" label="Total Tasks" value={mine.length} />
         <StatCard icon="⏳" label="Pending" value={mine.filter((t) => t.status === "Pending").length} />
