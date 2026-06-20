@@ -8,10 +8,12 @@ import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSqu
 const NAV: NavItem[] = [
   { key: "live", label: "Live Status", icon: "📡" },
   { key: "products", label: "Stocking Inventory", icon: "📦" },
+  { key: "godown", label: "Godowns", icon: "🏭" },
   { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "assign", label: "Assign", icon: "📋" },
   { key: "task-assign", label: "Task Assign", icon: "📝" },
   { key: "orders", label: "Order Approvals", icon: "✅" },
+  { key: "incentive", label: "Incentive", icon: "💰" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
 ];
 
@@ -38,7 +40,9 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
       {active === "managers" && <ManagersSection />}
       {active === "employees" && <EmployeesSection />}
       {active === "products" && <ProductsSection />}
+      {active === "godown" && <SuperAdminGodownSection />}
       {active === "orders" && <OrderApprovalSection />}
+      {active === "incentive" && <SuperAdminIncentiveSection />}
       {active === "notifications" && <NotificationsSection role="superadmin" />}
     </DashboardLayout>
   );
@@ -1226,9 +1230,9 @@ function ProductsSection() {
   const lowStockCount = locProducts.filter((p) => (p.qty ?? p.stock ?? 0) < 20).length;
   const highStockCount = locProducts.filter((p) => (p.qty ?? p.stock ?? 0) >= 50).length;
 
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  const oldProductsForIncentive = locProducts.filter(p => p.date && new Date(p.date) < threeMonthsAgo);
+  const fifteenDaysAgo = new Date();
+  fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+  const oldProductsForIncentive = locProducts.filter(p => p.date && new Date(p.date) < fifteenDaysAgo);
   const totalIncentive = oldProductsForIncentive.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.incentive || 0)), 0);
 
   // Gather unique categories dynamically
@@ -1246,6 +1250,10 @@ function ProductsSection() {
         matchStock = (p.qty ?? p.stock ?? 0) < 20;
       } else if (stockFilter === "High") {
         matchStock = (p.qty ?? p.stock ?? 0) >= 50;
+      } else if (stockFilter === "Incentive") {
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        matchStock = !!p.date && new Date(p.date) < fifteenDaysAgo;
       }
       const matchLoc = locationFilter === "All" || (p.location || "Unassigned") === locationFilter;
       return matchCat && matchStock && matchLoc;
@@ -1262,44 +1270,12 @@ function ProductsSection() {
       <h2 className="page-title">Product Management</h2>
       <p className="page-sub">Maintain catalog, stock, and status.</p>
 
-      <div className="tabs" style={{ marginBottom: 20, display: "flex", gap: "10px", padding: "8px", background: "var(--cream)", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)", border: "1px solid var(--border)", overflowX: "auto" }}>
-        {["All", "Shop", "Godown 1", "Godown 2"].map((loc) => (
-          <button
-            key={loc}
-            className={`tab ${locationFilter === loc ? "active" : ""}`}
-            onClick={() => setLocationFilter(loc)}
-            style={{
-              flex: 1,
-              minWidth: "120px",
-              padding: "10px 20px",
-              border: "none",
-              background: locationFilter === loc ? "var(--primary)" : "transparent",
-              color: locationFilter === loc ? "#fff" : "var(--brown)",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: "14px",
-              transition: "all 0.3s ease",
-              boxShadow: locationFilter === loc ? "0 4px 10px rgba(17, 34, 51, 0.2)" : "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px"
-            }}
-            onMouseOver={(e) => { if (locationFilter !== loc) e.currentTarget.style.background = "var(--biscuit-light)" }}
-            onMouseOut={(e) => { if (locationFilter !== loc) e.currentTarget.style.background = "transparent" }}
-          >
-            <span>{loc === "All" ? "📦" : loc === "Shop" ? "🏪" : "🏭"}</span>
-            {loc === "All" ? "All Stock" : loc}
-          </button>
-        ))}
-      </div>
 
       <div className="stat-grid" style={{ marginBottom: 20 }}>
         <StatCard icon="📦" label="Total Products" value={totalProducts} onClick={() => setStockFilter("All")} />
         <StatCard icon="⚠️" label="Low Stock (< 20)" value={lowStockCount} onClick={() => setStockFilter("Low")} />
         <StatCard icon="📈" label="High Stock (≥ 50)" value={highStockCount} onClick={() => setStockFilter("High")} />
-        <StatCard icon="💰" label="Incentive (> 3 Months)" value={`₹${totalIncentive.toLocaleString()}`} />
+        <StatCard icon="💰" label="INCENTIVE (> 15 DAYS)" value={oldProductsForIncentive.length} onClick={() => setStockFilter("Incentive")} />
       </div>
 
       <div className="panel">
@@ -1357,7 +1333,34 @@ function ProductsSection() {
                     </td>
                     <td>{p.sku}</td>
                     <td>{p.category}</td>
-                    <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
+                    <td>
+                      <select
+                        value={p.location || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const newLoc = val ? (val as any) : undefined;
+                          setState(s => ({ ...s, products: s.products.map(x => x.id === p.id ? { ...x, location: newLoc } : x) }));
+                        }}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: 8,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          border: "1px solid",
+                          borderColor: p.location === "Shop" ? "#86efac" : p.location === "Godown 1" ? "#fcd34d" : p.location === "Godown 2" ? "#d8b4fe" : "var(--border)",
+                          background: p.location === "Shop" ? "#dcfce7" : p.location === "Godown 1" ? "#fef3c7" : p.location === "Godown 2" ? "#f3e8ff" : "var(--biscuit-light)",
+                          color: p.location === "Shop" ? "#166534" : p.location === "Godown 1" ? "#92400e" : p.location === "Godown 2" ? "#6b21a8" : "var(--brown-dark)",
+                          appearance: "auto",
+                          cursor: "pointer",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+                        }}
+                      >
+                        <option value="">🚫 Unassigned</option>
+                        <option value="Shop">🏪 Shop (Sell)</option>
+                        <option value="Godown 1">🏭 Godown 1</option>
+                        <option value="Godown 2">🏭 Godown 2</option>
+                      </select>
+                    </td>
                     <td>{p.qty ?? p.stock}</td>
                     <td>₹{p.cost.toLocaleString()}</td>
                     <td>₹{p.incentive.toLocaleString()}</td>
@@ -1553,7 +1556,7 @@ function CustomSelect({
 }
 
 
-export function ProductForm({ title, initial, onSave, onClose }: { title: string; initial?: Product; onSave: (d: Omit<Product, "id">) => void; onClose: () => void }) {
+export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }: { title: string; initial?: Product; onSave: (d: Omit<Product, "id">) => void; onClose: () => void; isIncentiveMode?: boolean }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [sku, setSku] = useState(initial?.sku ?? "");
   const [brand, setBrand] = useState(initial?.brand ?? "");
@@ -1571,7 +1574,8 @@ export function ProductForm({ title, initial, onSave, onClose }: { title: string
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [totalCost, setTotalCost] = useState(initial ? parseFloat((initial.qty * initial.cost).toFixed(2)) : 0);
-  const { products } = useStore();
+  const { products, users } = useStore();
+  const [assignedEmployeeId, setAssignedEmployeeId] = useState(initial?.assignedEmployeeId ?? "");
 
   const [isCustomBrand, setIsCustomBrand] = useState(() => {
     if (initial?.brand) {
@@ -1785,7 +1789,8 @@ export function ProductForm({ title, initial, onSave, onClose }: { title: string
       location: location as any,
       date,
       status,
-      image
+      image,
+      assignedEmployeeId
     });
   };
 
@@ -2013,40 +2018,59 @@ export function ProductForm({ title, initial, onSave, onClose }: { title: string
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 14 }}>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
-          <select
-            className="form-input"
-            value={location}
-            onChange={(e) => setLocation(e.target.value as any)}
-            style={{ appearance: "auto" }}
-          >
-            <option value="">-- Select --</option>
-            <option value="Shop">Shop (Sell)</option>
-            <option value="Godown 1">Godown 1</option>
-            <option value="Godown 2">Godown 2</option>
-          </select>
+      {isIncentiveMode ? (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, marginBottom: 14 }}>
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>ASSIGN EMPLOYEE</label>
+            <select
+              className="form-input"
+              value={assignedEmployeeId}
+              onChange={(e) => setAssignedEmployeeId(e.target.value)}
+              style={{ appearance: "auto" }}
+            >
+              <option value="">-- Select Employee --</option>
+              {users.filter(u => u.role === "employee").map(u => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SUPPLIER</label>
-          <input
-            className="form-input"
-            value={supplier}
-            onChange={(e) => setSupplier(e.target.value)}
-            placeholder="Supplier Name"
-          />
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 14 }}>
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
+            <select
+              className="form-input"
+              value={location}
+              onChange={(e) => setLocation(e.target.value as any)}
+              style={{ appearance: "auto" }}
+            >
+              <option value="">-- Select --</option>
+              <option value="Shop">Shop (Sell)</option>
+              <option value="Godown 1">Godown 1</option>
+              <option value="Godown 2">Godown 2</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SUPPLIER</label>
+            <input
+              className="form-input"
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              placeholder="Supplier Name"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>STOCK DATE</label>
+            <input
+              type="date"
+              className="form-input"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>STOCK DATE</label>
-          <input
-            type="date"
-            className="form-input"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-      </div>
+      )}
 
       <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 10 }}>
         <button className="btn btn-primary" onClick={save} style={{ background: "#5fa56c", borderColor: "#4e8f5a", color: "#fff" }}>
@@ -3053,63 +3077,28 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               }}>+ Add Manager</button>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
             {managers.map(m => (
-              <div key={m.id} style={{
-                background: "#fff", borderRadius: "12px", padding: "14px",
-                border: "1px solid #f5ede2", boxShadow: "0 4px 12px rgba(139,92,26,0.03)",
-                display: "flex", flexDirection: "column", justifyContent: "space-between",
-                transition: "transform 0.2s ease, box-shadow 0.2s ease",
-              }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                    <div style={{ fontWeight: 700, fontSize: "14px", color: "#5c3a21" }}>{m.name}</div>
-                    {!readOnly && (
-                      <div style={{ display: "flex", gap: "6px" }}>
-                        <button onClick={() => setEditingManager(m)} title="Edit" style={{
-                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #f5e3cc",
-                          background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
-                          alignItems: "center", justifyContent: "center", fontSize: "11px"
-                        }}>✏️</button>
-                        <button onClick={() => removeUser(m.id, "manager")} title="Delete" style={{
-                          width: "26px", height: "26px", borderRadius: "50%", border: "1px solid #fee2e2",
-                          background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
-                          alignItems: "center", justifyContent: "center"
-                        }}>
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "11px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Briefcase size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Role:</span>
-                      <strong style={{ color: "#543d2b" }}>{m.jobTitle || "Manager"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <UserIcon size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
-                      <strong style={{ color: "#543d2b" }}>{m.username || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Key size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Password:</span>
-                      <strong style={{ color: "#543d2b" }}>{m.password || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Mail size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Email:</span>
-                      <strong style={{ color: "#543d2b", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }} title={m.email}>{m.email || "—"}</strong>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Phone size={12} style={{ color: "#c29153" }} />
-                      <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
-                      <strong style={{ color: "#543d2b" }}>{m.phone || "—"}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <UnifiedEmployeeCard
+                key={m.id}
+                employee={m}
+                actions={!readOnly ? (
+                  <>
+                    <button onClick={() => setEditingManager(m)} title="Edit" style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #f5e3cc",
+                      background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
+                    }}>✏️</button>
+                    <button onClick={() => removeUser(m.id, "manager")} title="Delete" style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #fee2e2",
+                      background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", transition: "all 0.2s"
+                    }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                ) : undefined}
+              />
             ))}
             {managers.length === 0 && (
               <div style={{ gridColumn: "1/-1", textAlign: "center", color: "#c4956a", padding: "20px 0", fontSize: "12px" }}>No managers yet. Click + Add Manager to create one.</div>
@@ -4018,7 +4007,7 @@ export function LeadsSection() {
 
   const filteredLeads = useMemo(() => {
     return leads.filter((l) => {
-      const matchesFilter = activeFilter ? l.status === activeFilter : true;
+      const matchesFilter = (activeFilter && activeFilter !== "All") ? l.status === activeFilter : true;
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         l.name.toLowerCase().includes(q) ||
@@ -4280,6 +4269,261 @@ export function LeadsSection() {
           </div>
         </Modal>
       )}
+    </>
+  );
+}
+
+
+export function SuperAdminIncentiveSection() {
+  const { products, setState } = useStore();
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [incentiveMode, setIncentiveMode] = useState<boolean>(false);
+
+  const fifteenDaysAgo = new Date();
+  fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+  const oldProducts = products.filter(p => (p.date && new Date(p.date) < fifteenDaysAgo) || (p.incentive && p.incentive > 0));
+
+  const remove = (id: string) => {
+    if (!confirm("Delete this product?")) return;
+    setState((s) => ({ ...s, products: s.products.filter((p) => p.id !== id) }));
+  };
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2 className="page-title">Incentive Management</h2>
+          <p className="page-sub">Track and manage employee incentives and payouts.</p>
+        </div>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditing({ id: Date.now().toString(), name: "", sku: "", cost: 0, stock: 0, status: "Available", incentive: 0, qty: 1 } as any);
+            setIncentiveMode(true);
+          }}
+          style={{ padding: "8px 16px", borderRadius: "8px", fontWeight: 600 }}
+        >
+          ➕ Add Incentive Product
+        </button>
+      </div>
+
+      <div className="panel" style={{ marginTop: 24 }}>
+        <div className="panel-head">
+          <h3 className="panel-title">💰 Products Eligible for Incentive (&gt; 15 Days)</h3>
+        </div>
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>IMAGE</th>
+                <th>PRODUCT</th>
+                <th>SKU</th>
+                <th>LOCATION</th>
+                <th>QTY</th>
+                <th style={{ whiteSpace: "nowrap" }}>INCENTIVE/UNIT</th>
+                <th>DATE</th>
+                <th className="text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {oldProducts.map((p) => {
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      {p.image ? (
+                        <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                          <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        </div>
+                      ) : (
+                        <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--biscuit)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                          📦
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ fontWeight: 600 }}>{p.name}</td>
+                    <td>{p.sku}</td>
+                    <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
+                    <td>{p.qty ?? p.stock ?? 0}</td>
+                    <td style={{ fontWeight: 600, color: "var(--primary)" }}>₹{(p.incentive || 0).toLocaleString()}</td>
+                    <td>{formattedDate}</td>
+                    <td className="text-right">
+                      <div className="actions-row" style={{ justifyContent: "flex-end", gap: "8px" }}>
+                        <button className="btn btn-sm" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fcd34d", fontWeight: 600, borderRadius: "6px" }} onClick={() => { setEditing(p); setIncentiveMode(true); }} title="Add/Edit Incentive">💰 Add Incentive</button>
+                        <button className="btn btn-circle" onClick={() => setEditing(p)} title="Edit Product">✏️</button>
+                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(p.id)} title="Delete Product">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {oldProducts.length === 0 && <tr><td colSpan={8} style={{ textAlign: "center", padding: 24, color: "var(--text-muted)" }}>No products found.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {editing && (
+        <ProductForm
+          title={incentiveMode ? "Update Incentive" : "Edit Product"}
+          initial={editing}
+          isIncentiveMode={true}
+          onClose={() => { setEditing(null); setIncentiveMode(false); }}
+          onSave={(d) => {
+            setState((s) => ({ ...s, products: s.products.map((p) => p.id === editing.id ? { ...p, ...d } : p) }));
+            setEditing(null);
+            setIncentiveMode(false);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+export function SuperAdminGodownSection() {
+  const { products } = useStore();
+  const [activeTab, setActiveTab] = useState<"Godown 1" | "Godown 2">("Godown 1");
+
+  const godown1Products = products.filter(p => p.location === "Godown 1");
+  const godown2Products = products.filter(p => p.location === "Godown 2");
+
+  const renderTable = (prods: Product[]) => (
+    <div className="table-wrap">
+      <table className="tbl">
+        <thead>
+          <tr>
+            <th>IMAGE</th>
+            <th>PRODUCT</th>
+            <th>SKU</th>
+            <th>CATEGORY</th>
+            <th>QTY</th>
+            <th>UNIT COST</th>
+            <th>TOTAL VALUE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {prods.map(p => {
+            const qty = p.qty ?? p.stock ?? 0;
+            const totalValue = qty * p.cost;
+            return (
+              <tr key={p.id}>
+                <td>
+                  {p.image ? (
+                    <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                      <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  ) : (
+                    <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--biscuit)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                      📦
+                    </div>
+                  )}
+                </td>
+                <td style={{ fontWeight: 600 }}>{p.name}</td>
+                <td>{p.sku}</td>
+                <td>{p.category}</td>
+                <td style={{ fontWeight: 600, color: qty < 20 ? "var(--danger)" : "inherit" }}>{qty}</td>
+                <td>₹{p.cost.toLocaleString()}</td>
+                <td style={{ fontWeight: 600 }}>₹{totalValue.toLocaleString()}</td>
+              </tr>
+            );
+          })}
+          {prods.length === 0 && (
+            <tr>
+              <td colSpan={7} className="empty">No products found in this godown.</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <>
+      <h2 className="page-title">Godown Management</h2>
+      <p className="page-sub">Manage and track inventory specific to Godowns.</p>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "30px", marginBottom: "30px", background: "var(--cream)", padding: "16px", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "0 4px 15px rgba(139, 107, 74, 0.05)" }}>
+        <button
+          onClick={() => setActiveTab("Godown 1")}
+          style={{
+            flex: 1,
+            maxWidth: "250px",
+            padding: "12px 24px",
+            borderRadius: "12px",
+            border: activeTab === "Godown 1" ? "2px solid var(--primary)" : "2px solid transparent",
+            background: activeTab === "Godown 1" ? "var(--primary)" : "#ffffff",
+            color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)",
+            fontSize: "16px",
+            fontWeight: 700,
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            boxShadow: activeTab === "Godown 1" ? "0 8px 20px rgba(17, 34, 51, 0.25)" : "0 2px 8px rgba(0,0,0,0.05)"
+          }}
+          onMouseOver={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "translateY(-2px)"; }}
+          onMouseOut={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "none"; }}
+        >
+          <span style={{ fontSize: "20px" }}>🏭</span>
+          <span style={{ color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)" }}>Godown 1</span>
+          <span style={{
+            background: activeTab === "Godown 1" ? "#ffffff" : "var(--biscuit)",
+            color: activeTab === "Godown 1" ? "var(--primary)" : "var(--brown-dark)",
+            padding: "2px 10px",
+            borderRadius: "12px",
+            fontSize: "13px",
+            fontWeight: 800
+          }}>
+            {godown1Products.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("Godown 2")}
+          style={{
+            flex: 1,
+            maxWidth: "250px",
+            padding: "12px 24px",
+            borderRadius: "12px",
+            border: activeTab === "Godown 2" ? "2px solid var(--primary)" : "2px solid transparent",
+            background: activeTab === "Godown 2" ? "var(--primary)" : "#ffffff",
+            color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)",
+            fontSize: "16px",
+            fontWeight: 700,
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            boxShadow: activeTab === "Godown 2" ? "0 8px 20px rgba(17, 34, 51, 0.25)" : "0 2px 8px rgba(0,0,0,0.05)"
+          }}
+          onMouseOver={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "translateY(-2px)"; }}
+          onMouseOut={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "none"; }}
+        >
+          <span style={{ fontSize: "20px" }}>🏭</span>
+          <span style={{ color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)" }}>Godown 2</span>
+          <span style={{
+            background: activeTab === "Godown 2" ? "#ffffff" : "var(--biscuit)",
+            color: activeTab === "Godown 2" ? "var(--primary)" : "var(--brown-dark)",
+            padding: "2px 10px",
+            borderRadius: "12px",
+            fontSize: "13px",
+            fontWeight: 800
+          }}>
+            {godown2Products.length}
+          </span>
+        </button>
+      </div>
+
+      <div className="panel" style={{ margin: 0 }}>
+        <div className="panel-head">
+          <h3 className="panel-title">🏭 {activeTab} Inventory</h3>
+        </div>
+        {renderTable(activeTab === "Godown 1" ? godown1Products : godown2Products)}
+      </div>
     </>
   );
 }
