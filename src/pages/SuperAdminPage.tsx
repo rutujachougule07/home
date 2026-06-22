@@ -982,11 +982,11 @@ export function EmployeeForm({
           className="btn btn-primary"
           onClick={handleSave}
           disabled={isSaving}
-          style={{ background: "linear-gradient(135deg, #c39864, #a07542)", borderColor: "#906532", color: "#fff", opacity: isSaving ? 0.7 : 1 }}
+          style={{ background: "linear-gradient(135deg, var(--accent), var(--light-brown))", borderColor: "var(--accent)", color: "#fff", opacity: isSaving ? 0.7 : 1 }}
         >
           {isSaving ? "Saving..." : "💾 Save Employee"}
         </button>
-        <button className="btn btn-ghost" onClick={onClose} style={{ background: "#f6ede2" }}>
+        <button className="btn btn-ghost" onClick={onClose} style={{ background: "var(--biscuit-light)" }}>
           Cancel
         </button>
       </div>
@@ -1130,11 +1130,11 @@ function EmployeesSection() {
             const score = total ? Math.round((comp / total) * 100) : 0;
 
             return (
-              <div key={e.id} style={{ background: "#fffdf9", borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6", boxShadow: "0 4px 12px rgba(139, 107, 74, 0.05)", display: "flex", flexDirection: "column", gap: 15 }}>
+              <div key={e.id} style={{ background: "var(--warm-white)", borderRadius: "16px", padding: "20px", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", gap: 15 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
-                    <h4 style={{ margin: "0 0 4px 0", color: "#4a3c31", fontSize: 16 }}>{e.name}</h4>
-                    <span style={{ fontSize: 12, color: "#8b6b4a", fontWeight: 500 }}>ID: {e.employeeId ?? "—"}</span>
+                    <h4 style={{ margin: "0 0 4px 0", color: "var(--brown-dark)", fontSize: 16 }}>{e.name}</h4>
+                    <span style={{ fontSize: 12, color: "var(--brown)", fontWeight: 500 }}>ID: {e.employeeId ?? "—"}</span>
                   </div>
                   <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`} style={{ fontSize: 10 }}>
                     {e.status ?? "Verified"}
@@ -1143,15 +1143,15 @@ function EmployeesSection() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
                   <div>
-                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>ROLE</span>
-                    <strong style={{ color: "#5a4a3a" }}>{e.jobTitle ?? "—"}</strong>
+                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>ROLE</span>
+                    <strong style={{ color: "var(--brown-dark)" }}>{e.jobTitle ?? "—"}</strong>
                   </div>
                   <div>
-                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>PHONE</span>
-                    <strong style={{ color: "#5a4a3a" }}>{e.phone ?? "—"}</strong>
+                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>PHONE</span>
+                    <strong style={{ color: "var(--brown-dark)" }}>{e.phone ?? "—"}</strong>
                   </div>
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>CREDENTIALS</span>
+                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>CREDENTIALS</span>
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                       <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.username ?? "—"}</code>
                       <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.password ?? "—"}</code>
@@ -1159,20 +1159,20 @@ function EmployeesSection() {
                   </div>
                 </div>
 
-                <div style={{ background: "#faf7f2", borderRadius: 8, padding: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "var(--biscuit-light)", borderRadius: 8, padding: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>TASKS</span>
-                    <strong style={{ color: "#5a4a3a", fontSize: 14 }}>{comp} / {total}</strong>
+                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>TASKS</span>
+                    <strong style={{ color: "var(--brown-dark)", fontSize: 14 }}>{comp} / {total}</strong>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <span style={{ color: "#a08b77", fontSize: 11, display: "block" }}>SCORE</span>
+                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>SCORE</span>
                     <strong style={{ color: "var(--success)", fontSize: 14 }}>{score}%</strong>
                   </div>
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "auto" }}>
                   <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)", color: "var(--brown-dark)" }}>📊</button>
-                  <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee" style={{ background: "#fff9e6", color: "#d97706" }}>✏️</button>
+                  <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee" style={{ background: "var(--biscuit-light)", color: "var(--accent)" }}>✏️</button>
                   <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee" style={{ background: "#fef2f2", color: "#ef4444" }}>🗑️</button>
                 </div>
               </div>
@@ -2114,10 +2114,10 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
       )}
 
       <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 10 }}>
-        <button className="btn btn-primary" onClick={save} style={{ background: "#5fa56c", borderColor: "#4e8f5a", color: "#fff" }}>
+        <button className="btn btn-primary" onClick={save} style={{ background: "linear-gradient(135deg, var(--accent), var(--light-brown))", borderColor: "var(--accent)", color: "#fff" }}>
           💾 Save Entry
         </button>
-        <button className="btn btn-ghost" onClick={onClose} style={{ background: "#f6ede2" }}>
+        <button className="btn btn-ghost" onClick={onClose} style={{ background: "var(--biscuit-light)" }}>
           Cancel
         </button>
       </div>
@@ -2588,13 +2588,13 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                             </div>
                           )}
 
-                          <div style={{ background: "#faf7f2", borderRadius: "12px", padding: "12px 16px", display: "flex", justifyContent: "space-between", maxWidth: "250px" }}>
+                          <div style={{ background: "var(--biscuit-light)", borderRadius: "12px", padding: "12px 16px", display: "flex", justifyContent: "space-between", maxWidth: "250px" }}>
                             <div>
-                              <div style={{ color: "#a18265", fontSize: "11px", fontWeight: 600, marginBottom: "4px" }}>TASKS</div>
-                              <div style={{ color: "#5c3a21", fontSize: "16px", fontWeight: 800 }}>{empCompleted} / {empTasks}</div>
+                              <div style={{ color: "var(--brown)", fontSize: "11px", fontWeight: 600, marginBottom: "4px" }}>TASKS</div>
+                              <div style={{ color: "var(--brown-dark)", fontSize: "16px", fontWeight: 800 }}>{empCompleted} / {empTasks}</div>
                             </div>
                             <div style={{ textAlign: "right" }}>
-                              <div style={{ color: "#a18265", fontSize: "11px", fontWeight: 600, marginBottom: "4px" }}>SCORE</div>
+                              <div style={{ color: "var(--brown)", fontSize: "11px", fontWeight: 600, marginBottom: "4px" }}>SCORE</div>
                               <div style={{ color: "var(--success, #059669)", fontSize: "16px", fontWeight: 800 }}>{empScore}%</div>
                             </div>
                           </div>
@@ -4411,7 +4411,7 @@ export function SuperAdminIncentiveSection() {
                     <td>{formattedDate}</td>
                     <td className="text-right">
                       <div className="actions-row" style={{ justifyContent: "flex-end", gap: "8px" }}>
-                        <button className="btn btn-sm" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fcd34d", fontWeight: 600, borderRadius: "6px" }} onClick={() => { setEditing(p); setIncentiveMode(true); }} title="Add/Edit Incentive">💰 Add Incentive</button>
+                        <button className="btn btn-sm" style={{ background: "var(--biscuit-light)", color: "var(--accent)", border: "1px solid var(--border)", fontWeight: 600, borderRadius: "6px" }} onClick={() => { setEditing(p); setIncentiveMode(true); }} title="Add/Edit Incentive">💰 Add Incentive</button>
                         <button className="btn btn-circle" onClick={() => setEditing(p)} title="Edit Product">✏️</button>
                         <button className="btn btn-circle btn-circle-danger" onClick={() => remove(p.id)} title="Delete Product">🗑️</button>
                       </div>

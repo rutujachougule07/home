@@ -19,15 +19,15 @@ export function UnifiedEmployeeCard({
   
   return (
     <div style={{
-      background: "#fff", borderRadius: "16px", padding: "20px",
-      border: "1px solid #f0e6d6", boxShadow: "0 4px 20px rgba(139, 92, 26, 0.03)",
+      background: "var(--warm-white)", borderRadius: "16px", padding: "20px",
+      border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)",
       display: "flex", flexDirection: "column", position: "relative",
       transition: "transform 0.2s ease, box-shadow 0.2s ease",
       height: "100%"
     }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-        <div style={{ fontSize: "18px", fontWeight: 800, color: "#5c3a21" }}>{employee.name}</div>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--brown-dark)" }}>{employee.name}</div>
         <div style={{ 
           background: employee.status === "Inactive" ? "#fee2e2" : "#d1fae5", 
           color: employee.status === "Inactive" ? "#991b1b" : "#065f46", 
@@ -36,43 +36,43 @@ export function UnifiedEmployeeCard({
       </div>
       
       {/* ID Divider */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#b4987f", fontSize: "12px", marginBottom: "16px" }}>
-        <div style={{ flex: 1, height: "1px", borderTop: "1px dashed #e2dcd5" }}></div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--brown)", fontSize: "12px", marginBottom: "16px" }}>
+        <div style={{ flex: 1, height: "1px", borderTop: "1px dashed var(--border)" }}></div>
         <span>• ID: {employee.employeeId || employee.id} •</span>
-        <div style={{ flex: 1, height: "1px", borderTop: "1px dashed #e2dcd5" }}></div>
+        <div style={{ flex: 1, height: "1px", borderTop: "1px dashed var(--border)" }}></div>
       </div>
 
       {/* Content List */}
       <div style={{ display: "flex", flexDirection: "column", gap: "12px", fontSize: "13px", marginBottom: "20px", flex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9c8069", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ color: "var(--brown)", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
             <Briefcase size={14} /> ROLE
           </span>
-          <strong style={{ color: "#422b15" }}>{employee.jobTitle || (employee.role === "manager" ? "Manager" : "Employee")}</strong>
+          <strong style={{ color: "var(--brown-dark)" }}>{employee.jobTitle || (employee.role === "manager" ? "Manager" : "Employee")}</strong>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9c8069", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ color: "var(--brown)", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
             <UserIcon size={14} /> USERNAME
           </span>
-          <strong style={{ color: "#422b15" }}>{employee.username || "—"}</strong>
+          <strong style={{ color: "var(--brown-dark)" }}>{employee.username || "—"}</strong>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#9c8069", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ color: "var(--brown)", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
             <Key size={14} /> PASSWORD
           </span>
-          <strong style={{ color: "#422b15" }}>{employee.password || "—"}</strong>
+          <strong style={{ color: "var(--brown-dark)" }}>{employee.password || "—"}</strong>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#9c8069", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ color: "var(--brown)", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
             <Phone size={14} /> PHONE
           </span>
-          <strong style={{ color: "#422b15" }}>{employee.phone || "—"}</strong>
+          <strong style={{ color: "var(--brown-dark)" }}>{employee.phone || "—"}</strong>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ color: "#9c8069", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px", minWidth: "80px" }}>
+          <span style={{ color: "var(--brown)", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px", minWidth: "80px" }}>
             <Mail size={14} /> EMAIL
           </span>
-          <strong style={{ color: "#422b15", maxWidth: "160px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }} title={employee.email}>{employee.email || "—"}</strong>
+          <strong style={{ color: "var(--brown-dark)", maxWidth: "160px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }} title={employee.email}>{employee.email || "—"}</strong>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export function UnifiedEmployeeCard({
 
       {/* Actions */}
       {actions && (
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "auto", borderTop: "1px solid #f0e6d6", paddingTop: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "auto", borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
            {actions}
         </div>
       )}
