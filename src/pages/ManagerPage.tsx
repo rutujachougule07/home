@@ -1,3 +1,4 @@
+import { EmployeeIncentiveSection } from "./EmployeePage";
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useStore, User, Customer, Order } from "../app/store";
@@ -13,6 +14,7 @@ const NAV: NavItem[] = [
   { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "orders", label: "Orders", icon: "🧾" },
   { key: "products", label: "Product Availability", icon: "📦" },
+  { key: "incentive", label: "Incentive", icon: "💰" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
   { key: "profile", label: "Profile", icon: "⚙" },
 ];
@@ -41,6 +43,7 @@ export function ManagerPage({ tab = "overview" }: ManagerPageProps) {
       {active === "leads" && <LeadsSection />}
       {active === "orders" && <OrdersMgmt />}
       {active === "products" && <ProductsAvail />}
+      {active === "incentive" && <EmployeeIncentiveSection />}
       {active === "notifications" && <NotificationsSection role="manager" />}
       {active === "profile" && <ProfileSection />}
     </DashboardLayout>

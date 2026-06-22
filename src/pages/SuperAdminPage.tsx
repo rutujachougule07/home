@@ -4370,9 +4370,6 @@ export function SuperAdminIncentiveSection() {
                 <th>PRODUCT</th>
                 <th>SKU</th>
                 <th>LOCATION</th>
-                <th>QTY</th>
-                <th style={{ whiteSpace: "nowrap" }}>INCENTIVE/UNIT</th>
-                <th>DATE</th>
                 <th className="text-right">ACTIONS</th>
               </tr>
             </thead>
@@ -4406,9 +4403,6 @@ export function SuperAdminIncentiveSection() {
                     </td>
                     <td>{p.sku}</td>
                     <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
-                    <td>{p.qty ?? p.stock ?? 0}</td>
-                    <td style={{ fontWeight: 600, color: "var(--primary)" }}>₹{(p.incentive || 0).toLocaleString()}</td>
-                    <td>{formattedDate}</td>
                     <td className="text-right">
                       <div className="actions-row" style={{ justifyContent: "flex-end", gap: "8px" }}>
                         <button className="btn btn-sm" style={{ background: "var(--biscuit-light)", color: "var(--accent)", border: "1px solid var(--border)", fontWeight: 600, borderRadius: "6px" }} onClick={() => { setEditing(p); setIncentiveMode(true); }} title="Add/Edit Incentive">💰 Add Incentive</button>
@@ -4419,7 +4413,7 @@ export function SuperAdminIncentiveSection() {
                   </tr>
                 );
               })}
-              {oldProducts.length === 0 && <tr><td colSpan={8} style={{ textAlign: "center", padding: 24, color: "var(--text-muted)" }}>No products found.</td></tr>}
+              {oldProducts.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center", padding: 24, color: "var(--text-muted)" }}>No products found.</td></tr>}
             </tbody>
           </table>
         </div>
