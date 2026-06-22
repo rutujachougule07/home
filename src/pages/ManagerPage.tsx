@@ -344,58 +344,62 @@ function OrdersMgmt() {
           <button className="btn btn-primary btn-sm" onClick={() => setShow(true)}>+ Create Order</button>
         </div>
         <div className={orders.length > 0 ? "card-grid" : ""}>
-          {orders.map((o) => (
-            <div key={o.id} className="data-card">
-              <div className="data-card-header">
-                <div>
-                  <h4 className="data-card-title">Order #{o.id}</h4>
-                  <span className="data-card-subtitle">{o.date}</span>
+          {orders.map((o) => {
+            const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+            const brandStr = product?.brand ? ` (${product.brand})` : "";
+            return (
+              <div key={o.id} className="data-card">
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">Order #{o.id}</h4>
+                    <span className="data-card-subtitle">{o.date}</span>
+                  </div>
+                  <div><Pill status={o.status} /></div>
                 </div>
-                <div><Pill status={o.status} /></div>
-              </div>
-              <div className="data-card-body">
-                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
-                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-              </div>
-              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-                <div className="actions-row">
-                  {o.status === "Approved" && (
-                    o.sentToEmployee ? (
-                      <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginRight: 8, alignSelf: "center" }}>Sent ✅</span>
-                    ) : (
-                      <button
-                        className="btn btn-success btn-sm"
-                        style={{ padding: "4px 8px", fontSize: 11, marginRight: 8 }}
-                        onClick={() => {
-                          setState((s) => ({
-                            ...s,
-                            orders: s.orders.map((order) => order.id === o.id ? { ...order, sentToEmployee: true } : order),
-                            notifications: [
-                              {
-                                id: uid("n"),
-                                to: "employee",
-                                from: "Manager",
-                                message: `New approved order #${o.id} sent to your updates`,
-                                date: new Date().toISOString().slice(0, 10),
-                                read: false
-                              },
-                              ...s.notifications
-                            ]
-                          }));
-                        }}
-                      >
-                        ✉️ Send
-                      </button>
-                    )
-                  )}
-                  <button className="btn btn-circle" onClick={() => setEditingOrder(o)} title="Edit Order">✏️</button>
-                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(o.id)} title="Delete Order">🗑️</button>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+                </div>
+                <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                  <div className="actions-row">
+                    {o.status === "Approved" && (
+                      o.sentToEmployee ? (
+                        <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginRight: 8, alignSelf: "center" }}>Sent ✅</span>
+                      ) : (
+                        <button
+                          className="btn btn-success btn-sm"
+                          style={{ padding: "4px 8px", fontSize: 11, marginRight: 8 }}
+                          onClick={() => {
+                            setState((s) => ({
+                              ...s,
+                              orders: s.orders.map((order) => order.id === o.id ? { ...order, sentToEmployee: true } : order),
+                              notifications: [
+                                {
+                                  id: uid("n"),
+                                  to: "employee",
+                                  from: "Manager",
+                                  message: `New approved order #${o.id} sent to your updates`,
+                                  date: new Date().toISOString().slice(0, 10),
+                                  read: false
+                                },
+                                ...s.notifications
+                              ]
+                            }));
+                          }}
+                        >
+                          ✉️ Send
+                        </button>
+                      )
+                    )}
+                    <button className="btn btn-circle" onClick={() => setEditingOrder(o)} title="Edit Order">✏️</button>
+                    <button className="btn btn-circle btn-circle-danger" onClick={() => remove(o.id)} title="Delete Order">🗑️</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {orders.length === 0 && <div className="empty">No orders yet.</div>}
         </div>
       </div>
@@ -483,7 +487,7 @@ function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSav
       </div>
       <div className="form-group"><label className="form-label">Product</label>
         <select className="form-select" value={productId} onChange={(e) => setProductId(e.target.value)}>
-          {active.map((p) => <option key={p.id} value={p.id}>{p.name} — ₹{p.price}</option>)}
+          {active.map((p) => <option key={p.id} value={p.id}>{p.name}{p.brand ? ` (${p.brand})` : ""} — ₹{p.price}</option>)}
         </select>
       </div>
       <div className="form-group"><label className="form-label">Quantity</label>
@@ -573,10 +577,9 @@ function ProductsAvail() {
                         <div style={{ fontWeight: 600 }}>{p.name}</div>
                         <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
                           {p.sku && <span>SKU: {p.sku}</span>}
-                          {p.sku && (p.brand || p.warranty) && <span> · </span>}
-                          {p.brand && <span>Brand: {p.brand}</span>}
-                          {p.brand && p.warranty && <span> · </span>}
-                          {p.warranty && <span>Warranty: {p.warranty}</span>}
+                          {p.sku && <span> · </span>}
+                          <span>Brand: {p.brand || "—"}</span>
+                          {p.warranty && <span> · Warranty: {p.warranty}</span>}
                         </div>
                       </div>
                     </div>

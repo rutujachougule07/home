@@ -43,7 +43,7 @@ function StockModal({ type, items, onClose }: any) {
   );
 }
 
-const emptyForm = { product: '', sku: '', imageUrl: '', category: 'Electronics', qty: '', cost: '', incentivePerUnit: '', supplier: '', date: '', status: 'Verified' };
+const emptyForm = { product: '', brand: '', sku: '', imageUrl: '', category: 'Electronics', qty: '', cost: '', incentivePerUnit: '', supplier: '', date: '', status: 'Verified' };
 
 function App() {
   const [activeTab, setActiveTab] = useState('Stocking Inventory');
@@ -57,13 +57,13 @@ function App() {
 
   // Separate inventory for each godown
   const [godown1Inventory, setGodown1Inventory] = useState([
-    { id: 1, image: 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?auto=format&fit=crop&w=40&h=40&q=80', imageAlt: 'fan', product: 'Ceiling Fan', sku: 'GD1-F001', category: 'Electronics', qty: 15, cost: 15000, incentivePerUnit: 2000, supplier: 'vaishnavi', date: '21 May 2026', status: 'Verified' },
-    { id: 2, image: null, imageAlt: 'washing machine', product: 'Washing Machine', sku: 'GD1-WM001', category: 'Electronics', qty: 5, cost: 50000, incentivePerUnit: 3000, supplier: 'rutuja', date: '21 May 2026', status: 'Verified' },
+    { id: 1, image: 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?auto=format&fit=crop&w=40&h=40&q=80', imageAlt: 'fan', product: 'Ceiling Fan', brand: 'Havells', sku: 'GD1-F001', category: 'Electronics', qty: 15, cost: 15000, incentivePerUnit: 2000, supplier: 'vaishnavi', date: '21 May 2026', status: 'Verified' },
+    { id: 2, image: null, imageAlt: 'washing machine', product: 'Washing Machine', brand: 'Samsung', sku: 'GD1-WM001', category: 'Electronics', qty: 5, cost: 50000, incentivePerUnit: 3000, supplier: 'rutuja', date: '21 May 2026', status: 'Verified' },
   ]);
 
   const [godown2Inventory, setGodown2Inventory] = useState([
-    { id: 3, image: null, imageAlt: 'refrigerator', product: 'Refrigerator', sku: 'GD2-RF001', category: 'Electronics', qty: 8, cost: 35000, incentivePerUnit: 2500, supplier: 'samsung', date: '18 May 2026', status: 'Verified' },
-    { id: 4, image: null, imageAlt: 'microwave', product: 'Microwave Oven', sku: 'GD2-MW001', category: 'Electronics', qty: 12, cost: 18000, incentivePerUnit: 1500, supplier: 'lg', date: '20 May 2026', status: 'Verified' },
+    { id: 3, image: null, imageAlt: 'refrigerator', product: 'Refrigerator', brand: 'LG', sku: 'GD2-RF001', category: 'Electronics', qty: 8, cost: 35000, incentivePerUnit: 2500, supplier: 'samsung', date: '18 May 2026', status: 'Verified' },
+    { id: 4, image: null, imageAlt: 'microwave', product: 'Microwave Oven', brand: 'Samsung', sku: 'GD2-MW001', category: 'Electronics', qty: 12, cost: 18000, incentivePerUnit: 1500, supplier: 'lg', date: '20 May 2026', status: 'Verified' },
   ]);
 
   // Get current inventory based on selected godown
@@ -125,22 +125,22 @@ function App() {
   const openAddForm = () => { setFormData(emptyForm); setEditId(null); setFormError(''); setShowAddForm(true); };
 
   const openEditForm = (item: any) => {
-    setFormData({ product: item.product, sku: item.sku, imageUrl: item.image || '', category: item.category, qty: item.qty, cost: item.cost, incentivePerUnit: item.incentivePerUnit, supplier: item.supplier, date: '', status: item.status });
+    setFormData({ product: item.product, brand: item.brand || '', sku: item.sku, imageUrl: item.image || '', category: item.category, qty: item.qty, cost: item.cost, incentivePerUnit: item.incentivePerUnit, supplier: item.supplier, date: '', status: item.status });
     setEditId(item.id); setFormError(''); setShowAddForm(true);
   };
 
   const handleSaveProduct = (e: any) => {
     e.preventDefault();
-    const { product, sku, qty, cost, incentivePerUnit, supplier, date, status } = formData;
+    const { product, brand, sku, qty, cost, incentivePerUnit, supplier, date, status } = formData;
     if (!product || !sku || !qty || !cost || !incentivePerUnit || !supplier || (!date && !editId)) { setFormError('Please fill in all required fields.'); return; }
     if (editId) {
-      setCurrentInventory((prev: any) => prev.map((item: any) => item.id === editId ? { ...item, product, sku, category: formData.category, qty: parseInt(qty), cost: parseFloat(cost), incentivePerUnit: parseFloat(incentivePerUnit), supplier, status, image: formData.imageUrl || item.image } : item));
+      setCurrentInventory((prev: any) => prev.map((item: any) => item.id === editId ? { ...item, product, brand, sku, category: formData.category, qty: parseInt(qty), cost: parseFloat(cost), incentivePerUnit: parseFloat(incentivePerUnit), supplier, status, image: formData.imageUrl || item.image } : item));
     } else {
       const dateStr = date ? new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
       // Generate SKU prefix based on godown
       const skuPrefix = activeGodown === 'Godown 1' ? 'GD1-' : 'GD2-';
       const finalSku = sku.startsWith(skuPrefix) ? sku : `${skuPrefix}${sku}`;
-      setCurrentInventory((prev: any) => [...prev, { id: Date.now(), image: formData.imageUrl || null, imageAlt: product, product, sku: finalSku, category: formData.category, qty: parseInt(qty), cost: parseFloat(cost), incentivePerUnit: parseFloat(incentivePerUnit), supplier, date: dateStr, status }]);
+      setCurrentInventory((prev: any) => [...prev, { id: Date.now(), image: formData.imageUrl || null, imageAlt: product, product, brand, sku: finalSku, category: formData.category, qty: parseInt(qty), cost: parseFloat(cost), incentivePerUnit: parseFloat(incentivePerUnit), supplier, date: dateStr, status }]);
     }
     setShowAddForm(false); setFormData(emptyForm); setEditId(null); setFormError('');
   };
@@ -185,10 +185,14 @@ function App() {
     <div className="Inline-form-card">
       <div className="Inline-form-title">{editId ? 'Edit Product' : `Add New Product - ${activeGodown}`}</div>
       <form onSubmit={handleSaveProduct}>
-        <div className="Inline-form-grid">
+        <div className="Inline-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
           <div className="Form-group">
             <label>PRODUCT NAME *</label>
             <input className="Form-input" name="product" value={formData.product} onChange={handleFormChange} placeholder="e.g. Wireless Headset X200" />
+          </div>
+          <div className="Form-group">
+            <label>BRAND</label>
+            <input className="Form-input" name="brand" value={formData.brand || ''} onChange={handleFormChange} placeholder="e.g. Samsung, Havells" />
           </div>
           <div className="Form-group">
             <label>SKU * (Auto-prefixed)</label>
@@ -281,7 +285,11 @@ function App() {
                   {currentInventory.map((item: any) => (
                     <tr key={item.id}>
                       <td>{item.image ? <img src={item.image} alt={item.imageAlt} className="Product-image" /> : <div className="Product-image" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fbece1', color: '#d9966c' }}><Box size={20} /></div>}</td>
-                      <td>{item.product}</td><td>{item.sku}</td><td>{item.category}</td><td>{item.qty}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{item.product}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Brand: {item.brand || '—'}</div>
+                      </td>
+                      <td>{item.sku}</td><td>{item.category}</td><td>{item.qty}</td>
                       <td>{formatINR(item.cost)}</td><td>{formatINR(item.incentivePerUnit)}</td><td>{formatINR(item.qty * item.cost)}</td>
                       <td>{item.supplier}</td><td style={{ whiteSpace: 'nowrap' }}>{item.date}</td>
                       <td><span className="Badge-verified">{item.status}</span></td>

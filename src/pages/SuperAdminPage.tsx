@@ -10,7 +10,7 @@ const NAV: NavItem[] = [
   { key: "products", label: "Stocking Inventory", icon: "📦" },
   { key: "godown", label: "Godowns", icon: "🏭" },
   { key: "leads", label: "Lead Generation", icon: "🧲" },
-  { key: "assign", label: "Assign", icon: "📋" },
+  { key: "assign", label: "Add Employee / manager", icon: "📋" },
   { key: "task-assign", label: "Task Assign", icon: "📝" },
   { key: "orders", label: "Order Approvals", icon: "✅" },
   { key: "incentive", label: "Incentive", icon: "💰" },
@@ -995,7 +995,7 @@ export function EmployeeForm({
 }
 
 export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User; onClose: () => void }) {
-  const { tasks, orders } = useStore();
+  const { tasks, orders, products } = useStore();
   const empTasks = tasks.filter((t) => t.assignedTo === employee.id);
   const empOrders = orders.filter((o) => o.assignedTo === employee.id);
 
@@ -1067,22 +1067,26 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
                 📦 Assigned Orders
               </h4>
               <div style={{ maxHeight: 250, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 5 }}>
-                {empOrders.map((o) => (
-                  <div key={o.id} style={{ padding: 12, border: "1px solid var(--border)", borderRadius: 8, background: "var(--warm-white)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <strong style={{ color: "var(--brown-dark)", fontSize: 13 }}>{o.id}</strong>
-                      <span className={`pill pill-${o.status.toLowerCase()}`} style={{ fontSize: 10 }}>
-                        {o.status}
-                      </span>
+                {empOrders.map((o) => {
+                  const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+                  const brandStr = product?.brand ? ` (${product.brand})` : "";
+                  return (
+                    <div key={o.id} style={{ padding: 12, border: "1px solid var(--border)", borderRadius: 8, background: "var(--warm-white)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                        <strong style={{ color: "var(--brown-dark)", fontSize: 13 }}>{o.id}</strong>
+                        <span className={`pill pill-${o.status.toLowerCase()}`} style={{ fontSize: 10 }}>
+                          {o.status}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--brown-dark)", marginBottom: 4 }}>
+                        {o.customerName}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--light-brown)", display: "flex", alignItems: "center", gap: 4 }}>
+                        <Briefcase size={12} /> {o.qty}x {o.productName}{brandStr}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--brown-dark)", marginBottom: 4 }}>
-                      {o.customerName}
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--light-brown)", display: "flex", alignItems: "center", gap: 4 }}>
-                      <Briefcase size={12} /> {o.qty}x {o.productName}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {empOrders.length === 0 && (
                   <div style={{ textAlign: "center", padding: "20px 0", color: "var(--light-brown)", fontSize: 12 }}>
                     No orders assigned.
@@ -1293,7 +1297,6 @@ function ProductsSection() {
                 <th>PRODUCT</th>
                 <th>SKU</th>
                 <th>CATEGORY</th>
-                <th>LOCATION</th>
                 <th>QTY</th>
                 <th>COST</th>
                 <th style={{ whiteSpace: "nowrap" }}>INCENTIVE/UNIT</th>
@@ -1323,43 +1326,33 @@ function ProductsSection() {
                     </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{p.name}</div>
-                      {(p.brand || p.warranty) && (
-                        <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
-                          {p.brand && <span>Brand: {p.brand}</span>}
-                          {p.brand && p.warranty && <span> · </span>}
-                          {p.warranty && <span>Warranty: {p.warranty}</span>}
-                        </div>
-                      )}
+                      <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                        <span>Brand: {p.brand || "—"}</span>
+                        {p.warranty && <span> · Warranty: {p.warranty}</span>}
+                      </div>
                     </td>
                     <td>{p.sku}</td>
-                    <td>{p.category}</td>
                     <td>
-                      <select
-                        value={p.location || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const newLoc = val ? (val as any) : undefined;
-                          setState(s => ({ ...s, products: s.products.map(x => x.id === p.id ? { ...x, location: newLoc } : x) }));
-                        }}
-                        style={{
-                          padding: "6px 10px",
-                          borderRadius: 8,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          border: "1px solid",
-                          borderColor: p.location === "Shop" ? "#86efac" : p.location === "Godown 1" ? "#fcd34d" : p.location === "Godown 2" ? "#d8b4fe" : "var(--border)",
-                          background: p.location === "Shop" ? "#dcfce7" : p.location === "Godown 1" ? "#fef3c7" : p.location === "Godown 2" ? "#f3e8ff" : "var(--biscuit-light)",
-                          color: p.location === "Shop" ? "#166534" : p.location === "Godown 1" ? "#92400e" : p.location === "Godown 2" ? "#6b21a8" : "var(--brown-dark)",
-                          appearance: "auto",
-                          cursor: "pointer",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-                        }}
-                      >
-                        <option value="">🚫 Unassigned</option>
-                        <option value="Shop">🏪 Shop (Sell)</option>
-                        <option value="Godown 1">🏭 Godown 1</option>
-                        <option value="Godown 2">🏭 Godown 2</option>
-                      </select>
+                      <div style={{ fontWeight: 500, fontSize: 13 }}>{p.category}</div>
+                      <div style={{ marginTop: 6 }}>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            background: "#faf6f0",
+                            border: "1px solid #e8e2d9",
+                            color: "#735c47",
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          {p.location === "Shop" ? "🏪 In Stock" : p.location === "Godown 1" ? "🏭 Godown 1" : p.location === "Godown 2" ? "🏭 Godown 2" : p.location === "Display" ? "📺 Display" : "🚫 Unassigned"}
+                        </span>
+                      </div>
                     </td>
                     <td>{p.qty ?? p.stock}</td>
                     <td>₹{p.cost.toLocaleString()}</td>
@@ -1566,7 +1559,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
   const [cost, setCost] = useState(initial?.cost ?? 0);
   const [incentive, setIncentive] = useState(initial?.incentive ?? 0);
   const [supplier, setSupplier] = useState(initial?.supplier ?? "");
-  const [location, setLocation] = useState<"Shop" | "Godown 1" | "Godown 2" | "">(initial?.location ?? "");
+  const [location, setLocation] = useState<"Shop" | "Godown 1" | "Godown 2" | "Display">(initial?.location ?? "Shop");
   const [date, setDate] = useState(initial?.date ?? new Date().toISOString().slice(0, 10));
   const [status, setStatus] = useState(initial?.status ?? "Verified");
   const [image, setImage] = useState(initial?.image ?? "");
@@ -1576,6 +1569,13 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
   const [totalCost, setTotalCost] = useState(initial ? parseFloat((initial.qty * initial.cost).toFixed(2)) : 0);
   const { products, users } = useStore();
   const [assignedEmployeeId, setAssignedEmployeeId] = useState(initial?.assignedEmployeeId ?? "");
+  const [incentivePercent, setIncentivePercent] = useState(() => {
+    if (initial && initial.cost > 0 && initial.incentive) {
+      const pct = Math.round((initial.incentive / initial.cost) * 100);
+      return pct.toString();
+    }
+    return "0";
+  });
 
   const [isCustomBrand, setIsCustomBrand] = useState(() => {
     if (initial?.brand) {
@@ -1919,107 +1919,73 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
         </div>
       </div>
 
-      <div className="form-group" style={{ marginBottom: 10 }}>
-        <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UPLOAD PHOTO</label>
-        <div
-          className={`form-file-input ${isDragging ? "dragging" : ""}`}
-          style={{
-            border: isDragging ? "2px dashed var(--accent)" : "1px dashed var(--border)",
-            background: isDragging ? "var(--biscuit-light)" : "var(--cream)",
-            transition: "all 0.25s ease-in-out",
-            padding: "8px 14px",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "48px",
-            borderRadius: "6px",
-            gap: "12px"
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: "none" }}
-          />
-          <span style={{ fontSize: 20 }}>{isDragging ? "📥" : "📁"}</span>
-          <span style={{ fontSize: 12, color: isDragging ? "var(--accent)" : "var(--brown)", fontWeight: 500, flex: 1, textAlign: "left" }}>
-            {isDragging
-              ? "Drop photo here..."
-              : imageName
-                ? imageName
-                : (initial?.image ? "Change Photo" : "Choose File or Drag & Drop here")}
-          </span>
-          {image && <img src={image} className="image-preview-thumbnail" style={{ width: 36, height: 36 }} alt="Preview" />}
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.2fr 1.2fr", gap: 16, marginBottom: 10 }}>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>QUANTITY</label>
-          <input
-            type="number"
-            className="form-input"
-            value={qty || ""}
-            onChange={(e) => {
-              const val = +e.target.value;
-              setQty(val);
-              setTotalCost(parseFloat((val * cost).toFixed(2)));
+      {!isIncentiveMode && (
+        <div className="form-group" style={{ marginBottom: 10 }}>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UPLOAD PHOTO</label>
+          <div
+            className={`form-file-input ${isDragging ? "dragging" : ""}`}
+            style={{
+              border: isDragging ? "2px dashed var(--accent)" : "1px dashed var(--border)",
+              background: isDragging ? "var(--biscuit-light)" : "var(--cream)",
+              transition: "all 0.25s ease-in-out",
+              padding: "8px 14px",
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "48px",
+              borderRadius: "6px",
+              gap: "12px"
             }}
-            placeholder="0"
-          />
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: "none" }}
+            />
+            <span style={{ fontSize: 20 }}>{isDragging ? "📥" : "📁"}</span>
+            <span style={{ fontSize: 12, color: isDragging ? "var(--accent)" : "var(--brown)", fontWeight: 500, flex: 1, textAlign: "left" }}>
+              {isDragging
+                ? "Drop photo here..."
+                : imageName
+                  ? imageName
+                  : (initial?.image ? "Change Photo" : "Choose File or Drag & Drop here")}
+            </span>
+            {image && <img src={image} className="image-preview-thumbnail" style={{ width: 36, height: 36 }} alt="Preview" />}
+          </div>
         </div>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UNIT COST (₹)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={cost || ""}
-            onChange={(e) => {
-              const val = +e.target.value;
-              setCost(val);
-              setTotalCost(parseFloat((val * qty).toFixed(2)));
-              setIncentive(parseFloat((val * 0.05).toFixed(2)));
-            }}
-            placeholder="0.00"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>TOTAL COST (₹)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={totalCost || ""}
-            onChange={(e) => {
-              const val = +e.target.value;
-              setTotalCost(val);
-              const calculatedCost = qty > 0 ? parseFloat((val / qty).toFixed(2)) : 0;
-              setCost(calculatedCost);
-              setIncentive(parseFloat((calculatedCost * 0.05).toFixed(2)));
-            }}
-            placeholder="0.00"
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>INCENTIVE PER UNIT (₹)</label>
-          <input
-            type="number"
-            className="form-input"
-            value={incentive || ""}
-            onChange={(e) => setIncentive(+e.target.value)}
-            placeholder="0.00"
-          />
-        </div>
-      </div>
+      )}
 
       {isIncentiveMode ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
+          <div className="form-group">
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>INCENTIVE (%)</label>
+            <select
+              className="form-input"
+              value={incentivePercent}
+              onChange={(e) => {
+                const pct = e.target.value;
+                setIncentivePercent(pct);
+                const pctVal = parseFloat(pct) || 0;
+                setIncentive(parseFloat((cost * pctVal / 100).toFixed(2)));
+              }}
+              style={{ appearance: "auto" }}
+            >
+              <option value="0">0%</option>
+              <option value="5">5%</option>
+              <option value="10">10%</option>
+              <option value="15">15%</option>
+              <option value="20">20%</option>
+              <option value="25">25%</option>
+              <option value="30">30%</option>
+            </select>
+          </div>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>ASSIGN EMPLOYEE</label>
             <select
@@ -2029,6 +1995,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
               style={{ appearance: "auto" }}
             >
               <option value="">-- Select Employee --</option>
+              <option value="all">All Employees</option>
               {users.filter(u => u.role === "employee").map(u => (
                 <option key={u.id} value={u.id}>{u.name}</option>
               ))}
@@ -2036,40 +2003,114 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
           </div>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 14 }}>
-          <div className="form-group">
-            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
-            <select
-              className="form-input"
-              value={location}
-              onChange={(e) => setLocation(e.target.value as any)}
-              style={{ appearance: "auto" }}
-            >
-              <option value="">-- Select --</option>
-              <option value="Shop">Shop (Sell)</option>
-              <option value="Godown 1">Godown 1</option>
-              <option value="Godown 2">Godown 2</option>
-            </select>
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.2fr 1.2fr", gap: 16, marginBottom: 10 }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>QUANTITY</label>
+              <input
+                type="number"
+                className="form-input"
+                value={qty || ""}
+                onChange={(e) => {
+                  const val = +e.target.value;
+                  setQty(val);
+                  setTotalCost(parseFloat((val * cost).toFixed(2)));
+                }}
+                placeholder="0"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UNIT COST (₹)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={cost || ""}
+                onChange={(e) => {
+                  const val = +e.target.value;
+                  setCost(val);
+                  setTotalCost(parseFloat((val * qty).toFixed(2)));
+                  const pctVal = parseFloat(incentivePercent) || 0;
+                  setIncentive(parseFloat((val * pctVal / 100).toFixed(2)));
+                }}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>TOTAL COST (₹)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={totalCost || ""}
+                onChange={(e) => {
+                  const val = +e.target.value;
+                  setTotalCost(val);
+                  const calculatedCost = qty > 0 ? parseFloat((val / qty).toFixed(2)) : 0;
+                  setCost(calculatedCost);
+                  const pctVal = parseFloat(incentivePercent) || 0;
+                  setIncentive(parseFloat((calculatedCost * pctVal / 100).toFixed(2)));
+                }}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>INCENTIVE (%)</label>
+              <select
+                className="form-input"
+                value={incentivePercent}
+                onChange={(e) => {
+                  const pct = e.target.value;
+                  setIncentivePercent(pct);
+                  const pctVal = parseFloat(pct) || 0;
+                  setIncentive(parseFloat((cost * pctVal / 100).toFixed(2)));
+                }}
+                style={{ appearance: "auto" }}
+              >
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="10">10%</option>
+                <option value="15">15%</option>
+                <option value="20">20%</option>
+                <option value="25">25%</option>
+                <option value="30">30%</option>
+              </select>
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SUPPLIER</label>
-            <input
-              className="form-input"
-              value={supplier}
-              onChange={(e) => setSupplier(e.target.value)}
-              placeholder="Supplier Name"
-            />
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 14 }}>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
+              <select
+                className="form-input"
+                value={location}
+                onChange={(e) => setLocation(e.target.value as any)}
+                style={{ appearance: "auto" }}
+              >
+                <option value="Shop">In Stock</option>
+                <option value="Godown 1">Godown 1</option>
+                <option value="Godown 2">Godown 2</option>
+                <option value="Display">Display</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SUPPLIER</label>
+              <input
+                className="form-input"
+                value={supplier}
+                onChange={(e) => setSupplier(e.target.value)}
+                placeholder="Supplier Name"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>STOCK DATE</label>
+              <input
+                type="date"
+                className="form-input"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>STOCK DATE</label>
-            <input
-              type="date"
-              className="form-input"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </div>
-        </div>
+        </>
       )}
 
       <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 10 }}>
@@ -2122,36 +2163,40 @@ export function CustomersSection() {
 }
 
 export function OrdersTable() {
-  const { orders } = useStore();
+  const { orders, products } = useStore();
   return (
     <div className={orders.length > 0 ? "card-grid" : ""}>
-      {orders.map((o) => (
-        <div key={o.id} className="data-card">
-          <div className="data-card-header">
-            <div>
-              <h4 className="data-card-title">Order #{o.id}</h4>
-              <span className="data-card-subtitle">{o.date}</span>
+      {orders.map((o) => {
+        const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+        const brandStr = product?.brand ? ` (${product.brand})` : "";
+        return (
+          <div key={o.id} className="data-card">
+            <div className="data-card-header">
+              <div>
+                <h4 className="data-card-title">Order #{o.id}</h4>
+                <span className="data-card-subtitle">{o.date}</span>
+              </div>
+              <div><Pill status={o.status} /></div>
             </div>
-            <div><Pill status={o.status} /></div>
+            <div className="data-card-body">
+              <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+              <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+              <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+            </div>
+            <div className="data-card-footer" style={{ justifyContent: "space-between" }}>
+              <span className="data-label" style={{ alignSelf: "center" }}>Total</span>
+              <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+            </div>
           </div>
-          <div className="data-card-body">
-            <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-            <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
-            <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-          </div>
-          <div className="data-card-footer" style={{ justifyContent: "space-between" }}>
-            <span className="data-label" style={{ alignSelf: "center" }}>Total</span>
-            <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-          </div>
-        </div>
-      ))}
+        );
+      })}
       {orders.length === 0 && <div className="empty">No orders yet.</div>}
     </div>
   );
 }
 
 function OrderApprovalSection() {
-  const { orders, setState, uid } = useStore();
+  const { orders, products, setState, uid } = useStore();
   const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("Pending");
   const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
@@ -2217,31 +2262,35 @@ function OrderApprovalSection() {
           </select>
         </div>
         <div className={list.length > 0 ? "card-grid" : ""}>
-          {list.map((o) => (
-            <div key={o.id} className="data-card">
-              <div className="data-card-header">
-                <div>
-                  <h4 className="data-card-title">Order #{o.id}</h4>
-                  <span className="data-card-subtitle">By: {o.createdBy}</span>
-                </div>
-                <div><Pill status={o.status} /></div>
-              </div>
-              <div className="data-card-body">
-                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
-                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-              </div>
-              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-                {o.status === "Pending" ? (
-                  <div className="actions-row">
-                    <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved")}>Approve</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
+          {list.map((o) => {
+            const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+            const brandStr = product?.brand ? ` (${product.brand})` : "";
+            return (
+              <div key={o.id} className="data-card">
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">Order #{o.id}</h4>
+                    <span className="data-card-subtitle">By: {o.createdBy}</span>
                   </div>
-                ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
+                  <div><Pill status={o.status} /></div>
+                </div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+                </div>
+                <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                  {o.status === "Pending" ? (
+                    <div className="actions-row">
+                      <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved")}>Approve</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
+                    </div>
+                  ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {list.length === 0 && <div className="empty">No orders.</div>}
         </div>
       </div>
@@ -2947,7 +2996,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
 
   return (
     <>
-      <h2 className="page-title">Assign</h2>
+      <h2 className="page-title">Add Employee / manager</h2>
       <p className="page-sub">Manage your team — add, edit, or remove managers and employees.</p>
 
       {/* ── Tab Buttons ── */}
@@ -4006,18 +4055,20 @@ export function LeadsSection() {
   };
 
   const filteredLeads = useMemo(() => {
-    return leads.filter((l) => {
-      const matchesFilter = (activeFilter && activeFilter !== "All") ? l.status === activeFilter : true;
-      const q = searchQuery.toLowerCase();
-      const matchesSearch =
-        l.name.toLowerCase().includes(q) ||
-        l.phone.toLowerCase().includes(q) ||
-        (l.product && l.product.toLowerCase().includes(q)) ||
-        (l.email && l.email.toLowerCase().includes(q)) ||
-        (l.city && l.city.toLowerCase().includes(q)) ||
-        (l.source && l.source.toLowerCase().includes(q));
-      return matchesFilter && matchesSearch;
-    });
+    return leads
+      .filter((l) => {
+        const matchesFilter = (activeFilter && activeFilter !== "All") ? l.status === activeFilter : true;
+        const q = searchQuery.toLowerCase();
+        const matchesSearch =
+          l.name.toLowerCase().includes(q) ||
+          l.phone.toLowerCase().includes(q) ||
+          (l.product && l.product.toLowerCase().includes(q)) ||
+          (l.email && l.email.toLowerCase().includes(q)) ||
+          (l.city && l.city.toLowerCase().includes(q)) ||
+          (l.source && l.source.toLowerCase().includes(q));
+        return matchesFilter && matchesSearch;
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [leads, activeFilter, searchQuery]);
 
   const assignableUsers = useMemo(() => {
@@ -4275,7 +4326,7 @@ export function LeadsSection() {
 
 
 export function SuperAdminIncentiveSection() {
-  const { products, setState } = useStore();
+  const { products, setState, users } = useStore();
   const [editing, setEditing] = useState<Product | null>(null);
   const [incentiveMode, setIncentiveMode] = useState<boolean>(false);
 
@@ -4341,7 +4392,18 @@ export function SuperAdminIncentiveSection() {
                         </div>
                       )}
                     </td>
-                    <td style={{ fontWeight: 600 }}>{p.name}</td>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{p.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                        <span>Brand: {p.brand || "—"}</span>
+                        {p.warranty && <span> · Warranty: {p.warranty}</span>}
+                      </div>
+                      {p.assignedEmployeeId && (
+                        <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                          👤 Assigned: {p.assignedEmployeeId === "all" ? "All Employees" : (users.find(u => u.id === p.assignedEmployeeId)?.name || p.assignedEmployeeId)}
+                        </div>
+                      )}
+                    </td>
                     <td>{p.sku}</td>
                     <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
                     <td>{p.qty ?? p.stock ?? 0}</td>

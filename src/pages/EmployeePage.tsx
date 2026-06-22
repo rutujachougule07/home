@@ -175,7 +175,7 @@ function CustomerComm() {
           <p style={{ fontSize: 13, color: "var(--brown)" }}>Available products to discuss with the customer:</p>
           <ul className="notif-list">
             {products.filter((p) => p.status === "Active").map((p) => (
-              <li key={p.id}><b>{p.name}</b> — ₹{p.price} · Stock: {p.qty ?? p.stock}</li>
+              <li key={p.id}><b>{p.name}</b>{p.brand ? ` (${p.brand})` : ""} — ₹{p.price} · Stock: {p.qty ?? p.stock}</li>
             ))}
           </ul>
           <div className="modal-actions">
@@ -188,7 +188,7 @@ function CustomerComm() {
 }
 
 function OrderUpdates() {
-  const { orders, currentUser, setState, uid } = useStore();
+  const { orders, products, currentUser, setState, uid } = useStore();
   const myOrders = orders.filter((o) => o.assignedTo === currentUser?.id && o.sentToEmployee && (o.status === "Approved" || o.status === "Delivered"));
   const otherOrders = orders.filter((o) => o.assignedTo !== currentUser?.id && o.sentToEmployee && (o.status === "Approved" || o.status === "Delivered"));
   return (
@@ -205,52 +205,56 @@ function OrderUpdates() {
           </h3>
         </div>
         <div className={myOrders.length > 0 ? "card-grid" : ""}>
-          {myOrders.map((o) => (
-            <div key={o.id} className="data-card" style={{ borderLeft: "4px solid var(--accent)" }}>
-              <div className="data-card-header">
-                <div>
-                  <h4 className="data-card-title">Order #{o.id}</h4>
-                  <span className="data-card-subtitle">{o.customerName}</span>
+          {myOrders.map((o) => {
+            const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+            const brandStr = product?.brand ? ` (${product.brand})` : "";
+            return (
+              <div key={o.id} className="data-card" style={{ borderLeft: "4px solid var(--accent)" }}>
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">Order #{o.id}</h4>
+                    <span className="data-card-subtitle">{o.customerName}</span>
+                  </div>
+                  <div><Pill status={o.status} /></div>
                 </div>
-                <div><Pill status={o.status} /></div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
+                </div>
+                <div className="data-card-footer" style={{ justifyContent: "flex-end" }}>
+                  {o.status === "Approved" ? (
+                    <button
+                      className="btn btn-success btn-sm"
+                      style={{ padding: "4px 8px", fontSize: 11 }}
+                      onClick={() => {
+                        if (confirm("Mark this order as delivered? (ही ऑर्डर डिलीव्हर झाली म्हणून नोंदवायची का?)")) {
+                          setState((s) => ({
+                            ...s,
+                            orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order),
+                            notifications: [
+                              {
+                                id: uid("n"),
+                                to: "manager",
+                                from: currentUser?.name || "Employee",
+                                message: `Order #${o.id} for ${o.customerName} (${o.qty}x ${o.productName}) has been delivered`,
+                                date: new Date().toISOString().slice(0, 10),
+                                read: false
+                              },
+                              ...s.notifications
+                            ]
+                          }));
+                        }
+                      }}
+                    >
+                      🚚 Mark Delivered
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
+                  )}
+                </div>
               </div>
-              <div className="data-card-body">
-                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
-                <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
-              </div>
-              <div className="data-card-footer" style={{ justifyContent: "flex-end" }}>
-                {o.status === "Approved" ? (
-                  <button
-                    className="btn btn-success btn-sm"
-                    style={{ padding: "4px 8px", fontSize: 11 }}
-                    onClick={() => {
-                      if (confirm("Mark this order as delivered? (ही ऑर्डर डिलीव्हर झाली म्हणून नोंदवायची का?)")) {
-                        setState((s) => ({
-                          ...s,
-                          orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order),
-                          notifications: [
-                            {
-                              id: uid("n"),
-                              to: "manager",
-                              from: currentUser?.name || "Employee",
-                              message: `Order #${o.id} for ${o.customerName} (${o.qty}x ${o.productName}) has been delivered`,
-                              date: new Date().toISOString().slice(0, 10),
-                              read: false
-                            },
-                            ...s.notifications
-                          ]
-                        }));
-                      }
-                    }}
-                  >
-                    🚚 Mark Delivered
-                  </button>
-                ) : (
-                  <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {myOrders.length === 0 && <div className="empty">No orders currently assigned to you.</div>}
         </div>
       </div>
@@ -261,22 +265,26 @@ function OrderUpdates() {
           <h3 className="panel-title">All Other Orders (इतर सर्व ऑर्डर्स)</h3>
         </div>
         <div className={otherOrders.length > 0 ? "card-grid" : ""}>
-          {otherOrders.map((o) => (
-            <div key={o.id} className="data-card">
-              <div className="data-card-header">
-                <div>
-                  <h4 className="data-card-title">Order #{o.id}</h4>
-                  <span className="data-card-subtitle">{o.customerName}</span>
+          {otherOrders.map((o) => {
+            const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+            const brandStr = product?.brand ? ` (${product.brand})` : "";
+            return (
+              <div key={o.id} className="data-card">
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">Order #{o.id}</h4>
+                    <span className="data-card-subtitle">{o.customerName}</span>
+                  </div>
+                  <div><Pill status={o.status} /></div>
                 </div>
-                <div><Pill status={o.status} /></div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+                  <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
+                </div>
               </div>
-              <div className="data-card-body">
-                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
-                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-                <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           {otherOrders.length === 0 && <div className="empty">No other orders.</div>}
         </div>
       </div>
@@ -285,9 +293,9 @@ function OrderUpdates() {
 }
 
 function ProductsSection() {
-  const { products, setState, uid } = useStore();
+  const { products, setState, uid, currentUser } = useStore();
   const [categoryFilter] = useState("All");
-  const [showAdd, setShowAdd] = useState(false);
+  const [showAdd] = useState(false);
 
   // Filter products list
   const filteredProducts = useMemo(() => {
@@ -334,10 +342,25 @@ function ProductsSection() {
                         <div style={{ fontWeight: 600 }}>{p.name}</div>
                         <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
                           {p.sku && <span>SKU: {p.sku}</span>}
-                          {p.sku && (p.brand || p.warranty) && <span> · </span>}
-                          {p.brand && <span>Brand: {p.brand}</span>}
-                          {p.brand && p.warranty && <span> · </span>}
-                          {p.warranty && <span>Warranty: {p.warranty}</span>}
+                          {p.sku && <span> · </span>}
+                          <span>Brand: {p.brand || "—"}</span>
+                          {p.warranty && <span> · Warranty: {p.warranty}</span>}
+                          {p.assignedEmployeeId && (
+                            <>
+                              <span> · </span>
+                              <span style={{ color: p.assignedEmployeeId === currentUser?.id || p.assignedEmployeeId === "all" ? "var(--success)" : "var(--text-muted)", fontWeight: 600 }}>
+                                👤 Assigned: {p.assignedEmployeeId === "all" ? "All Employees" : p.assignedEmployeeId === currentUser?.id ? "Me" : "Other Staff"}
+                              </span>
+                            </>
+                          )}
+                          {p.incentive > 0 && (p.assignedEmployeeId === "all" || p.assignedEmployeeId === currentUser?.id) && (
+                            <>
+                              <span> · </span>
+                              <span style={{ color: "#d97706", fontWeight: 700, background: "#fef3c7", padding: "2px 6px", borderRadius: "4px", fontSize: "10px" }}>
+                                💰 Incentive: ₹{p.incentive.toLocaleString()}/unit
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -364,17 +387,18 @@ function ProductsSection() {
 }
 
 function HistorySection() {
-  const { products, orders, customers } = useStore();
+  const { products, orders, customers, currentUser } = useStore();
   const [subTab, setSubTab] = useState<"stocking" | "bill" | "customers" | "incentive">("stocking");
   const [selectedBill, setSelectedBill] = useState<Order | null>(null);
 
   // Calculate incentive for approved orders
-  const approvedOrders = orders.filter(o => o.status === "Approved");
+  const approvedOrders = orders.filter(o => o.status === "Approved" && o.assignedTo === currentUser?.id);
 
   const incentiveDetails = approvedOrders.map(o => {
     // Find the product to get the incentive amount
     const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-    const incentivePerUnit = product ? product.incentive : 1000;
+    const isAssigned = !product || !product.assignedEmployeeId || product.assignedEmployeeId === "all" || product.assignedEmployeeId === currentUser?.id;
+    const incentivePerUnit = isAssigned ? (product ? product.incentive || 0 : 0) : 0;
     const totalIncentive = o.qty * incentivePerUnit;
 
     return {
@@ -386,7 +410,7 @@ function HistorySection() {
       totalIncentive,
       date: o.date
     };
-  });
+  }).filter(item => item.totalIncentive > 0);
 
   const grandTotalIncentive = incentiveDetails.reduce((sum, item) => sum + item.totalIncentive, 0);
 
@@ -587,7 +611,7 @@ function HistorySection() {
                     )}
                     <div>
                       <h4 className="data-card-title">{p.name}</h4>
-                      {p.brand && <span className="data-card-subtitle">Brand: {p.brand}</span>}
+                      <span className="data-card-subtitle">Brand: {p.brand || "—"}</span>
                     </div>
                   </div>
                 </div>
@@ -614,31 +638,35 @@ function HistorySection() {
             <h3 className="panel-title">Billing & Orders List</h3>
           </div>
           <div className={orders.length > 0 ? "card-grid" : ""}>
-            {orders.map((o) => (
-              <div key={o.id} className="data-card">
-                <div className="data-card-header">
-                  <div>
-                    <h4 className="data-card-title">Order #{o.id}</h4>
-                    <span className="data-card-subtitle">{o.date}</span>
+            {orders.map((o) => {
+              const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+              const brandStr = product?.brand ? ` (${product.brand})` : "";
+              return (
+                <div key={o.id} className="data-card">
+                  <div className="data-card-header">
+                    <div>
+                      <h4 className="data-card-title">Order #{o.id}</h4>
+                      <span className="data-card-subtitle">{o.date}</span>
+                    </div>
+                    <div><Pill status={o.status} /></div>
                   </div>
-                  <div><Pill status={o.status} /></div>
+                  <div className="data-card-body">
+                    <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                    <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  </div>
+                  <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: "4px 10px", fontSize: 12, background: "var(--biscuit-light)", borderColor: "var(--border)", fontWeight: 600 }}
+                      onClick={() => setSelectedBill(o)}
+                    >
+                      📄 View Bill
+                    </button>
+                  </div>
                 </div>
-                <div className="data-card-body">
-                  <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName} (x{o.qty})</span></div>
-                </div>
-                <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    style={{ padding: "4px 10px", fontSize: 12, background: "var(--biscuit-light)", borderColor: "var(--border)", fontWeight: 600 }}
-                    onClick={() => setSelectedBill(o)}
-                  >
-                    📄 View Bill
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             {orders.length === 0 && <div className="empty">No billing history found.</div>}
           </div>
         </div>
@@ -686,7 +714,7 @@ function HistorySection() {
               <div className="stat-icon">📦</div>
               <div>
                 <p className="stat-label">Successful Sales</p>
-                <h3 className="stat-value">{approvedOrders.length}</h3>
+                <h3 className="stat-value">{incentiveDetails.length}</h3>
               </div>
             </div>
           </div>
