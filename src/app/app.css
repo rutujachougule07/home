@@ -1,23 +1,27 @@
 :root {
-  --biscuit: #f3e3c3;
-  --biscuit-light: #faf1dd;
-  --cream: #fdf8ef;
-  --warm-white: #fffdf8;
-  --beige: #ece0c8;
-  --light-brown: #b08a5b;
-  --brown: #7a5a32;
-  --brown-dark: #4a371d;
-  --accent: #c98a3f;
-  --accent-dark: #a86d28;
-  --danger: #c0473b;
-  --success: #4f8a55;
-  --info: #4a6ea3;
-  --border: #e6d6b8;
-  --shadow-sm: 0 2px 6px rgba(122, 90, 50, 0.08);
-  --shadow-md: 0 8px 24px rgba(122, 90, 50, 0.12);
-  --shadow-lg: 0 16px 40px rgba(122, 90, 50, 0.18);
+  --biscuit: #e8e2d9;
+  --biscuit-light: #faf6f0;
+  --cream: #F8F6F2;
+  --warm-white: #FFFFFF;
+  --beige: #e5e0d8;
+  --light-brown: #FFB547;
+  --brown: #6B7280;
+  --brown-dark: #1F2937;
+  --accent: #FF7A00;
+  --accent-dark: #E06A00;
+  --danger: #EF4444;
+  --success: #10B981;
+  --info: #0F766E;
+  --border: #E5E7EB;
+  --shadow-sm: 0 2px 6px rgba(31, 41, 55, 0.04);
+  --shadow-md: 0 8px 24px rgba(31, 41, 55, 0.08);
+  --shadow-lg: 0 16px 40px rgba(31, 41, 55, 0.12);
   --radius: 14px;
   --radius-sm: 10px;
+
+  --primary: #0F766E;
+  --secondary: #14B8A6;
+  --warning: #F59E0B;
 }
 
 * {
@@ -275,7 +279,7 @@ html, body {
 }
 
 .sidebar {
-  background: linear-gradient(180deg, #fbf2dd 0%, #f1e0bc 100%);
+  background: linear-gradient(180deg, var(--warm-white) 0%, var(--biscuit-light) 100%);
   border-right: 1px solid var(--border);
   padding: 22px 14px;
   position: fixed;
@@ -335,7 +339,7 @@ html, body {
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, var(--accent), var(--light-brown));
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: #fff;
   box-shadow: var(--shadow-sm);
 }
@@ -582,7 +586,7 @@ table.tbl {
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--brown-dark);
-  background: #fbf5e6;
+  background: var(--biscuit-light);
   font-weight: 700;
   border-bottom: 2px solid var(--border);
   position: sticky;
@@ -595,11 +599,11 @@ table.tbl {
 }
 
 .tbl tbody tr:nth-child(even) {
-  background: #fdfaf3;
+  background: var(--cream);
 }
 
 .tbl tbody tr:hover td {
-  background: #fff8eb;
+  background: var(--biscuit-light);
 }
 
 .pill {
