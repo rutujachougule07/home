@@ -2199,8 +2199,9 @@ function OrderApprovalSection() {
   const { orders, products, setState, uid } = useStore();
   const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("Pending");
   const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const [editDiscounts, setEditDiscounts] = useState<Record<string, number>>({});
 
-  const decide = (id: string, status: "Approved" | "Rejected") => {
+  const decide = (id: string, status: "Approved" | "Rejected", newDiscountPct?: number) => {
     const notifId1 = uid("n");
     const notifId2 = uid("n");
     setState((s) => {
@@ -2237,7 +2238,20 @@ function OrderApprovalSection() {
       return {
         ...s,
         products: updatedProducts,
-        orders: s.orders.map((o) => o.id === id ? { ...o, status } : o),
+        orders: s.orders.map((o) => {
+          if (o.id === id) {
+            let finalTotal = o.total;
+            let finalDiscount = o.discount;
+            if (status === "Approved" && newDiscountPct !== undefined) {
+              const product = s.products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+              const basePrice = product ? product.price : Math.round(o.total / (1 - ((o.discount || 0) / 100)));
+              finalDiscount = newDiscountPct;
+              finalTotal = Math.max(0, (basePrice * o.qty) - Math.round((newDiscountPct / 100) * (basePrice * o.qty)));
+            }
+            return { ...o, status, discount: finalDiscount, total: finalTotal };
+          }
+          return o;
+        }),
         notifications: [
           { id: notifId1, to: "manager", from: "Super Admin", message: orderDetailsStr, date: new Date().toISOString().slice(0, 10), read: false },
           { id: notifId2, to: "employee", from: "Super Admin", message: orderDetailsStr, date: new Date().toISOString().slice(0, 10), read: false },
@@ -2265,6 +2279,10 @@ function OrderApprovalSection() {
           {list.map((o) => {
             const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
             const brandStr = product?.brand ? ` (${product.brand})` : "";
+            const orderBasePrice = Math.round(o.total / (1 - ((o.discount || 0) / 100)));
+            const currentDiscount = editDiscounts[o.id] !== undefined ? editDiscounts[o.id] : (o.discount || 0);
+            const calculatedTotal = o.status === "Pending" ? Math.max(0, orderBasePrice - Math.round((currentDiscount / 100) * orderBasePrice)) : o.total;
+
             return (
               <div key={o.id} className="data-card">
                 <div className="data-card-header">
@@ -2277,16 +2295,49 @@ function OrderApprovalSection() {
                 <div className="data-card-body">
                   <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Base Price</span><span className="data-value">₹{orderBasePrice.toLocaleString()}</span></div>
                   <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
                 </div>
-                <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                <div className="data-card-footer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {o.status === "Pending" ? (
-                    <div className="actions-row">
-                      <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved")}>Approve</button>
-                      <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--biscuit-light)", padding: "8px 12px", borderRadius: "8px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--brown-dark)" }}>DISCOUNT (%)</span>
+                      <input
+                        type="number"
+                        className="form-input"
+                        style={{ width: "80px", height: "30px", textAlign: "right" }}
+                        value={currentDiscount}
+                        onChange={(e) => setEditDiscounts({ ...editDiscounts, [o.id]: Number(e.target.value) })}
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                        min={0}
+                        max={100}
+                      />
                     </div>
-                  ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
+                  ) : (
+                    o.discount && o.discount > 0 ? (
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--brown)" }}>
+                        <span>Discount Applied:</span>
+                        <span style={{ fontWeight: 600 }}>{o.discount}%</span>
+                      </div>
+                    ) : null
+                  )}
+                  
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>
+                        ₹{calculatedTotal.toLocaleString()}
+                      </span>
+                      {o.status === "Pending" && currentDiscount > 0 && (
+                        <span style={{ fontSize: "10px", color: "var(--brown)" }}>Includes discount</span>
+                      )}
+                    </div>
+                    {o.status === "Pending" ? (
+                      <div className="actions-row">
+                        <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved", editDiscounts[o.id])}>Approve</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
+                      </div>
+                    ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
+                  </div>
                 </div>
               </div>
             );
@@ -2978,9 +3029,11 @@ export function UpcomingFollowUps() {
 
 
 export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } = {}) {
-  const { users, tasks, setState, uid } = useStore();
+  const { currentUser, users, tasks, setState, uid } = useStore();
   const managers = users.filter(u => u.role === "manager");
   const employees = users.filter(u => u.role === "employee");
+
+  const isManager = currentUser?.role === "manager";
 
   const [editingManager, setEditingManager] = useState<User | null>(null);
   const [showAddManager, setShowAddManager] = useState(false);
@@ -2996,62 +3049,64 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
 
   return (
     <>
-      <h2 className="page-title">Add Employee / manager</h2>
-      <p className="page-sub">Manage your team — add, edit, or remove managers and employees.</p>
+      <h2 className="page-title">{isManager ? "Manage Employees" : "Add Employee / manager"}</h2>
+      <p className="page-sub">{isManager ? "Manage your team — add, edit, or remove employees." : "Manage your team — add, edit, or remove managers and employees."}</p>
 
       {/* ── Tab Buttons ── */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
-        <button onClick={() => setActiveTab("employee")} style={{
-          padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
-          borderRadius: "20px",
-          borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
-          background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
-          color: activeTab === "employee" ? "#92400e" : "#a18265",
-          transition: "all 0.3s ease",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px"
-        }}>
-          <span>👤 Employees</span>
-          <span style={{
-            display: "inline-flex",
+      {!isManager && (
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
+          <button onClick={() => setActiveTab("employee")} style={{
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
+            color: activeTab === "employee" ? "#92400e" : "#a18265",
+            transition: "all 0.3s ease",
+            display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            width: "20px",
-            height: "20px",
-            borderRadius: "50%",
-            fontSize: "11px",
-            background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
-            color: activeTab === "employee" ? "#fff" : "#7c6249",
-            fontWeight: 800,
-          }}>{employees.length}</span>
-        </button>
-        <button onClick={() => setActiveTab("manager")} style={{
-          padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
-          borderRadius: "20px",
-          borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
-          background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
-          color: activeTab === "manager" ? "#92400e" : "#a18265",
-          transition: "all 0.3s ease",
-          display: "flex",
-          alignItems: "center",
-          gap: "6px"
-        }}>
-          <span>👔 Managers</span>
-          <span style={{
-            display: "inline-flex",
+            gap: "6px"
+          }}>
+            <span>👤 Employees</span>
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              fontSize: "11px",
+              background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "employee" ? "#fff" : "#7c6249",
+              fontWeight: 800,
+            }}>{employees.length}</span>
+          </button>
+          <button onClick={() => setActiveTab("manager")} style={{
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
+            color: activeTab === "manager" ? "#92400e" : "#a18265",
+            transition: "all 0.3s ease",
+            display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            width: "20px",
-            height: "20px",
-            borderRadius: "50%",
-            fontSize: "11px",
-            background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
-            color: activeTab === "manager" ? "#fff" : "#7c6249",
-            fontWeight: 800,
-          }}>{managers.length}</span>
-        </button>
-      </div>
+            gap: "6px"
+          }}>
+            <span>👔 Managers</span>
+            <span style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "20px",
+              height: "20px",
+              borderRadius: "50%",
+              fontSize: "11px",
+              background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "manager" ? "#fff" : "#7c6249",
+              fontWeight: 800,
+            }}>{managers.length}</span>
+          </button>
+        </div>
+      )}
 
       {/* ── Employee Tab Content ── */}
       {activeTab === "employee" && (
@@ -3074,7 +3129,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               }}>+ Add Employee</button>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
             {employees.map(e => (
               <UnifiedEmployeeCard
                 key={e.id}
@@ -3126,7 +3181,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               }}>+ Add Manager</button>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
             {managers.map(m => (
               <UnifiedEmployeeCard
                 key={m.id}

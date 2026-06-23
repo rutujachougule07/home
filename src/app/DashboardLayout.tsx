@@ -1,4 +1,5 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { useStore, Role } from "./store";
 
@@ -193,7 +194,18 @@ export function BarChart({ data }: { data: { label: string; value: number }[] })
 }
 
 export function Modal({ title, onClose, children, className }: { title: string; onClose: () => void; children: ReactNode; className?: string }) {
-  return (
+  useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, []);
+
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className={`modal ${className ?? ""}`} onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
@@ -202,6 +214,7 @@ export function Modal({ title, onClose, children, className }: { title: string; 
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

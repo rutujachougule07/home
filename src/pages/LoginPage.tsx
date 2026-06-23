@@ -41,7 +41,7 @@ export function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
-              autoComplete="username"
+              autoComplete="off"
             />
           </div>
 
@@ -54,7 +54,7 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
               <button type="button" className="password-toggle" onClick={() => setShow((s) => !s)}>
                 {show ? "🙈" : "👁"}

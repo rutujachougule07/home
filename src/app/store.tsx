@@ -7,10 +7,10 @@ export type Role = "superadmin" | "manager" | "employee";
 export interface User { id: string; name: string; username: string; role: Role; email?: string; phone?: string; employeeId?: string; jobTitle?: string; password?: string; address?: string; status?: string; }
 export interface Product { id: string; name: string; category: string; price: number; stock: number; status: string; sku: string; image: string; qty: number; cost: number; incentive: number; supplier: string; date: string; warranty?: string; brand?: string; location?: "Shop" | "Godown 1" | "Godown 2" | "Display"; assignedEmployeeId?: string; }
 export interface Customer { id: string; name: string; email: string; phone: string; address: string; status: string; }
-export interface Order { id: string; customerId: string; customerName: string; productId: string; productName: string; qty: number; total: number; createdBy: string; status: "Pending" | "Approved" | "Rejected" | "Delivered"; date: string; assignedTo?: string; assignedToName?: string; sentToEmployee?: boolean; }
-export interface Task { id: string; title: string; assignedTo: string; assignedToName: string; customerId?: string; status: "Pending" | "In Progress" | "Completed"; date: string; }
+export interface Order { id: string; customerId: string; customerName: string; productId: string; productName: string; qty: number; total: number; discount?: number; createdBy: string; status: "Pending" | "Approved" | "Rejected" | "Delivered"; date: string; assignedTo?: string; assignedToName?: string; sentToEmployee?: boolean; }
+export interface Task { id: string; title: string; assignedTo: string; assignedToName: string; customerId?: string; status: "Pending" | "In Progress" | "Completed"; date: string; proofNote?: string; proofUrl?: string; }
 export interface Notification { id: string; to: Role | "all"; from: string; message: string; date: string; read: boolean; }
-export interface Lead { id: string; name: string; phone: string; email?: string; source?: string; product?: string; brand?: string; gender?: "Male" | "Female" | "Other"; status: "New" | "Cold" | "Warm" | "Hot" | "Enrolled" | "Cancelled"; followUpDate?: string; notes?: string; date: string; assignedTo?: string; city?: string; }
+export interface Lead { id: string; name: string; phone: string; email?: string; source?: string; product?: string; brand?: string; gender?: "Male" | "Female" | "Other"; status: "New" | "Cold" | "Warm" | "Hot" | "Enrolled" | "Cancelled"; followUpDate?: string; notes?: string; date: string; assignedTo?: string; city?: string; createdBy?: string; }
 
 interface State {
   currentUser: User | null;
@@ -105,7 +105,8 @@ const USER_STORAGE_KEY = "sham_current_user_v2";
 function loadCurrentUser(): User | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    let raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) raw = sessionStorage.getItem(USER_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { }
   return null;
@@ -115,8 +116,10 @@ function saveCurrentUser(user: User | null) {
   try {
     if (user) {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
     } else {
       localStorage.removeItem(USER_STORAGE_KEY);
+      sessionStorage.removeItem(USER_STORAGE_KEY);
     }
   } catch { }
 }
@@ -124,24 +127,15 @@ function saveCurrentUser(user: User | null) {
 function defaultState(): State {
   return {
     currentUser: loadCurrentUser(),
-    users: initialUsers,
-    products: initialProducts,
-    customers: initialCustomers,
-    orders: initialOrders,
-    tasks: initialTasks,
-    notifications: initialNotifications,
-    leads: initialLeads,
+    users: [],
+    products: [],
+    customers: [],
+    orders: [],
+    tasks: [],
+    notifications: [],
+    leads: [],
   };
 }
-
-interface Ctx extends State {
-  login: (username: string, password: string) => Promise<Role | null>;
-  logout: () => void;
-  setState: (updater: (s: State) => State) => void;
-  uid: (prefix: string) => string;
-}
-
-const StoreContext = createContext<Ctx | null>(null);
 
 const PASSWORDS: Record<string, { password: string; role: Role }> = {
   "admin@gmail.com": { password: "admin123", role: "superadmin" },
@@ -244,6 +238,8 @@ const seedDatabase = async () => {
     console.error("Error seeding Firestore:", err);
   }
 };
+
+export const StoreContext = createContext<(State & { login: (username: string, password?: string) => Promise<Role | null>; logout: () => void; setState: (updater: (s: State) => State) => void; uid: string | null; }) | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);

@@ -8,14 +8,12 @@ import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
-  { key: "assign", label: "Assign", icon: "📋" },
+  { key: "assign", label: "Add Employee", icon: "📋" },
   { key: "task-assign", label: "Task Assign", icon: "📝" },
-  { key: "customers", label: "Customers", icon: "🧑‍💼" },
   { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "orders", label: "Orders", icon: "🧾" },
   { key: "products", label: "Product Availability", icon: "📦" },
   { key: "incentive", label: "Incentive", icon: "💰" },
-  { key: "notifications", label: "Notifications", icon: "🔔" },
   { key: "profile", label: "Profile", icon: "⚙" },
 ];
 
@@ -36,8 +34,7 @@ export function ManagerPage({ tab = "overview" }: ManagerPageProps) {
   return (
     <DashboardLayout role="manager" title="Manager" nav={NAV} active={active} onNav={setActive}>
       {active === "overview" && <Overview />}
-      {active === "employees" && <EmployeesMgmt />}
-      {active === "assign" && <TasksAssignSection readOnly={true} />}
+      {active === "assign" && <TasksAssignSection />}
       {active === "task-assign" && <TaskAssignmentSection />}
       {active === "customers" && <CustomersMgmt />}
       {active === "leads" && <LeadsSection />}
