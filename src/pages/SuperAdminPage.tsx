@@ -2952,10 +2952,6 @@ export function UpcomingFollowUps() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "16px" }}>
           {upcoming.map(l => {
-            const assignedUser = users.find(u => u.id === l.assignedTo);
-            const assignedName = assignedUser 
-              ? assignedUser.name 
-              : (l.createdBy && l.createdBy !== "Super Admin" && l.createdBy !== "System" ? l.createdBy : "Unassigned");
             return (
               <div
                 key={l.id}
@@ -3022,7 +3018,7 @@ export function UpcomingFollowUps() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
                     <Briefcase size={14} style={{ color: "#a8a29e" }} />
-                    <span>{l.product || "N/A"}</span>
+                    <span>{l.product || "N/A"}{l.brand ? ` - ${l.brand}` : ""}</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
                     <Calendar size={14} style={{ color: "#a8a29e" }} />
@@ -3034,7 +3030,7 @@ export function UpcomingFollowUps() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#8a6632" }}>
                     <UserIcon size={14} style={{ color: "#a8a29e" }} />
-                    <span>Employee: <strong style={{ color: "#5c4115" }}>{assignedName}</strong></span>
+                    <span>Added By: <strong style={{ color: "#5c4115" }}>{l.createdBy || "System"}</strong></span>
                   </div>
                 </div>
               </div>
