@@ -2866,6 +2866,13 @@ export function UpcomingFollowUps() {
   const { leads, currentUser, setState, users } = useStore();
   const navigate = useNavigate();
 
+  const userLeads = useMemo(() => {
+    if (currentUser?.role === "employee" || currentUser?.role === "manager") {
+      return leads.filter(l => l.assignedTo === currentUser.id);
+    }
+    return leads;
+  }, [leads, currentUser]);
+
   const handleViewAll = () => {
     if (!currentUser) return;
     const path = currentUser.role === "superadmin" ? "/super-admin" : `/${currentUser.role}`;
@@ -2918,7 +2925,7 @@ export function UpcomingFollowUps() {
     return colors[status] || "#3b82f6";
   };
 
-  const upcoming = leads.filter(l => l.followUpDate && new Date(l.followUpDate) >= new Date(new Date().setHours(0, 0, 0, 0)));
+  const upcoming = userLeads.filter(l => l.followUpDate && new Date(l.followUpDate) >= new Date(new Date().setHours(0, 0, 0, 0)));
   upcoming.sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime());
 
   return (
@@ -4035,16 +4042,23 @@ export function DashboardLeadPipelineOverview({
   const { leads, currentUser } = useStore();
   const navigate = useNavigate();
 
+  const userLeads = useMemo(() => {
+    if (currentUser?.role === "employee" || currentUser?.role === "manager") {
+      return leads.filter(l => l.assignedTo === currentUser.id);
+    }
+    return leads;
+  }, [leads, currentUser]);
+
   const handleViewAll = () => {
     if (!currentUser) return;
     const path = currentUser.role === "superadmin" ? "/super-admin" : `/${currentUser.role}`;
     navigate({ to: path, search: { tab: "leads" } });
   };
 
-  const getCount = (status: Lead["status"]) => leads.filter(l => l.status === status).length;
+  const getCount = (status: Lead["status"]) => userLeads.filter(l => l.status === status).length;
 
   const cards: { key: Lead["status"] | "All"; label: string; count: number; color: string; bg: string; border: string; icon: any }[] = [
-    { key: "All", label: "All Leads", count: leads.length, color: "#8b5cf6", bg: "#f5f3ff", border: "#ede9fe", icon: MessageSquare },
+    { key: "All", label: "All Leads", count: userLeads.length, color: "#8b5cf6", bg: "#f5f3ff", border: "#ede9fe", icon: MessageSquare },
     { key: "New", label: "New Leads", count: getCount("New"), color: "#3b82f6", bg: "#eff6ff", border: "#dbeafe", icon: AlertCircle },
     { key: "Cold", label: "Cold", count: getCount("Cold"), color: "#6b7280", bg: "#f3f4f6", border: "#e5e7eb", icon: Snowflake },
     { key: "Warm", label: "Warm", count: getCount("Warm"), color: "#d97706", bg: "#fffbeb", border: "#fef3c7", icon: Clock },
@@ -4253,8 +4267,15 @@ export function LeadsSection() {
     }));
   };
 
+  const userLeads = useMemo(() => {
+    if (currentUser?.role === "employee" || currentUser?.role === "manager") {
+      return leads.filter(l => l.assignedTo === currentUser.id);
+    }
+    return leads;
+  }, [leads, currentUser]);
+
   const filteredLeads = useMemo(() => {
-    return leads
+    return userLeads
       .filter((l) => {
         const matchesFilter = (activeFilter && activeFilter !== "All") ? l.status === activeFilter : true;
         const q = searchQuery.toLowerCase();
@@ -4268,7 +4289,7 @@ export function LeadsSection() {
         return matchesFilter && matchesSearch;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [leads, activeFilter, searchQuery]);
+  }, [userLeads, activeFilter, searchQuery]);
 
   const assignableUsers = useMemo(() => {
     return users.filter((u) => u.role === "manager" || u.role === "employee");
