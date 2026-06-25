@@ -2953,7 +2953,9 @@ export function UpcomingFollowUps() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginTop: "16px" }}>
           {upcoming.map(l => {
             const assignedUser = users.find(u => u.id === l.assignedTo);
-            const assignedName = assignedUser ? assignedUser.name : "Unassigned";
+            const assignedName = assignedUser 
+              ? assignedUser.name 
+              : (l.createdBy && l.createdBy !== "Super Admin" && l.createdBy !== "System" ? l.createdBy : "Unassigned");
             return (
               <div
                 key={l.id}
