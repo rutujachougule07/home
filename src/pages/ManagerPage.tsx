@@ -407,16 +407,62 @@ function OrdersMgmt() {
       {show && (
         <CreateOrderModal
           onClose={() => setShow(false)}
-          onSave={(customerId, productId, qty, assignedTo, assignedToName) => {
-            const c = customers.find((c) => c.id === customerId)!;
+          onSave={(customerName, productId, qty, assignedTo, assignedToName) => {
             const p = products.find((p) => p.id === productId)!;
             const orderId = uid("o");
             const notifId = uid("n");
-            setState((s) => ({
-              ...s,
-              orders: [...s.orders, { id: orderId, customerId, customerName: c.name, productId, productName: p.name, qty, total: qty * p.price, createdBy: "manager", status: "Pending", date: new Date().toISOString().slice(0, 10), assignedTo, assignedToName }],
-              notifications: [{ id: notifId, to: "superadmin", from: "Manager", message: `New order pending for ${c.name}`, date: new Date().toISOString().slice(0, 10), read: false }, ...s.notifications],
-            }));
+            setState((s) => {
+              let existingCust = s.customers.find(
+                (c) => c.name.trim().toLowerCase() === customerName.trim().toLowerCase()
+              );
+              let targetCustomerId = existingCust?.id;
+              let nextCustomers = s.customers;
+              if (!targetCustomerId) {
+                targetCustomerId = uid("c");
+                const newCust = {
+                  id: targetCustomerId,
+                  name: customerName.trim(),
+                  phone: "",
+                  address: "",
+                  email: "",
+                  status: "Active"
+                };
+                nextCustomers = [...s.customers, newCust];
+              }
+              const finalCustomerName = existingCust ? existingCust.name : customerName.trim();
+              return {
+                ...s,
+                customers: nextCustomers,
+                orders: [
+                  ...s.orders,
+                  {
+                    id: orderId,
+                    customerId: targetCustomerId,
+                    customerName: finalCustomerName,
+                    productId,
+                    productName: p.name,
+                    qty,
+                    total: qty * p.price,
+                    createdBy: "manager",
+                    status: "Pending",
+                    date: new Date().toISOString().slice(0, 10),
+                    assignedTo,
+                    assignedToName
+                  }
+                ],
+                notifications: [
+                  {
+                    id: notifId,
+                    to: "superadmin",
+                    from: "Manager",
+                    message: `New order pending for ${finalCustomerName}`,
+                    date: new Date().toISOString().slice(0, 10),
+                    read: false
+                  },
+                  ...s.notifications
+                ]
+              };
+            });
             setShow(false);
           }}
         />
@@ -426,10 +472,27 @@ function OrdersMgmt() {
         <CreateOrderModal
           initial={editingOrder}
           onClose={() => setEditingOrder(null)}
-          onSave={(customerId, productId, qty, assignedTo, assignedToName) => {
-            const c = customers.find((c) => c.id === customerId)!;
+          onSave={(customerName, productId, qty, assignedTo, assignedToName) => {
             const p = products.find((p) => p.id === productId)!;
             setState((s) => {
+              let existingCust = s.customers.find(
+                (c) => c.name.trim().toLowerCase() === customerName.trim().toLowerCase()
+              );
+              let targetCustomerId = existingCust?.id;
+              let nextCustomers = s.customers;
+              if (!targetCustomerId) {
+                targetCustomerId = uid("c");
+                const newCust = {
+                  id: targetCustomerId,
+                  name: customerName.trim(),
+                  phone: "",
+                  address: "",
+                  email: "",
+                  status: "Active"
+                };
+                nextCustomers = [...s.customers, newCust];
+              }
+              const finalCustomerName = existingCust ? existingCust.name : customerName.trim();
               const oldOrder = s.orders.find((o) => o.id === editingOrder.id);
               let updatedProducts = s.products;
               if (oldOrder && oldOrder.status === "Approved") {
@@ -447,10 +510,11 @@ function OrdersMgmt() {
               return {
                 ...s,
                 products: updatedProducts,
+                customers: nextCustomers,
                 orders: s.orders.map((o) => o.id === editingOrder.id ? {
                   ...o,
-                  customerId,
-                  customerName: c.name,
+                  customerId: targetCustomerId,
+                  customerName: finalCustomerName,
                   productId,
                   productName: p.name,
                   qty,
@@ -469,11 +533,11 @@ function OrdersMgmt() {
   );
 }
 
-function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSave: (customerId: string, productId: string, qty: number, assignedTo: string, assignedToName: string) => void; onClose: () => void }) {
+function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSave: (customerName: string, productId: string, qty: number, assignedTo: string, assignedToName: string) => void; onClose: () => void }) {
   const { customers, products, users } = useStore();
   const active = products.filter((p) => p.status === "Active" || p.status === "Verified");
   const employees = users.filter((u) => u.role === "employee");
-  const [customerId, setCustomerId] = useState(initial?.customerId ?? customers[0]?.id ?? "");
+  const [customerName, setCustomerName] = useState(initial?.customerName ?? "");
   const [productId, setProductId] = useState(initial?.productId ?? active[0]?.id ?? "");
   const [qty, setQty] = useState(initial?.qty ?? 1);
   const [assignedTo, setAssignedTo] = useState(initial?.assignedTo ?? employees[0]?.id ?? "");
@@ -481,13 +545,23 @@ function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSav
   return (
     <Modal title={initial ? "Edit Order" : "Create Order"} onClose={onClose}>
       <div className="form-group"><label className="form-label">Customer</label>
-        <select className="form-select" value={customerId} onChange={(e) => setCustomerId(e.target.value)}>
-          {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <input
+          type="text"
+          className="form-input"
+          list="customers-datalist"
+          placeholder="Type or select customer name"
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+        />
+        <datalist id="customers-datalist">
+          {customers.map((c) => (
+            <option key={c.id} value={c.name} />
+          ))}
+        </datalist>
       </div>
       <div className="form-group"><label className="form-label">Product</label>
         <select className="form-select" value={productId} onChange={(e) => setProductId(e.target.value)}>
-          {active.map((p) => <option key={p.id} value={p.id}>{p.name}{p.brand ? ` (${p.brand})` : ""} — ₹{p.price}</option>)}
+          {active.map((p) => <option key={p.id} value={p.id}>{p.name}{p.brand ? ` (${p.brand})` : ""}</option>)}
         </select>
       </div>
       <div className="form-group"><label className="form-label">Quantity</label>
@@ -501,9 +575,9 @@ function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSav
       <div className="modal-actions">
         <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary" onClick={() => {
-          if (customerId && productId && qty > 0 && assignedTo) {
+          if (customerName.trim() && productId && qty > 0 && assignedTo) {
             const emp = employees.find((e) => e.id === assignedTo)!;
-            onSave(customerId, productId, qty, assignedTo, emp.name);
+            onSave(customerName.trim(), productId, qty, assignedTo, emp.name);
           }
         }}>{initial ? "Save Changes" : "Send for Approval"}</button>
       </div>

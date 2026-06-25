@@ -119,23 +119,6 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
               </div>
             </div>
             <div className="topbar-right">
-              {role !== "employee" && (
-                <button 
-                  className="icon-btn" 
-                  title="Notifications"
-                  onClick={() => onNav("notifications")}
-                >
-                  🔔{unread > 0 && (
-                    <span 
-                      className="badge-dot" 
-                      style={{ 
-                        background: "var(--success)", 
-                        boxShadow: "0 0 6px var(--success)" 
-                      }} 
-                    />
-                  )}
-                </button>
-              )}
               <div className="profile-chip">
                 <span className="avatar">{initials}</span>
                 <div style={{ fontSize: 12, lineHeight: 1.2 }}>

@@ -1456,3 +1456,15 @@ table.tbl {
     height: 32px;
   }
 }
+
+/* Premium Task Item Styling */
+.task-item-premium {
+  box-shadow: 0 2px 6px rgba(122, 90, 50, 0.02);
+  transition: all 0.2s ease-in-out;
+}
+
+.task-item-premium:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(122, 90, 50, 0.06) !important;
+  border-color: #d97706 !important;
+}

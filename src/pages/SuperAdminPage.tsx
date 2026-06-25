@@ -1,6 +1,6 @@
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useStore, Product, User, Order, Lead } from "../app/store";
+import { useStore, Product, User, Order, Lead, Task } from "../app/store";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../app/DashboardLayout";
 import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
@@ -14,7 +14,6 @@ const NAV: NavItem[] = [
   { key: "task-assign", label: "Task Assign", icon: "📝" },
   { key: "orders", label: "Order Approvals", icon: "✅" },
   { key: "incentive", label: "Incentive", icon: "💰" },
-  { key: "notifications", label: "Notifications", icon: "🔔" },
 ];
 
 interface SuperAdminPageProps {
@@ -1949,7 +1948,6 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode }
               onChange={handleImageUpload}
               style={{ display: "none" }}
             />
-            <span style={{ fontSize: 20 }}>{isDragging ? "📥" : "📁"}</span>
             <span style={{ fontSize: 12, color: isDragging ? "var(--accent)" : "var(--brown)", fontWeight: 500, flex: 1, textAlign: "left" }}>
               {isDragging
                 ? "Drop photo here..."
@@ -2197,12 +2195,11 @@ export function OrdersTable() {
 
 function OrderApprovalSection() {
   const { orders, products, setState, uid } = useStore();
-  const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("Pending");
+  const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("all");
   const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
   const [editDiscounts, setEditDiscounts] = useState<Record<string, number>>({});
 
   const decide = (id: string, status: "Approved" | "Rejected", newDiscountPct?: number) => {
-    const notifId1 = uid("n");
     const notifId2 = uid("n");
     setState((s) => {
       const order = s.orders.find((o) => o.id === id);
@@ -2253,7 +2250,6 @@ function OrderApprovalSection() {
           return o;
         }),
         notifications: [
-          { id: notifId1, to: "manager", from: "Super Admin", message: orderDetailsStr, date: new Date().toISOString().slice(0, 10), read: false },
           { id: notifId2, to: "employee", from: "Super Admin", message: orderDetailsStr, date: new Date().toISOString().slice(0, 10), read: false },
           ...updatedNotifications,
         ],
@@ -2321,7 +2317,7 @@ function OrderApprovalSection() {
                       </div>
                     ) : null
                   )}
-                  
+
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>
@@ -3237,6 +3233,18 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
 export function TaskAssignmentSection() {
   const { users, tasks, setState, uid, currentUser } = useStore();
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const handleEditTaskSave = (taskId: string, newTitle: string, newAssigneeId: string) => {
+    const assignee = users.find(u => u.id === newAssigneeId);
+    if (!assignee) return;
+
+    setState((s: any) => ({
+      ...s,
+      tasks: s.tasks.map((t: any) => t.id === taskId ? { ...t, title: newTitle, assignedTo: newAssigneeId, assignedToName: assignee.name } : t)
+    }));
+    setEditingTask(null);
+  };
 
   const isSuperAdmin = currentUser?.role === "superadmin";
 
@@ -3388,33 +3396,90 @@ export function TaskAssignmentSection() {
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
           <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👤 Employees Tasks</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
             {employeesWithTasks.map(e => (
               <UnifiedEmployeeCard
                 key={e.id}
                 employee={e}
                 userTasks={tasks.filter(t => t.assignedTo === e.id)}
+                actions={
+                  <>
+                    <button onClick={() => {
+                      const userTasks = tasks.filter(t => t.assignedTo === e.id);
+                      if (userTasks.length > 0) {
+                        setEditingTask(userTasks[0]);
+                      }
+                    }} title="Edit Task" style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #f5e3cc",
+                      background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
+                    }}>✏️</button>
+                    <button onClick={() => {
+                      const userTasks = tasks.filter(t => t.assignedTo === e.id);
+                      if (userTasks.length > 0) {
+                        handleDeleteTask(userTasks[0].id);
+                      }
+                    }} title="Delete Task" style={{
+                      width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #fee2e2",
+                      background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", transition: "all 0.2s"
+                    }}>
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                }
               >
                 {/* Tasks Section */}
                 <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
                   <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {tasks.filter(t => t.assignedTo === e.id).map(t => (
-                      <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fdfbfa", border: "1px solid #efe8df", padding: "4px 8px", borderRadius: "6px", fontSize: "11px" }}>
-                        <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <span style={{
-                            fontSize: "9px",
-                            padding: "2px 4px",
-                            borderRadius: "3px",
-                            background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
-                            color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
-                            fontWeight: 700
-                          }}>{t.status}</span>
-                          <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
+                    {tasks.filter(t => t.assignedTo === e.id).map(t => {
+                      const styles = t.status === "Completed" 
+                        ? { bg: "#f0fdf4", color: "#16a34a", border: "#dcfce7", bar: "#10b981" }
+                        : t.status === "In Progress"
+                          ? { bg: "#eff6ff", color: "#2563eb", border: "#dbeafe", bar: "#3b82f6" }
+                          : { bg: "#fff5f5", color: "#e53e3e", border: "#fed7d7", bar: "#fc8181" };
+                      return (
+                        <div 
+                          key={t.id} 
+                          className="task-item-premium"
+                          style={{ 
+                            display: "flex", 
+                            justifyContent: "space-between", 
+                            alignItems: "center", 
+                            background: "linear-gradient(to right, #ffffff, #fcfbf9)", 
+                            border: "1px solid #f0e6d6", 
+                            borderLeft: `4px solid ${styles.bar}`,
+                            padding: "10px 14px", 
+                            borderRadius: "8px", 
+                            fontSize: "12px",
+                            transition: "all 0.2s ease-in-out",
+                            cursor: "default"
+                          }}
+                        >
+                          <span style={{ color: "#3f2d20", fontWeight: 600 }}>{t.title}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              fontSize: "10px",
+                              padding: "3px 8px",
+                              borderRadius: "20px",
+                              background: styles.bg,
+                              color: styles.color,
+                              border: `1px solid ${styles.border}`,
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px"
+                            }}>
+                              <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: styles.color }} />
+                              {t.status}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </UnifiedEmployeeCard>
@@ -3434,7 +3499,7 @@ export function TaskAssignmentSection() {
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
           <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👔 Managers Tasks</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "12px" }}>
             {managersWithTasks.map(m => (
               <div key={m.id} style={{
                 background: "#fff", borderRadius: "12px", padding: "14px",
@@ -3533,6 +3598,60 @@ export function TaskAssignmentSection() {
               <button className="btn btn-primary" type="submit" style={{
                 background: "linear-gradient(135deg, #d97706, #b45309)", border: "none"
               }}>Assign</button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {editingTask && (
+        <Modal title="Edit Task" onClose={() => setEditingTask(null)}>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const title = formData.get("taskTitle") as string;
+            const assigneeId = formData.get("assigneeId") as string;
+            if (title.trim() && assigneeId) {
+              handleEditTaskSave(editingTask.id, title.trim(), assigneeId);
+            }
+          }} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#9c8069", marginBottom: "6px" }}>Task Description</label>
+              <textarea
+                name="taskTitle"
+                defaultValue={editingTask.title}
+                placeholder="Describe the task details..."
+                rows={3}
+                style={{
+                  width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #eaddca",
+                  fontSize: "13px", outline: "none", resize: "none", boxSizing: "border-box"
+                }}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#9c8069", marginBottom: "6px" }}>Select Assignee</label>
+              <select
+                name="assigneeId"
+                defaultValue={editingTask.assignedTo}
+                style={{
+                  width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #eaddca",
+                  fontSize: "13px", outline: "none", boxSizing: "border-box", background: "#fff"
+                }}
+                required
+              >
+                <option value="">-- Choose Member --</option>
+                {eligibleAssignees.map(u => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role === "manager" ? "Manager" : "Employee"}{u.jobTitle ? ` - ${u.jobTitle}` : ""})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
+              <button className="btn btn-ghost" type="button" onClick={() => setEditingTask(null)}>Cancel</button>
+              <button className="btn btn-primary" type="submit" style={{
+                background: "linear-gradient(135deg, #d97706, #b45309)", border: "none"
+              }}>Save Changes</button>
             </div>
           </form>
         </Modal>
@@ -3706,6 +3825,12 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
                 📋 {lead.product}{lead.brand ? ` - ${lead.brand}` : ""}
               </span>
             )}
+            <span style={{
+              background: "#f5f3ff", color: "#6d28d9", fontSize: "12px", fontWeight: 600,
+              padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #ede9fe"
+            }}>
+              ✍️ Added By: {lead.createdBy || "System"}
+            </span>
           </div>
         </div>
       </div>
@@ -4042,10 +4167,14 @@ export function LeadsSection() {
       setFormStatus("New");
       setFormFollowUpDate("");
       setFormNotes("");
-      setFormAssignedTo("");
+      if (currentUser?.role === "employee") {
+        setFormAssignedTo(currentUser.id);
+      } else {
+        setFormAssignedTo("");
+      }
       setFormCity("");
     }
-  }, [editingLead, showAddModal, products]);
+  }, [editingLead, showAddModal, products, currentUser]);
 
 
 
@@ -4092,6 +4221,7 @@ export function LeadsSection() {
         assignedTo: formAssignedTo || undefined,
         city: formCity || undefined,
         date: new Date().toISOString(),
+        createdBy: currentUser?.name || "System",
       };
       setState((s) => ({
         ...s,
@@ -4137,23 +4267,25 @@ export function LeadsSection() {
           <h2 className="page-title">Lead Generation</h2>
           <p className="page-sub">Track customer inquiries, status updates, and assign them to staff members.</p>
         </div>
-        <button
-          className="btn btn-primary"
-          style={{
-            background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
-            border: "none",
-            borderRadius: "8px",
-            padding: "10px 20px",
-            fontWeight: 700,
-            boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-          onClick={() => setShowAddModal(true)}
-        >
-          <span style={{ fontSize: "18px", lineHeight: 1 }}>+</span> Add New Lead
-        </button>
+        {currentUser?.role === "employee" && (
+          <button
+            className="btn btn-primary"
+            style={{
+              background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 20px",
+              fontWeight: 700,
+              boxShadow: "0 4px 12px rgba(217, 119, 6, 0.25)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+            onClick={() => setShowAddModal(true)}
+          >
+            <span style={{ fontSize: "18px", lineHeight: 1 }}>+</span> Add New Lead
+          </button>
+        )}
       </div>
 
       <DashboardLeadPipelineOverview
@@ -4334,22 +4466,24 @@ export function LeadsSection() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Assign Lead to Staff</label>
-              <select
-                className="form-input"
-                value={formAssignedTo}
-                onChange={(e) => setFormAssignedTo(e.target.value)}
-                disabled={!!(editingLead && editingLead.assignedTo)}
-              >
-                <option value="" disabled hidden>Select Staff</option>
-                {assignableUsers.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} ({u.role})
-                  </option>
-                ))}
-              </select>
-            </div>
+            {currentUser?.role !== "employee" && (
+              <div className="form-group">
+                <label className="form-label">Assign Lead to Staff</label>
+                <select
+                  className="form-input"
+                  value={formAssignedTo}
+                  onChange={(e) => setFormAssignedTo(e.target.value)}
+                  disabled={!!(editingLead && editingLead.assignedTo)}
+                >
+                  <option value="" disabled hidden>Select Staff</option>
+                  {assignableUsers.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
 
 

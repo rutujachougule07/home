@@ -1,7 +1,7 @@
 
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useStore, Customer, Product, Order } from "../app/store";
+import { useStore, Customer, Product, Order, Task } from "../app/store";
 import { DashboardLayout, StatCard, Pill, NavItem, Modal } from "../app/DashboardLayout";
 import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, ProductForm } from "./SuperAdminPage";
 
@@ -142,7 +142,7 @@ function TasksSection() {
                     {t.proofNote && <div style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic", wordBreak: "break-all" }}>{t.proofNote}</div>}
                     {t.proofUrl && (
                       <div style={{ marginTop: "6px" }}>
-                        <div onClick={() => setViewingImage(t.proofUrl)} style={{ cursor: "pointer", display: "inline-block" }} title="Click to view full image">
+                        <div onClick={() => setViewingImage(t.proofUrl || null)} style={{ cursor: "pointer", display: "inline-block" }} title="Click to view full image">
                           <img src={t.proofUrl} alt="Proof" style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4, border: "1px solid var(--border)" }} />
                         </div>
                       </div>
@@ -287,10 +287,10 @@ function OrderUpdates() {
       <p className="page-sub">Live order statuses from Super Admin approvals.</p>
 
       {/* My Assigned Orders */}
-      <div className="panel" style={{ borderLeft: "4px solid var(--accent)", background: "var(--cream)", marginBottom: 24 }}>
+      <div className="panel" style={{ marginBottom: 24 }}>
         <div className="panel-head">
           <h3 className="panel-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            🎯 My Assigned Orders (माझ्या ऑर्डर्स)
+            🎯 My Assigned Orders
             <span className="pill pill-approved">{myOrders.length}</span>
           </h3>
         </div>
@@ -317,21 +317,10 @@ function OrderUpdates() {
                       className="btn btn-success btn-sm"
                       style={{ padding: "4px 8px", fontSize: 11 }}
                       onClick={() => {
-                        if (confirm("Mark this order as delivered? (ही ऑर्डर डिलीव्हर झाली म्हणून नोंदवायची का?)")) {
+                        if (confirm("Mark this order as delivered?")) {
                           setState((s) => ({
                             ...s,
-                            orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order),
-                            notifications: [
-                              {
-                                id: uid("n"),
-                                to: "manager",
-                                from: currentUser?.name || "Employee",
-                                message: `Order #${o.id} for ${o.customerName} (${o.qty}x ${o.productName}) has been delivered`,
-                                date: new Date().toISOString().slice(0, 10),
-                                read: false
-                              },
-                              ...s.notifications
-                            ]
+                            orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order)
                           }));
                         }
                       }}
@@ -352,7 +341,7 @@ function OrderUpdates() {
       {/* All Other Orders */}
       <div className="panel">
         <div className="panel-head">
-          <h3 className="panel-title">All Other Orders (इतर सर्व ऑर्डर्स)</h3>
+          <h3 className="panel-title">All Other Orders</h3>
         </div>
         <div className={otherOrders.length > 0 ? "card-grid" : ""}>
           {otherOrders.map((o) => {

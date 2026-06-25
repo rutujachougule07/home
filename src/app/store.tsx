@@ -87,17 +87,16 @@ const initialTasks: Task[] = [
 ];
 
 const initialNotifications: Notification[] = [
-  { id: "n1", to: "superadmin", from: "Manager Rohan", message: "New order pending for approval", date: "2026-05-20", read: false },
-  { id: "n2", to: "manager", from: "Super Admin", message: "Order #o2 approved", date: "2026-05-18", read: false },
-  { id: "n3", to: "employee", from: "Manager Rohan", message: "New task assigned: follow up Mahesh", date: "2026-05-22", read: false },
+  { id: "n1", to: "superadmin", from: "Rohan Patil", message: "New order pending for approval", date: "2026-05-20", read: false },
+  { id: "n3", to: "employee", from: "Rohan Patil", message: "New task assigned: follow up Mahesh", date: "2026-05-22", read: false },
 ];
 
 const initialLeads: Lead[] = [
-  { id: "l1", name: "Amit Deshmukh", phone: "9876500001", email: "amit@mail.com", source: "Walk-in", product: "Smart AC", status: "Hot", followUpDate: "2026-06-20", notes: "Interested in 1.5 ton split AC", date: "2026-06-15", assignedTo: "u3", city: "Mumbai" },
-  { id: "l2", name: "Snehal Patil", phone: "9876500002", email: "snehal@mail.com", source: "Phone", product: "Washing Machine", status: "Warm", followUpDate: "2026-06-22", notes: "Comparing prices", date: "2026-06-14", assignedTo: "u5", city: "Pune" },
-  { id: "l3", name: "Ravi Kulkarni", phone: "9876500003", source: "Referral", product: "Refrigerator", status: "New", date: "2026-06-17", city: "Sangli" },
-  { id: "l4", name: "Pooja Sharma", phone: "9876500004", source: "Online", product: "Smart TV", status: "Cold", followUpDate: "2026-06-25", date: "2026-06-10", city: "Kolhapur" },
-  { id: "l5", name: "Kiran Jadhav", phone: "9876500005", source: "Walk-in", product: "Ceiling Fan", status: "Enrolled", date: "2026-06-08", city: "Satara" },
+  { id: "l1", name: "Amit Deshmukh", phone: "9876500001", email: "amit@mail.com", source: "Walk-in", product: "Smart AC", status: "Hot", followUpDate: "2026-06-20", notes: "Interested in 1.5 ton split AC", date: "2026-06-15", assignedTo: "u3", city: "Mumbai", createdBy: "Super Admin" },
+  { id: "l2", name: "Snehal Patil", phone: "9876500002", email: "snehal@mail.com", source: "Phone", product: "Washing Machine", status: "Warm", followUpDate: "2026-06-22", notes: "Comparing prices", date: "2026-06-14", assignedTo: "u5", city: "Pune", createdBy: "Rohan Patil" },
+  { id: "l3", name: "Ravi Kulkarni", phone: "9876500003", source: "Referral", product: "Refrigerator", status: "New", date: "2026-06-17", city: "Sangli", createdBy: "Super Admin" },
+  { id: "l4", name: "Pooja Sharma", phone: "9876500004", source: "Online", product: "Smart TV", status: "Cold", followUpDate: "2026-06-25", date: "2026-06-10", city: "Kolhapur", createdBy: "Rohan Patil" },
+  { id: "l5", name: "Kiran Jadhav", phone: "9876500005", source: "Walk-in", product: "Ceiling Fan", status: "Enrolled", date: "2026-06-08", city: "Satara", createdBy: "Sneha Desai" },
 ];
 
 const USER_STORAGE_KEY = "sham_current_user_v2";
@@ -239,7 +238,7 @@ const seedDatabase = async () => {
   }
 };
 
-export const StoreContext = createContext<(State & { login: (username: string, password?: string) => Promise<Role | null>; logout: () => void; setState: (updater: (s: State) => State) => void; uid: string | null; }) | null>(null);
+export const StoreContext = createContext<(State & { login: (username: string, password: string) => Promise<Role | null>; logout: () => void; setState: (updater: (s: State) => State) => void; uid: (prefix: string) => string; }) | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
