@@ -2865,6 +2865,7 @@ export function ProfileSection() {
 export function UpcomingFollowUps() {
   const { leads, currentUser, setState, users } = useStore();
   const navigate = useNavigate();
+  const isSuperAdmin = currentUser?.role === "superadmin";
 
   const userLeads = useMemo(() => {
     if (currentUser?.role === "employee" || currentUser?.role === "manager") {
@@ -2994,23 +2995,25 @@ export function UpcomingFollowUps() {
                     >
                       {getRelativeDays(l.followUpDate!)}
                     </span>
-                    <button
-                      onClick={() => handleClearReminder(l.id)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "#991b1b",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "4px",
-                        borderRadius: "6px"
-                      }}
-                      title="Clear Reminder"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    {!isSuperAdmin && (
+                      <button
+                        onClick={() => handleClearReminder(l.id)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#991b1b",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "4px",
+                          borderRadius: "6px"
+                        }}
+                        title="Clear Reminder"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
                   </div>
                 </div>
 
