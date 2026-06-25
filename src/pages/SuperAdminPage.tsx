@@ -4281,7 +4281,7 @@ export function LeadsSection() {
           <h2 className="page-title">Lead Generation</h2>
           <p className="page-sub">Track customer inquiries, status updates, and assign them to staff members.</p>
         </div>
-        {currentUser?.role === "employee" && (
+        {(currentUser?.role === "employee" || currentUser?.role === "manager") && (
           <button
             className="btn btn-primary"
             style={{
