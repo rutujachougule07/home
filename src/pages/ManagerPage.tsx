@@ -349,6 +349,9 @@ function OrdersMgmt() {
             const brandStr = product?.brand ? ` (${product.brand})` : "";
             const isIncentiveOrder = product && (product.incentive ?? 0) > 0;
 
+            const orderBasePrice = Math.round(o.total / (1 - ((o.discount || 0) / 100)));
+            const orderUnitPrice = Math.round(orderBasePrice / o.qty);
+
             return (
               <div key={o.id} className="data-card">
                 <div className="data-card-header">
@@ -372,7 +375,7 @@ function OrdersMgmt() {
                 <div className="data-card-body">
                   <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
-                  <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{(product?.price ?? Math.round(o.total / o.qty)).toLocaleString()}</span></div>
+                  <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{orderUnitPrice.toLocaleString()}</span></div>
                   <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
                 </div>
                 <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
