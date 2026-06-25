@@ -372,6 +372,7 @@ function OrdersMgmt() {
                 <div className="data-card-body">
                   <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{(product?.price ?? Math.round(o.total / o.qty)).toLocaleString()}</span></div>
                   <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
                 </div>
                 <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
