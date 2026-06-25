@@ -2872,8 +2872,8 @@ export function TaskAssignmentSection() {
                           className="task-item-premium"
                           style={{ 
                             display: "flex", 
-                            justifyContent: "space-between", 
-                            alignItems: "center", 
+                            flexDirection: "column", 
+                            gap: "6px",
                             background: "linear-gradient(to right, #ffffff, #fcfbf9)", 
                             border: "1px solid #f0e6d6", 
                             borderLeft: `4px solid ${styles.bar}`,
@@ -2884,26 +2884,65 @@ export function TaskAssignmentSection() {
                             cursor: "default"
                           }}
                         >
-                          <span style={{ color: "#3f2d20", fontWeight: 600 }}>{t.title}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              fontSize: "10px",
-                              padding: "3px 8px",
-                              borderRadius: "20px",
-                              background: styles.bg,
-                              color: styles.color,
-                              border: `1px solid ${styles.border}`,
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px"
-                            }}>
-                              <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: styles.color }} />
-                              {t.status}
-                            </span>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ color: "#3f2d20", fontWeight: 600 }}>{t.title}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "10px",
+                                padding: "3px 8px",
+                                borderRadius: "20px",
+                                background: styles.bg,
+                                color: styles.color,
+                                border: `1px solid ${styles.border}`,
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px"
+                              }}>
+                                <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: styles.color }} />
+                                {t.status}
+                              </span>
+                            </div>
                           </div>
+
+                          {/* Task Proof Details for completed tasks */}
+                          {t.status === "Completed" && (t.proofNote || t.proofUrl) && (
+                            <div style={{
+                              marginTop: "4px",
+                              padding: "8px 10px",
+                              background: "#f0fdf4",
+                              border: "1px solid #bfeaca",
+                              borderRadius: "6px",
+                              fontSize: "11px",
+                              color: "#14532d"
+                            }}>
+                              <div style={{ fontWeight: 700, marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span>📄</span> Proof of Completion:
+                              </div>
+                              {t.proofNote && <div style={{ fontStyle: "italic", whiteSpace: "pre-wrap" }}>"{t.proofNote}"</div>}
+                              {t.proofUrl && (
+                                <div style={{ marginTop: "8px" }}>
+                                  <a 
+                                    href={t.proofUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                      color: "#16a34a",
+                                      textDecoration: "underline",
+                                      fontWeight: 600
+                                    }}
+                                  >
+                                    📸 View Attachment/Photo
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -2958,19 +2997,53 @@ export function TaskAssignmentSection() {
                     <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       {tasks.filter(t => t.assignedTo === m.id).map(t => (
-                        <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fdfbfa", border: "1px solid #efe8df", padding: "4px 8px", borderRadius: "6px", fontSize: "11px" }}>
-                          <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <span style={{
-                              fontSize: "9px",
-                              padding: "2px 4px",
-                              borderRadius: "3px",
-                              background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
-                              color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
-                              fontWeight: 700
-                            }}>{t.status}</span>
-                            <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
+                        <div key={t.id} style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#fdfbfa", border: "1px solid #efe8df", padding: "8px 10px", borderRadius: "8px", fontSize: "11px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span style={{
+                                fontSize: "9px",
+                                padding: "2px 4px",
+                                borderRadius: "3px",
+                                background: t.status === "Completed" ? "#d1fae5" : t.status === "In Progress" ? "#dbeafe" : "#fee2e2",
+                                color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
+                                fontWeight: 700
+                              }}>{t.status}</span>
+                              <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
+                            </div>
                           </div>
+
+                          {/* Task Proof Details for completed manager tasks */}
+                          {t.status === "Completed" && (t.proofNote || t.proofUrl) && (
+                            <div style={{
+                              marginTop: "4px",
+                              padding: "6px 8px",
+                              background: "#f0fdf4",
+                              border: "1px solid #bfeaca",
+                              borderRadius: "6px",
+                              fontSize: "10px",
+                              color: "#14532d"
+                            }}>
+                              <div style={{ fontWeight: 700, marginBottom: "2px" }}>📄 Proof of Completion:</div>
+                              {t.proofNote && <div style={{ fontStyle: "italic", whiteSpace: "pre-wrap" }}>"{t.proofNote}"</div>}
+                              {t.proofUrl && (
+                                <div style={{ marginTop: "4px" }}>
+                                  <a 
+                                    href={t.proofUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    style={{
+                                      color: "#16a34a",
+                                      textDecoration: "underline",
+                                      fontWeight: 600
+                                    }}
+                                  >
+                                    📸 View Attachment
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
