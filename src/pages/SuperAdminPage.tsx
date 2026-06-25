@@ -3732,9 +3732,10 @@ export function LeadPipelineOverview({ activeFilter, onFilterChange }: { activeF
 }
 
 export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id: string) => void; onEdit: (lead: Lead) => void }) {
-  const { setState, users } = useStore();
+  const { setState, users, currentUser } = useStore();
   const [localNotes, setLocalNotes] = useState(lead.notes || "");
   const [localDate, setLocalDate] = useState(lead.followUpDate || "");
+  const isSuperAdmin = currentUser?.role === "superadmin";
 
   useEffect(() => {
     setLocalNotes(lead.notes || "");
@@ -3863,12 +3864,16 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
           return (
             <button
               key={opt.key}
-              onClick={() => updateStatus(opt.key)}
+              onClick={() => {
+                if (isSuperAdmin) return;
+                updateStatus(opt.key);
+              }}
               style={{
                 display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
-                fontSize: "12px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease",
+                fontSize: "12px", fontWeight: 600, cursor: isSuperAdmin ? "default" : "pointer", transition: "all 0.2s ease",
                 backgroundColor: isActive ? opt.color : "#ffffff", color: isActive ? "#ffffff" : opt.color,
                 border: `1px solid ${isActive ? opt.color : opt.border}`,
+                opacity: isSuperAdmin && !isActive ? 0.6 : 1,
               }}
             >
               {opt.key === "Cancelled" ? <span>🚫</span> : <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: isActive ? "#ffffff" : opt.dot }} />}
@@ -3877,27 +3882,32 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
           );
         })}
 
-        <div style={{ width: "1px", height: "24px", backgroundColor: "#f5ede0", margin: "0 6px" }} />
+        {!isSuperAdmin && (
+          <>
+            <div style={{ width: "1px", height: "24px", backgroundColor: "#f5ede0", margin: "0 6px" }} />
+            <button
+              onClick={() => onDelete(lead.id)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
+                fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fee2e2", transition: "all 0.2s ease"
+              }}
+            >
+              🗑 Remove
+            </button>
+          </>
+        )}
 
-        <button
-          onClick={() => onDelete(lead.id)}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
-            fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fee2e2", transition: "all 0.2s ease"
-          }}
-        >
-          🗑 Remove
-        </button>
-
-        <button
-          onClick={() => onEdit(lead)}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
-            fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fafaf9", color: "#5c4115", border: "1px solid #e7e5e4", transition: "all 0.2s ease", marginLeft: "auto"
-          }}
-        >
-          ✏ Edit Details
-        </button>
+        {!isSuperAdmin && (
+          <button
+            onClick={() => onEdit(lead)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 14px", borderRadius: "99px",
+              fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fafaf9", color: "#5c4115", border: "1px solid #e7e5e4", transition: "all 0.2s ease", marginLeft: "auto"
+            }}
+          >
+            ✏ Edit Details
+          </button>
+        )}
       </div>
 
       {/* Grid of detail list items */}
@@ -3951,10 +3961,11 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
           <textarea
             className="form-textarea"
             style={{ flex: 1, minHeight: "72px", resize: "none", background: "#fcfaf5", borderColor: "#f1ece1", padding: "12px" }}
-            placeholder="Add your comments here..."
+            placeholder={isSuperAdmin ? "No comments added." : "Add your comments here..."}
             value={localNotes}
             onChange={(e) => setLocalNotes(e.target.value)}
             onBlur={handleNotesBlur}
+            disabled={isSuperAdmin}
           />
         </div>
       </div>
@@ -3973,24 +3984,27 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
               style={{ margin: 0, height: "42px", background: "#ffffff" }}
               value={localDate}
               onChange={(e) => setLocalDate(e.target.value)}
+              disabled={isSuperAdmin}
             />
-            <button
-              onClick={handleSetReminder}
-              className="btn btn-primary"
-              style={{
-                backgroundColor: "#d97706",
-                border: "none",
-                borderRadius: "8px",
-                color: "#ffffff",
-                fontWeight: 700,
-                padding: "0 20px",
-                height: "42px",
-                whiteSpace: "nowrap",
-                cursor: "pointer"
-              }}
-            >
-              Set Reminder
-            </button>
+            {!isSuperAdmin && (
+              <button
+                onClick={handleSetReminder}
+                className="btn btn-primary"
+                style={{
+                  backgroundColor: "#d97706",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  padding: "0 20px",
+                  height: "42px",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer"
+                }}
+              >
+                Set Reminder
+              </button>
+            )}
           </div>
 
           {/* Alert Set Banner */}
@@ -4008,20 +4022,22 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
                 <span>🔔</span>
                 <span>Reminder set for: {formatReminderDate(lead.followUpDate)}</span>
               </div>
-              <button
-                onClick={handleClearReminder}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  color: "#dc2626",
-                  padding: 0
-                }}
-                title="Remove Reminder"
-              >
-                🗑
-              </button>
+              {!isSuperAdmin && (
+                <button
+                  onClick={handleClearReminder}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    color: "#dc2626",
+                    padding: 0
+                  }}
+                  title="Remove Reminder"
+                >
+                  🗑
+                </button>
+              )}
             </div>
           )}
         </div>
