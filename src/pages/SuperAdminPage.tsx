@@ -4181,7 +4181,7 @@ export function LeadsSection() {
       setFormStatus("New");
       setFormFollowUpDate("");
       setFormNotes("");
-      if (currentUser?.role === "employee") {
+      if (currentUser?.role === "employee" || currentUser?.role === "manager") {
         setFormAssignedTo(currentUser.id);
       } else {
         setFormAssignedTo("");
@@ -4480,7 +4480,7 @@ export function LeadsSection() {
               </select>
             </div>
 
-            {currentUser?.role !== "employee" && (
+            {currentUser?.role !== "employee" && currentUser?.role !== "manager" && (
               <div className="form-group">
                 <label className="form-label">Assign Lead to Staff</label>
                 <select
