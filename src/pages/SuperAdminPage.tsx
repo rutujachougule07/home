@@ -2868,7 +2868,7 @@ export function UpcomingFollowUps() {
 
   const userLeads = useMemo(() => {
     if (currentUser?.role === "employee" || currentUser?.role === "manager") {
-      return leads.filter(l => l.assignedTo === currentUser.id);
+      return leads.filter(l => l.assignedTo === currentUser.id || (l.createdBy && l.createdBy === currentUser.name));
     }
     return leads;
   }, [leads, currentUser]);
@@ -4044,7 +4044,7 @@ export function DashboardLeadPipelineOverview({
 
   const userLeads = useMemo(() => {
     if (currentUser?.role === "employee" || currentUser?.role === "manager") {
-      return leads.filter(l => l.assignedTo === currentUser.id);
+      return leads.filter(l => l.assignedTo === currentUser.id || (l.createdBy && l.createdBy === currentUser.name));
     }
     return leads;
   }, [leads, currentUser]);
@@ -4269,7 +4269,7 @@ export function LeadsSection() {
 
   const userLeads = useMemo(() => {
     if (currentUser?.role === "employee" || currentUser?.role === "manager") {
-      return leads.filter(l => l.assignedTo === currentUser.id);
+      return leads.filter(l => l.assignedTo === currentUser.id || (l.createdBy && l.createdBy === currentUser.name));
     }
     return leads;
   }, [leads, currentUser]);
