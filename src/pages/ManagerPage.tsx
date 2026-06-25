@@ -8,11 +8,11 @@ import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
+  { key: "products", label: "Product Availability", icon: "📦" },
+  { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "assign", label: "Add Employee", icon: "📋" },
   { key: "task-assign", label: "Task Assign", icon: "📝" },
-  { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "orders", label: "Orders", icon: "🧾" },
-  { key: "products", label: "Product Availability", icon: "📦" },
   { key: "incentive", label: "Incentive", icon: "💰" },
   { key: "profile", label: "Profile", icon: "⚙" },
 ];

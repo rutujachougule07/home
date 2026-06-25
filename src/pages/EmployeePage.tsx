@@ -7,10 +7,10 @@ import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipeli
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Overview", icon: "📊" },
-  { key: "tasks", label: "Assigned Tasks", icon: "📝" },
-  { key: "leads", label: "Lead Generation", icon: "🧲" },
-  { key: "orders", label: "Order Updates", icon: "🧾" },
   { key: "products", label: "Products", icon: "📦" },
+  { key: "leads", label: "Lead Generation", icon: "🧲" },
+  { key: "tasks", label: "Assigned Tasks", icon: "📝" },
+  { key: "orders", label: "Order Updates", icon: "🧾" },
   { key: "profile", label: "Profile", icon: "⚙" },
 ];
 
