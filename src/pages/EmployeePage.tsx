@@ -97,9 +97,26 @@ function TasksSection() {
 
   const saveProof = () => {
     if (proofTask) {
+      if (proofType === "text" && !proofNote.trim()) {
+        alert("Please enter proof details or notes.");
+        return;
+      }
+      if (proofType === "photo" && !proofUrl) {
+        alert("Please upload a photo as proof.");
+        return;
+      }
+
       setState((s) => ({
         ...s,
-        tasks: s.tasks.map((t) => t.id === proofTask.id ? { ...t, proofNote: proofType === "text" ? proofNote : t.proofNote, proofUrl: proofType === "photo" ? proofUrl : t.proofUrl } : t)
+        tasks: s.tasks.map((t) =>
+          t.id === proofTask.id
+            ? {
+                ...t,
+                proofNote: proofType === "text" ? proofNote.trim() : undefined,
+                proofUrl: proofType === "photo" ? proofUrl : undefined
+              }
+            : t
+        )
       }));
       setProofTask(null);
       setProofNote("");
@@ -154,7 +171,24 @@ function TasksSection() {
                 <div className="actions-row">
                   <button className="btn btn-ghost btn-sm" onClick={() => { setProofTask(t); setProofNote(t.proofNote || ""); setProofUrl(t.proofUrl || ""); setProofType(t.proofUrl ? "photo" : "text"); }}>Proof</button>
                   {t.status === "Pending" && <button className="btn btn-ghost btn-sm" onClick={() => update(t.id, "In Progress")}>Start</button>}
-                  {t.status !== "Completed" && <button className="btn btn-success btn-sm" onClick={() => update(t.id, "Completed")}>Complete</button>}
+                  {t.status !== "Completed" && (
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={() => {
+                        if (!t.proofNote && !t.proofUrl) {
+                          alert("Please submit proof first before marking this task as completed.");
+                          setProofTask(t);
+                          setProofNote(t.proofNote || "");
+                          setProofUrl(t.proofUrl || "");
+                          setProofType(t.proofUrl ? "photo" : "text");
+                        } else {
+                          update(t.id, "Completed");
+                        }
+                      }}
+                    >
+                      Complete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
