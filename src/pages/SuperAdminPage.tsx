@@ -2279,12 +2279,25 @@ function OrderApprovalSection() {
             const currentDiscount = editDiscounts[o.id] !== undefined ? editDiscounts[o.id] : (o.discount || 0);
             const calculatedTotal = o.status === "Pending" ? Math.max(0, orderBasePrice - Math.round((currentDiscount / 100) * orderBasePrice)) : o.total;
 
+            const isIncentiveOrder = product && (product.incentive ?? 0) > 0;
+
             return (
               <div key={o.id} className="data-card">
                 <div className="data-card-header">
                   <div>
                     <h4 className="data-card-title">Order #{o.id}</h4>
-                    <span className="data-card-subtitle">By: {o.createdBy}</span>
+                    <span className="data-card-subtitle" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                      <span>By: {o.createdBy}</span>
+                      {isIncentiveOrder ? (
+                        <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
+                          ✨ Incentive
+                        </span>
+                      ) : (
+                        <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
+                          Regular
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div><Pill status={o.status} /></div>
                 </div>
