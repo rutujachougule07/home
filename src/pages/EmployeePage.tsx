@@ -6,7 +6,7 @@ import { DashboardLayout, StatCard, Pill, NavItem, Modal } from "../app/Dashboar
 import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, ProductForm } from "./SuperAdminPage";
 
 const NAV: NavItem[] = [
-  { key: "overview", label: "Overview", icon: "📊" },
+  { key: "overview", label: "Live Dashboard", icon: "📡" },
   { key: "products", label: "Products", icon: "📦" },
   { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "tasks", label: "Assigned Tasks", icon: "📝" },

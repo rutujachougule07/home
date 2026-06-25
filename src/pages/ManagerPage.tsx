@@ -7,7 +7,7 @@ import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetails
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 
 const NAV: NavItem[] = [
-  { key: "overview", label: "Overview", icon: "📊" },
+  { key: "overview", label: "Live Dashboard", icon: "📡" },
   { key: "products", label: "Product Availability", icon: "📦" },
   { key: "leads", label: "Lead Generation", icon: "🧲" },
   { key: "assign", label: "Add Employee", icon: "📋" },

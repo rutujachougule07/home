@@ -6,7 +6,7 @@ import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../ap
 import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
 
 const NAV: NavItem[] = [
-  { key: "live", label: "Live Status", icon: "📡" },
+  { key: "live", label: "Live Dashboard", icon: "📡" },
   { key: "products", label: "Stocking Inventory", icon: "📦" },
   { key: "godown", label: "Godowns", icon: "🏭" },
   { key: "leads", label: "Lead Generation", icon: "🧲" },
