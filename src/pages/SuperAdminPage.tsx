@@ -4142,22 +4142,27 @@ export function DashboardLeadPipelineOverview({
   ];
 
   return (
-    <div className="panel" style={{ padding: "24px", background: "#fff", borderRadius: "16px", border: "1px solid #f2e6d0", boxShadow: "0 4px 15px rgba(122, 90, 50, 0.02)", marginBottom: "24px" }}>
+    <div className="panel" style={{ padding: "20px", background: "#fff", borderRadius: "16px", border: "1px solid #f2e6d0", boxShadow: "0 4px 15px rgba(122, 90, 50, 0.02)", marginBottom: "24px" }}>
       {showTitle && (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <MessageSquare className="size-5" style={{ color: "#d97706" }} />
-            <h3 style={{ fontSize: "20px", color: "#5c4115", fontWeight: 700, margin: 0 }}>Lead Pipeline Overview</h3>
+            <h3 style={{ fontSize: "18px", color: "#5c4115", fontWeight: 700, margin: 0 }}>Lead Pipeline Overview</h3>
           </div>
           <button
             onClick={handleViewAll}
-            style={{ color: "#d97706", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "14px", outline: "none" }}
+            style={{ color: "#d97706", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", outline: "none" }}
           >
-            View All Inquiries
+            View All Inquiries →
           </button>
         </div>
       )}
-      <div style={{ display: "flex", flexWrap: "nowrap", width: "100%", gap: "8px", paddingBottom: "10px" }}>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+        width: "100%",
+        gap: "10px"
+      }}>
         {cards.map((c, idx) => {
           const Icon = c.icon;
           const isSelected = activeFilter === c.key;
@@ -4166,26 +4171,23 @@ export function DashboardLeadPipelineOverview({
               key={idx}
               onClick={() => onFilterChange && onFilterChange(c.key)}
               style={{
-                flex: 1,
-                minWidth: 0,
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                padding: "10px 8px",
+                gap: "10px",
+                padding: "10px 12px",
                 background: c.bg,
-                border: isSelected ? `2.5px solid ${c.color}` : `1px solid ${c.border}`,
+                border: isSelected ? `2px solid ${c.color}` : `1px solid ${c.border}`,
                 borderRadius: "12px",
                 cursor: onFilterChange ? "pointer" : "default",
-                transform: isSelected ? "scale(1.03)" : "none",
+                transform: isSelected ? "scale(1.02)" : "none",
                 boxShadow: isSelected ? `0 4px 12px ${c.color}30` : "none",
                 transition: "all 0.2s ease"
               }}
             >
               <div
                 style={{
-                  width: "38px",
-                  height: "38px",
+                  width: "36px",
+                  height: "36px",
                   borderRadius: "50%",
                   background: `${c.color}15`,
                   color: c.color,
@@ -4197,9 +4199,9 @@ export function DashboardLeadPipelineOverview({
               >
                 <Icon size={18} />
               </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontSize: "11px", color: "var(--brown)", fontWeight: 500 }}>{c.label}</span>
-                <span style={{ fontSize: "22px", fontWeight: 800, color: c.color, lineHeight: "1.2", marginTop: "2px" }}>{c.count}</span>
+              <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                <span style={{ fontSize: "11px", color: "var(--brown)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.label}</span>
+                <span style={{ fontSize: "20px", fontWeight: 800, color: c.color, lineHeight: "1.1", marginTop: "2px" }}>{c.count}</span>
               </div>
             </div>
           );
