@@ -303,6 +303,8 @@ function CustomerForm({ initial, onSave, onClose }: { initial?: Customer; onSave
     </Modal>
   );
 }
+
+function OrdersMgmt() {
   const { orders, products, setState, uid } = useStore();
   const [show, setShow] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
