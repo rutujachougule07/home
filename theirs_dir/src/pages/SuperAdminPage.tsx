@@ -66,21 +66,21 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
           top: "24px",
           left: "50%",
           transform: "translateX(-50%)",
-          background: "linear-gradient(135deg, #ff416c, #ff4b2b)",
+          background: "linear-gradient(135deg, #f87171, #ef4444, #dc2626)",
           color: "white",
-          padding: "14px 14px 14px 28px",
-          borderRadius: "100px",
+          padding: "16px 28px",
+          borderRadius: "16px",
           zIndex: 9999,
-          boxShadow: "0 15px 35px rgba(255, 65, 108, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)",
+          boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.5), 0 8px 10px -6px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)",
           display: "flex",
           alignItems: "center",
-          gap: "24px",
+          gap: "20px",
           fontWeight: 500,
           border: "1px solid rgba(255,255,255,0.2)",
           animation: "popupSlideDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
         }}>
-          <span style={{ fontSize: "28px", display: "inline-block", animation: "bellRing 1.5s ease-in-out infinite", transformOrigin: "top center", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.2))" }}>🔔</span>
-          <span style={{ fontSize: "16px", letterSpacing: "0.3px", fontWeight: 600 }}>You have <strong style={{ fontSize: "18px", background: "rgba(255,255,255,0.2)", padding: "2px 10px", borderRadius: "12px", margin: "0 4px" }}>{pendingApprovals}</strong> pending request(s) for approval!</span>
+          <span style={{ fontSize: "26px", display: "inline-block", animation: "bellRing 1.5s ease-in-out infinite", transformOrigin: "top center" }}>🔔</span>
+          <span style={{ fontSize: "16px", letterSpacing: "0.2px", fontWeight: 600 }}>You have <strong style={{ fontSize: "18px" }}>{pendingApprovals}</strong> pending request(s) for approval!</span>
           <button
             className="btn-review-now"
             onClick={() => {
@@ -90,19 +90,38 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
             style={{
               background: "#ffffff",
               border: "none",
-              color: "#ff416c",
-              padding: "12px 28px",
-              borderRadius: "100px",
+              color: "#dc2626",
+              padding: "10px 20px",
+              borderRadius: "8px",
               cursor: "pointer",
               fontWeight: 700,
-              fontSize: "14px",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+              boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+              transition: "all 0.2s ease"
             }}
           >
             Review Now
+          </button>
+          <button
+            className="btn-dismiss-pop"
+            onClick={() => setShowNotification(false)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "20px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginLeft: "4px",
+              transition: "all 0.2s ease"
+            }}
+            title="Dismiss"
+          >
+            ✕
           </button>
         </div>
       )}
@@ -725,7 +744,6 @@ function ProductsSection() {
   const { products, setState, uid } = useStore();
   const [editing, setEditing] = useState<Product | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
 
   // Filter states
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -765,30 +783,8 @@ function ProductsSection() {
       }
       const matchLoc = locationFilter === "All" || (p.location || "Unassigned") === locationFilter;
       return matchCat && matchStock && matchLoc;
-    }).sort((a, b) => {
-      const nameCompare = a.name.localeCompare(b.name);
-      if (nameCompare !== 0) return nameCompare;
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
-      return dateA - dateB;
     });
   }, [products, categoryFilter, stockFilter, locationFilter]);
-
-  const groupedProducts = useMemo(() => {
-    const map = new Map<string, Product & { batches: Product[] }>();
-    filteredProducts.forEach(p => {
-      const key = (p.sku || p.name).toLowerCase();
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.qty = (existing.qty ?? existing.stock ?? 0) + (p.qty ?? p.stock ?? 0);
-        existing.stock = existing.qty;
-        existing.batches.push(p);
-      } else {
-        map.set(key, { ...p, batches: [p] });
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [filteredProducts]);
 
   const remove = (id: string) => {
     if (!confirm("Delete this product?")) return;
@@ -829,7 +825,7 @@ function ProductsSection() {
               </tr>
             </thead>
             <tbody>
-              {groupedProducts.map((p) => {
+              {filteredProducts.map((p) => {
                 const totalValue = (p.qty ?? p.stock ?? 0) * p.cost;
                 const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", {
                   day: "2-digit",
@@ -883,20 +879,10 @@ function ProductsSection() {
                     <td>{formattedDate}</td>
                     <td><span style={{ fontWeight: 600 }}>{p.status}</span></td>
                     <td className="text-right">
-                      {p.batches.length > 0 ? (
-                        <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                          <button 
-                            className="btn btn-circle"
-                            onClick={() => setViewingBatches(p)}
-                            title="View Batch Details"
-                            style={{ background: "#fdf8f2", border: "1px solid #f5e3cc", color: "var(--accent)" }}
-                          >
-                            ℹ️
-                          </button>
-                        </div>
-                      ) : (
-                        "—"
-                      )}
+                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
+                        <button className="btn btn-circle" onClick={() => setEditing(p)} title="Edit Product">✏️</button>
+                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(p.id)} title="Delete Product">🗑️</button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -911,111 +897,8 @@ function ProductsSection() {
         </div>
       </div>
 
-      {showAdd && (
-        <ProductForm
-          title="+ New Product"
-          onClose={() => setShowAdd(false)}
-          onSave={(d) => {
-            const nextId = uid("p");
-            setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] }));
-            setShowAdd(false);
-          }}
-        />
-      )}
+      {showAdd && <ProductForm title="Add Product" onClose={() => setShowAdd(false)} onSave={(d) => { const nextId = uid("p"); setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] })); setShowAdd(false); }} />}
       {editing && <ProductForm title="Edit Product" initial={editing} onClose={() => setEditing(null)} onSave={(d) => { setState((s) => ({ ...s, products: s.products.map((p) => p.id === editing.id ? { ...p, ...d } : p) })); setEditing(null); }} />}
-
-      {viewingBatches && (
-        <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-            {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white" }} />
-            ) : (
-              <div style={{ width: "120px", height: "120px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
-            )}
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "22px", color: "var(--text)" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", fontSize: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "16px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
-              </div>
-            </div>
-          </div>
-
-          <h4 style={{ borderBottom: "2px solid var(--biscuit)", paddingBottom: "10px", marginBottom: "16px", color: "var(--text)" }}>Batch History</h4>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date Added</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                  <th>Supplier</th>
-                  <th>Status</th>
-                  <th>Incentive</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingBatches.batches.map((b, idx) => (
-                  <tr key={b.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                      {idx === viewingBatches.batches.length - 1 && <div style={{ fontSize: "10px", color: "var(--accent)", marginTop: "2px" }}>Latest Batch</div>}
-                    </td>
-                    <td style={{ fontWeight: 600, fontSize: "15px" }}>{b.qty ?? b.stock}</td>
-                    <td>₹{b.cost.toLocaleString()}</td>
-                    <td>{b.supplier || "—"}</td>
-                    <td>
-                      <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
-                    <td className="text-right">
-                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button 
-                          className="btn btn-circle" 
-                          title="Edit Batch"
-                          onClick={() => {
-                            setEditing(b);
-                            setViewingBatches(null);
-                          }}
-                        >
-                          ✏️
-                        </button>
-                        <button 
-                          className="btn btn-circle btn-circle-danger" 
-                          title="Delete Batch"
-                          onClick={() => {
-                            if (confirm("Delete this batch?")) {
-                              setState((s: any) => ({ ...s, products: s.products.filter((p: any) => p.id !== b.id) }));
-                              setViewingBatches((prev: any) => {
-                                const remaining = prev.batches.filter((batch: any) => batch.id !== b.id);
-                                if (remaining.length === 0) return null;
-                                return { ...prev, batches: remaining };
-                              });
-                            }
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="modal-actions" style={{ marginTop: "24px" }}>
-            <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-          </div>
-        </Modal>
-      )}
     </>
   );
 }
@@ -1797,34 +1680,63 @@ export function CustomersSection() {
 
 export function OrdersTable() {
   const { orders, products } = useStore();
+  const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
+
   return (
-    <div className={orders.length > 0 ? "card-grid" : ""}>
-      {orders.map((o) => {
-        const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-        const brandStr = product?.brand ? ` (${product.brand})` : "";
-        return (
-          <div key={o.id} className="data-card">
-            <div className="data-card-header">
-              <div>
-                <h4 className="data-card-title">Order #{o.id}</h4>
-                <span className="data-card-subtitle">{o.date}</span>
+    <>
+      <div className={orders.length > 0 ? "card-grid" : ""}>
+        {orders.map((o) => {
+          const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+          const brandStr = product?.brand ? ` (${product.brand})` : "";
+          return (
+            <div key={o.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                    <span>{o.date}</span>
+                    {o.docType && (
+                      <span className="pill" style={{
+                        background: o.docType === "Bill" ? "#e0f2fe" : "#f3e8ff",
+                        color: o.docType === "Bill" ? "#0369a1" : "#6b21a8",
+                        border: o.docType === "Bill" ? "1px solid #bae6fd" : "1px solid #e9d5ff",
+                        fontSize: "10px",
+                        padding: "2px 6px",
+                        fontWeight: 600
+                      }}>
+                        {o.docType === "Bill" ? "🧾 Bill" : "📄 Order Copy"}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div><Pill status={o.status} /></div>
               </div>
-              <div><Pill status={o.status} /></div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Document Type</span><span className="data-value"><span style={{ display: "inline-block", background: o.docType === "Order Copy" ? "#f3e8ff" : "#e0f2fe", color: o.docType === "Order Copy" ? "#6b21a8" : "#0369a1", border: o.docType === "Order Copy" ? "1px solid #e9d5ff" : "1px solid #bae6fd", padding: "2px 8px", borderRadius: "6px", fontWeight: 700, fontSize: "11px" }}>{o.docType === "Order Copy" ? "📄 Order Copy" : "🧾 Bill / Invoice"}</span></span></div>
+                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: (!o.docType || o.docType === "Bill") ? "#e0f2fe" : undefined, borderColor: "#bae6fd", color: (!o.docType || o.docType === "Bill") ? "#0369a1" : undefined, fontWeight: (!o.docType || o.docType === "Bill") ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 View Bill</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: o.docType === "Order Copy" ? "#f3e8ff" : undefined, borderColor: "#e9d5ff", color: o.docType === "Order Copy" ? "#6b21a8" : undefined, fontWeight: o.docType === "Order Copy" ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 View Order Copy</button>
+                </div>
+              </div>
             </div>
-            <div className="data-card-body">
-              <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-              <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
-              <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-            </div>
-            <div className="data-card-footer" style={{ justifyContent: "space-between" }}>
-              <span className="data-label" style={{ alignSelf: "center" }}>Total</span>
-              <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-            </div>
-          </div>
-        );
-      })}
-      {orders.length === 0 && <div className="empty">No orders yet.</div>}
-    </div>
+          );
+        })}
+        {orders.length === 0 && <div className="empty">No orders yet.</div>}
+      </div>
+      {activeDoc && (
+        <OrderDocumentModal
+          order={activeDoc.order}
+          type={activeDoc.type}
+          onClose={() => setActiveDoc(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -1881,7 +1793,7 @@ function OrderApprovalSection() {
               finalDiscount = newDiscountPct;
               finalTotal = Math.max(0, (basePrice * o.qty) - Math.round((newDiscountPct / 100) * (basePrice * o.qty)));
             }
-            return { ...o, status, discount: finalDiscount, total: finalTotal, sentToEmployee: true };
+            return { ...o, status, discount: finalDiscount, total: finalTotal };
           }
           return o;
         }),
@@ -2263,8 +2175,17 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                       {icon}
                     </div>
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--brown-dark)" }}>{title}</span>
+                        {(n.message.toLowerCase().includes("order copy") || order?.docType === "Order Copy") ? (
+                          <span style={{ background: "#f3e8ff", color: "#6b21a8", border: "1px solid #e9d5ff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                            📄 Order Copy
+                          </span>
+                        ) : (n.message.toLowerCase().includes("bill") || order?.docType === "Bill") ? (
+                          <span style={{ background: "#e0f2fe", color: "#0369a1", border: "1px solid #bae6fd", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                            🧾 Bill / Invoice
+                          </span>
+                        ) : null}
                         {!n.read && (
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <span style={{
@@ -2775,52 +2696,52 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
       {!isManager && (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "employee" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "employee" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
             <span>👤 Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "employee" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "employee" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "employee" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{employees.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "manager" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "manager" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
             <span>👔 Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "manager" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "manager" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "manager" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{managers.length}</span>
           </button>
@@ -3054,52 +2975,52 @@ export function TaskAssignmentSection() {
       {isSuperAdmin ? (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "employee" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "employee" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
             <span>👤 Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "employee" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "employee" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "employee" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{employeesWithTasks.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "manager" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "manager" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
             <span>👔 Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "manager" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "manager" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "manager" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{managersWithTasks.length}</span>
           </button>
@@ -4329,27 +4250,10 @@ export function SuperAdminIncentiveSection() {
   const { products, setState, users } = useStore();
   const [editing, setEditing] = useState<Product | null>(null);
   const [incentiveMode, setIncentiveMode] = useState<boolean>(false);
-  const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
 
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-  const groupedOldProducts = useMemo(() => {
-    const oldBatches = products.filter(p => p.date && new Date(p.date) < ninetyDaysAgo);
-    const map = new Map<string, Product & { batches: Product[] }>();
-    oldBatches.forEach(p => {
-      const key = (p.sku || p.name).toLowerCase();
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.qty = (existing.qty ?? existing.stock ?? 0) + (p.qty ?? p.stock ?? 0);
-        existing.stock = existing.qty;
-        existing.batches.push(p);
-      } else {
-        map.set(key, { ...p, batches: [p] });
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [products]);
+  const oldProducts = products.filter(p => (p.date && new Date(p.date) < ninetyDaysAgo) || (p.incentive && p.incentive > 0));
 
   const remove = (id: string) => {
     if (!confirm("Delete this product?")) return;
@@ -4387,13 +4291,12 @@ export function SuperAdminIncentiveSection() {
                 <th>PRODUCT</th>
                 <th>SKU</th>
                 <th>LOCATION</th>
-                <th>QTY</th>
-                <th style={{ whiteSpace: "nowrap" }}>INCENTIVE / UNIT</th>
+                <th className="text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {groupedOldProducts.map((p) => {
-                const hasUnseen = p.batches.some(b => !b.incentiveSeen);
+              {oldProducts.map((p) => {
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
                 return (
                   <tr key={p.id}>
                     <td>
@@ -4408,50 +4311,30 @@ export function SuperAdminIncentiveSection() {
                       )}
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
-                        {p.name}
-                        {hasUnseen && (
-                          <span style={{ background: "#ef4444", color: "white", fontSize: "9px", padding: "2px 6px", borderRadius: "10px", fontWeight: 800, animation: "pulse 2s infinite" }}>NEW</span>
-                        )}
-                      </div>
+                      <div style={{ fontWeight: 600 }}>{p.name}</div>
                       <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
                         <span>Brand: {p.brand || "—"}</span>
+                        {p.warranty && <span> · Warranty: {p.warranty}</span>}
                       </div>
+                      {p.assignedEmployeeId && (
+                        <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                          👤 Assigned: {p.assignedEmployeeId === "all" ? "All Employees" : (users.find(u => u.id === p.assignedEmployeeId)?.name || p.assignedEmployeeId)}
+                        </div>
+                      )}
                     </td>
                     <td>{p.sku}</td>
                     <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span>{p.qty ?? p.stock}</span>
-                        {p.batches.length > 0 && (
-                          <div
-                            style={{ cursor: "pointer", position: "relative" }}
-                            onClick={() => {
-                              setViewingBatches(p);
-                              const unseenBatches = p.batches.filter(b => !b.incentiveSeen);
-                              if (unseenBatches.length > 0) {
-                                setState((s: any) => ({
-                                  ...s,
-                                  products: s.products.map((prod: any) =>
-                                    unseenBatches.some(ub => ub.id === prod.id)
-                                      ? { ...prod, incentiveSeen: true }
-                                      : prod
-                                  )
-                                }));
-                              }
-                            }}
-                            title="Click to view full batch details"
-                          >
-                            <span style={{ fontSize: "16px", color: "var(--accent)" }}>ℹ️</span>
-                            {hasUnseen && <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
-                          </div>
-                        )}
+                    <td className="text-right">
+                      <div className="actions-row" style={{ justifyContent: "flex-end", gap: "8px" }}>
+                        <button className="btn btn-sm" style={{ background: "var(--biscuit-light)", color: "var(--accent)", border: "1px solid var(--border)", fontWeight: 600, borderRadius: "6px" }} onClick={() => { setEditing(p); setIncentiveMode(true); }} title="Add/Edit Incentive">💰 Add Incentive</button>
+                        <button className="btn btn-circle" onClick={() => setEditing(p)} title="Edit Product">✏️</button>
+                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(p.id)} title="Delete Product">🗑️</button>
                       </div>
                     </td>
-                    <td style={{ fontWeight: 600, color: "var(--green)" }}>₹{p.incentive.toLocaleString()}</td>
                   </tr>
                 );
               })}
+              {oldProducts.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center", padding: 24, color: "var(--text-muted)" }}>No products found.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -4469,68 +4352,6 @@ export function SuperAdminIncentiveSection() {
             setIncentiveMode(false);
           }}
         />
-      )}
-
-      {viewingBatches && (
-        <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-            {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white" }} />
-            ) : (
-              <div style={{ width: "120px", height: "120px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
-            )}
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "22px", color: "var(--text)" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", fontSize: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "16px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
-              </div>
-            </div>
-          </div>
-
-          <h4 style={{ borderBottom: "2px solid var(--biscuit)", paddingBottom: "10px", marginBottom: "16px", color: "var(--text)" }}>Batch History</h4>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date Added</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                  <th>Supplier</th>
-                  <th>Status</th>
-                  <th>Incentive</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingBatches.batches.map((b, idx) => (
-                  <tr key={b.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                      {idx === viewingBatches.batches.length - 1 && <div style={{ fontSize: "10px", color: "var(--accent)", marginTop: "2px" }}>Latest Batch</div>}
-                    </td>
-                    <td style={{ fontWeight: 600, fontSize: "15px" }}>{b.qty ?? b.stock}</td>
-                    <td>₹{b.cost.toLocaleString()}</td>
-                    <td>{b.supplier || "—"}</td>
-                    <td>
-                      <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="modal-actions" style={{ marginTop: "24px" }}>
-            <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-          </div>
-        </Modal>
       )}
     </>
   );

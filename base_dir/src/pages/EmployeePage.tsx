@@ -316,26 +316,12 @@ function CustomerComm() {
 
 function OrderUpdates() {
   const { orders, products, currentUser, setState, uid } = useStore();
-  const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
-  const [showAddOrder, setShowAddOrder] = useState(false);
-
   const myOrders = orders.filter((o) => o.assignedTo === currentUser?.id && o.sentToEmployee && (o.status === "Approved" || o.status === "Delivered"));
   const otherOrders = orders.filter((o) => o.assignedTo !== currentUser?.id && o.sentToEmployee && (o.status === "Approved" || o.status === "Delivered"));
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-        <div>
-          <h2 className="page-title">Order Updates</h2>
-          <p className="page-sub">Live order statuses from Super Admin approvals.</p>
-        </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowAddOrder(true)}
-          style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))", fontWeight: 700, borderRadius: 10, padding: "8px 18px", fontSize: "14px" }}
-        >
-          ➕ Create Order
-        </button>
-      </div>
+      <h2 className="page-title">Order Updates</h2>
+      <p className="page-sub">Live order statuses from Super Admin approvals.</p>
 
       {/* My Assigned Orders */}
       <div className="panel" style={{ marginBottom: 24 }}>
@@ -369,18 +355,6 @@ function OrderUpdates() {
                           Regular
                         </span>
                       )}
-                      {o.docType && (
-                        <span className="pill" style={{
-                          background: o.docType === "Bill" ? "#e0f2fe" : "#f3e8ff",
-                          color: o.docType === "Bill" ? "#0369a1" : "#6b21a8",
-                          border: o.docType === "Bill" ? "1px solid #bae6fd" : "1px solid #e9d5ff",
-                          fontSize: "10px",
-                          padding: "2px 6px",
-                          fontWeight: 600
-                        }}>
-                          {o.docType === "Bill" ? "🧾 Bill" : "📄 Order Copy"}
-                        </span>
-                      )}
                     </span>
                   </div>
                   <div><Pill status={o.status} /></div>
@@ -391,9 +365,9 @@ function OrderUpdates() {
                   <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
                 </div>
                 <div className="data-card-footer" style={{ justifyContent: "flex-end", gap: "8px" }}>
-                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 Bill</button>
-                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 Order Copy</button>
-
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => alert(`Generating Bill for Order #${o.id}...`)}>🧾 Bill</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => alert(`Downloading Order Copy for Order #${o.id}...`)}>📄 Order Copy</button>
+                  
                   {o.status === "Approved" ? (
                     <button
                       className="btn btn-success btn-sm"
@@ -450,18 +424,6 @@ function OrderUpdates() {
                           Regular
                         </span>
                       )}
-                      {o.docType && (
-                        <span className="pill" style={{
-                          background: o.docType === "Bill" ? "#e0f2fe" : "#f3e8ff",
-                          color: o.docType === "Bill" ? "#0369a1" : "#6b21a8",
-                          border: o.docType === "Bill" ? "1px solid #bae6fd" : "1px solid #e9d5ff",
-                          fontSize: "10px",
-                          padding: "2px 6px",
-                          fontWeight: 600
-                        }}>
-                          {o.docType === "Bill" ? "🧾 Bill" : "📄 Order Copy"}
-                        </span>
-                      )}
                     </span>
                   </div>
                   <div><Pill status={o.status} /></div>
@@ -473,8 +435,8 @@ function OrderUpdates() {
                   <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
                 </div>
                 <div className="data-card-footer" style={{ justifyContent: "flex-end", gap: "8px", borderTop: "1px solid var(--border)", padding: "12px 16px", display: "flex" }}>
-                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 Bill</button>
-                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 Order Copy</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => alert(`Generating Bill for Order #${o.id}...`)}>🧾 Bill</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => alert(`Downloading Order Copy for Order #${o.id}...`)}>📄 Order Copy</button>
                 </div>
               </div>
             );
@@ -482,18 +444,6 @@ function OrderUpdates() {
           {otherOrders.length === 0 && <div className="empty">No other orders.</div>}
         </div>
       </div>
-
-      {showAddOrder && (
-        <EmployeeCreateOrderModal onClose={() => setShowAddOrder(false)} />
-      )}
-
-      {activeDoc && (
-        <OrderDocumentModal
-          order={activeDoc.order}
-          type={activeDoc.type}
-          onClose={() => setActiveDoc(null)}
-        />
-      )}
     </>
   );
 }
@@ -510,11 +460,6 @@ function ProductsSection() {
   const [customerAddress, setCustomerAddress] = useState("");
   const [discountAmount, setDiscountAmount] = useState<number | "">("");
   const [sellQty, setSellQty] = useState<number>(1);
-  const [docType, setDocType] = useState<"Bill" | "Order Copy">("Bill");
-  const [bookingExpiryDate, setBookingExpiryDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
-
-  const [sellError, setSellError] = useState("");
-  const [sellSuccess, setSellSuccess] = useState("");
 
   const unitPrice = useMemo(() => {
     if (!sellingProduct) return 0;
@@ -534,16 +479,14 @@ function ProductsSection() {
   const goTo = (tab: string) => navigate({ to: "/employee", search: { tab } });
 
   const handleSell = () => {
-    setSellError("");
-    setSellSuccess("");
     if (!sellingProduct) return;
     const qty = sellingProduct.qty ?? sellingProduct.stock ?? 0;
     if (qty <= 0) {
-      setSellError("Out of stock!");
+      alert("Out of stock!");
       return;
     }
     if (!customerName.trim() || !customerPhone.trim()) {
-      setSellError("Please fill in customer name and phone number.");
+      alert("Please fill in customer name and phone number.");
       return;
     }
 
@@ -585,46 +528,23 @@ function ProductsSection() {
         date: today,
         assignedTo: currentUser?.id,
         assignedToName: currentUser?.name,
-        sentToEmployee: true,
-        docType,
-        bookingExpiryDate: docType === "Order Copy" ? bookingExpiryDate : undefined
+        sentToEmployee: true
       };
-
-      const notifId = uid("n");
-      const docLabel = docType === "Bill" ? "Bill" : "Order Copy";
-      const expiryStr = docType === "Order Copy" && bookingExpiryDate ? ` (Valid Until: ${bookingExpiryDate})` : "";
-      const notifMsg = `New ${docLabel} order pending for ${customerName.trim()} (Order #${orderId})${expiryStr}`;
 
       return {
         ...s,
         customers: nextCustomers,
-        orders: [...s.orders, newOrder],
-        notifications: [
-          {
-            id: notifId,
-            to: "superadmin",
-            from: currentUser?.name || "Employee",
-            message: notifMsg,
-            date: today,
-            read: false
-          },
-          ...s.notifications
-        ]
+        orders: [...s.orders, newOrder]
       };
     });
 
-    setSellSuccess(`Sale request #${orderId} submitted for Admin approval successfully!`);
-    setTimeout(() => {
-      setSellingProduct(null);
-      setCustomerName("");
-      setCustomerPhone("");
-      setCustomerAddress("");
-      setDiscountAmount("");
-      setSellQty(1);
-      setDocType("Bill");
-      setSellSuccess("");
-      setSellError("");
-    }, 1200);
+    setSellingProduct(null);
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerAddress("");
+    setDiscountAmount("");
+    setSellQty(1);
+    alert("Sale request sent for Admin approval!");
   };
 
   // Filter products list
@@ -746,16 +666,6 @@ function ProductsSection() {
               font-size: 21px !important;
             }
           `}</style>
-          {sellError && (
-            <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
-              ⚠️ {sellError}
-            </div>
-          )}
-          {sellSuccess && (
-            <div style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 700, marginBottom: "14px" }}>
-              ✅ {sellSuccess}
-            </div>
-          )}
           <div style={{
             background: "linear-gradient(135deg, var(--biscuit-light) 0%, #fff 100%)",
             padding: "12px 16px",
@@ -817,121 +727,6 @@ function ProductsSection() {
               placeholder="Enter address (optional)"
             />
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "16px" }}>
-            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
-              Document Type *
-            </label>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <label style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: docType === "Bill" ? "2px solid #0284c7" : "1px solid var(--border)",
-                background: docType === "Bill" ? "#f0f9ff" : "#fff",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "13px",
-                color: docType === "Bill" ? "#0369a1" : "inherit"
-              }}>
-                <input
-                  type="radio"
-                  name="docTypeSelectProd"
-                  value="Bill"
-                  checked={docType === "Bill"}
-                  onChange={() => setDocType("Bill")}
-                />
-                🧾 Bill
-              </label>
-              <label style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: docType === "Order Copy" ? "2px solid #9333ea" : "1px solid var(--border)",
-                background: docType === "Order Copy" ? "#faf5ff" : "#fff",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "13px",
-                color: docType === "Order Copy" ? "#6b21a8" : "inherit"
-              }}>
-                <input
-                  type="radio"
-                  name="docTypeSelectProd"
-                  value="Order Copy"
-                  checked={docType === "Order Copy"}
-                  onChange={() => setDocType("Order Copy")}
-                />
-                📄 Order Copy
-              </label>
-            </div>
-          </div>
-
-          {docType === "Order Copy" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px", background: "#faf5ff", padding: "14px", borderRadius: "12px", border: "1px solid #e9d5ff" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "#6b21a8", letterSpacing: "0.5px" }}>
-                  ⏳ Booking Expiry Date *
-                </label>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#7e22ce" }}>
-                  📅 {bookingExpiryDate ? new Date(bookingExpiryDate + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Select Date"}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", margin: "2px 0" }}>
-                <span style={{ fontSize: "11px", fontWeight: 600, color: "#6b21a8", alignSelf: "center" }}>Quick Set:</span>
-                {[
-                  { label: "+7 Days", days: 7 },
-                  { label: "+15 Days", days: 15 },
-                  { label: "+30 Days (1 Month)", days: 30 },
-                  { label: "+60 Days (2 Months)", days: 60 },
-                ].map((preset) => {
-                  const targetDate = new Date();
-                  targetDate.setDate(targetDate.getDate() + preset.days);
-                  const iso = targetDate.toISOString().slice(0, 10);
-                  const isSelected = bookingExpiryDate === iso;
-
-                  return (
-                    <button
-                      key={preset.days}
-                      type="button"
-                      onClick={() => setBookingExpiryDate(iso)}
-                      style={{
-                        padding: "4px 10px",
-                        borderRadius: "6px",
-                        border: isSelected ? "1.5px solid #7e22ce" : "1px solid #d8b4fe",
-                        background: isSelected ? "#7e22ce" : "#fff",
-                        color: isSelected ? "#fff" : "#6b21a8",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        cursor: "pointer"
-                      }}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <input
-                type="date"
-                className="form-input"
-                style={{ height: "42px", padding: "8px 12px", fontSize: "14px", borderRadius: "8px", border: "1px solid #d8b4fe", width: "100%", boxSizing: "border-box", background: "#fff" }}
-                value={bookingExpiryDate}
-                min={new Date().toISOString().slice(0, 10)}
-                onChange={(e) => setBookingExpiryDate(e.target.value)}
-              />
-              
-              <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
-                💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
-              </span>
-            </div>
-          )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "16px" }}>
             <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
@@ -1011,11 +806,6 @@ export function EmployeeIncentiveSection() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [docType, setDocType] = useState<"Bill" | "Order Copy">("Bill");
-  const [bookingExpiryDate, setBookingExpiryDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
-
-  const [incSellError, setIncSellError] = useState("");
-  const [incSellSuccess, setIncSellSuccess] = useState("");
 
   const isEmployee = currentUser?.role === "employee";
 
@@ -1033,16 +823,14 @@ export function EmployeeIncentiveSection() {
   }, [sellingProduct]);
 
   const handleSell = () => {
-    setIncSellError("");
-    setIncSellSuccess("");
     if (!sellingProduct) return;
     const qty = sellingProduct.qty ?? sellingProduct.stock ?? 0;
     if (qty <= 0) {
-      setIncSellError("Out of stock!");
+      alert("Out of stock!");
       return;
     }
     if (!customerName.trim() || !customerPhone.trim()) {
-      setIncSellError("Please fill in customer name and phone number.");
+      alert("Please fill in customer name and phone number.");
       return;
     }
 
@@ -1080,44 +868,21 @@ export function EmployeeIncentiveSection() {
         date: today,
         assignedTo: currentUser?.id,
         assignedToName: currentUser?.name,
-        sentToEmployee: true,
-        docType,
-        bookingExpiryDate: docType === "Order Copy" ? bookingExpiryDate : undefined
+        sentToEmployee: true
       };
-
-      const notifId = uid("n");
-      const docLabel = docType === "Bill" ? "Bill" : "Order Copy";
-      const expiryStr = docType === "Order Copy" && bookingExpiryDate ? ` (Valid Until: ${bookingExpiryDate})` : "";
-      const notifMsg = `New ${docLabel} order pending for ${customerName.trim()} (Order #${orderId})${expiryStr}`;
 
       return {
         ...s,
         customers: nextCustomers,
-        orders: [...s.orders, newOrder],
-        notifications: [
-          {
-            id: notifId,
-            to: "superadmin",
-            from: currentUser?.name || "Employee",
-            message: notifMsg,
-            date: today,
-            read: false
-          },
-          ...s.notifications
-        ]
+        orders: [...s.orders, newOrder]
       };
     });
 
-    setIncSellSuccess(`Sale request #${orderId} submitted for Admin approval successfully!`);
-    setTimeout(() => {
-      setSellingProduct(null);
-      setCustomerName("");
-      setCustomerPhone("");
-      setCustomerAddress("");
-      setDocType("Bill");
-      setIncSellSuccess("");
-      setIncSellError("");
-    }, 1200);
+    setSellingProduct(null);
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerAddress("");
+    alert("Sale request sent for Admin approval!");
   };
 
   return (
@@ -1219,16 +984,6 @@ export function EmployeeIncentiveSection() {
               font-size: 21px !important;
             }
           `}</style>
-          {incSellError && (
-            <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
-              ⚠️ {incSellError}
-            </div>
-          )}
-          {incSellSuccess && (
-            <div style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 700, marginBottom: "14px" }}>
-              ✅ {incSellSuccess}
-            </div>
-          )}
           <div style={{
             background: "linear-gradient(135deg, var(--biscuit-light) 0%, #fff 100%)",
             padding: "12px 16px",
@@ -1291,121 +1046,6 @@ export function EmployeeIncentiveSection() {
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "16px" }}>
-            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
-              Document Type *
-            </label>
-            <div style={{ display: "flex", gap: "12px" }}>
-              <label style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: docType === "Bill" ? "2px solid #0284c7" : "1px solid var(--border)",
-                background: docType === "Bill" ? "#f0f9ff" : "#fff",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "13px",
-                color: docType === "Bill" ? "#0369a1" : "inherit"
-              }}>
-                <input
-                  type="radio"
-                  name="docTypeSelectInc"
-                  value="Bill"
-                  checked={docType === "Bill"}
-                  onChange={() => setDocType("Bill")}
-                />
-                🧾 Bill
-              </label>
-              <label style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 14px",
-                borderRadius: "10px",
-                border: docType === "Order Copy" ? "2px solid #9333ea" : "1px solid var(--border)",
-                background: docType === "Order Copy" ? "#faf5ff" : "#fff",
-                cursor: "pointer",
-                fontWeight: 600,
-                fontSize: "13px",
-                color: docType === "Order Copy" ? "#6b21a8" : "inherit"
-              }}>
-                <input
-                  type="radio"
-                  name="docTypeSelectInc"
-                  value="Order Copy"
-                  checked={docType === "Order Copy"}
-                  onChange={() => setDocType("Order Copy")}
-                />
-                📄 Order Copy
-              </label>
-            </div>
-          </div>
-
-          {docType === "Order Copy" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px", background: "#faf5ff", padding: "14px", borderRadius: "12px", border: "1px solid #e9d5ff" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "#6b21a8", letterSpacing: "0.5px" }}>
-                  ⏳ Booking Expiry Date *
-                </label>
-                <span style={{ fontSize: "12px", fontWeight: 700, color: "#7e22ce" }}>
-                  📅 {bookingExpiryDate ? new Date(bookingExpiryDate + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Select Date"}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", margin: "2px 0" }}>
-                <span style={{ fontSize: "11px", fontWeight: 600, color: "#6b21a8", alignSelf: "center" }}>Quick Set:</span>
-                {[
-                  { label: "+7 Days", days: 7 },
-                  { label: "+15 Days", days: 15 },
-                  { label: "+30 Days (1 Month)", days: 30 },
-                  { label: "+60 Days (2 Months)", days: 60 },
-                ].map((preset) => {
-                  const targetDate = new Date();
-                  targetDate.setDate(targetDate.getDate() + preset.days);
-                  const iso = targetDate.toISOString().slice(0, 10);
-                  const isSelected = bookingExpiryDate === iso;
-
-                  return (
-                    <button
-                      key={preset.days}
-                      type="button"
-                      onClick={() => setBookingExpiryDate(iso)}
-                      style={{
-                        padding: "4px 10px",
-                        borderRadius: "6px",
-                        border: isSelected ? "1.5px solid #7e22ce" : "1px solid #d8b4fe",
-                        background: isSelected ? "#7e22ce" : "#fff",
-                        color: isSelected ? "#fff" : "#6b21a8",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        cursor: "pointer"
-                      }}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <input
-                type="date"
-                className="form-input"
-                style={{ height: "42px", padding: "8px 12px", fontSize: "14px", borderRadius: "8px", border: "1px solid #d8b4fe", width: "100%", boxSizing: "border-box", background: "#fff" }}
-                value={bookingExpiryDate}
-                min={new Date().toISOString().slice(0, 10)}
-                onChange={(e) => setBookingExpiryDate(e.target.value)}
-              />
-              
-              <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
-                💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
-              </span>
-            </div>
-          )}
-
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "16px" }}>
             <button
               className="btn btn-ghost"
@@ -1437,616 +1077,5 @@ export function EmployeeIncentiveSection() {
         </Modal>
       )}
     </div>
-  );
-}
-
-export function OrderDocumentModal({
-  order,
-  type,
-  onClose,
-}: {
-  order: Order;
-  type: "Bill" | "Order Copy";
-  onClose: () => void;
-}) {
-  const { products, customers, setState, currentUser, uid } = useStore();
-  const [sentSuccess, setSentSuccess] = useState(false);
-  const isAdmin = currentUser?.role === "superadmin";
-
-  const product = products.find(
-    (p) => p.id === order.productId || p.name.toLowerCase() === order.productName.toLowerCase()
-  );
-  const customer = customers.find((c) => c.id === order.customerId || c.name.toLowerCase() === order.customerName.toLowerCase());
-
-  const orderBasePrice = Math.round(order.total / (1 - ((order.discount || 0) / 100)));
-  const unitPrice = Math.round(orderBasePrice / order.qty);
-  const discountVal = orderBasePrice - order.total;
-  const isBill = type === "Bill";
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleSendToAdmin = () => {
-    const notifId = uid("n");
-    const docTypeName = type === "Bill" ? "Bill / Invoice" : "Order Copy";
-    const empName = currentUser?.name || "Employee";
-    const msg = `${empName} sent ${docTypeName} for Order #${order.id} (${order.customerName})`;
-
-    setState((s) => ({
-      ...s,
-      notifications: [
-        {
-          id: notifId,
-          to: "superadmin",
-          from: empName,
-          message: msg,
-          date: new Date().toISOString().slice(0, 10),
-          read: false
-        },
-        ...s.notifications
-      ]
-    }));
-    setSentSuccess(true);
-  };
-
-  return (
-    <Modal title={isBill ? "🧾 Tax Invoice / Bill" : "📄 Order Copy"} onClose={onClose}>
-      {sentSuccess && (
-        <div style={{
-          background: "#dcfce7",
-          color: "#15803d",
-          border: "1px solid #86efac",
-          padding: "12px 16px",
-          borderRadius: "10px",
-          fontSize: "13px",
-          fontWeight: 700,
-          marginBottom: "16px",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          boxShadow: "0 2px 6px rgba(22, 163, 74, 0.1)"
-        }}>
-          <span style={{ fontSize: "16px" }}>✅</span>
-          <span>{type === "Bill" ? "Bill / Invoice" : "Order Copy"} for Order #{order.id} sent to Admin successfully!</span>
-        </div>
-      )}
-
-      <div id="printable-order-document" style={{
-        padding: "20px",
-        background: "#ffffff",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        fontFamily: "'Inter', sans-serif",
-        color: "#1e293b",
-        maxWidth: "600px",
-        margin: "0 auto"
-      }}>
-        {/* Document Header */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          borderBottom: "2px solid #334155",
-          paddingBottom: "16px",
-          marginBottom: "20px"
-        }}>
-          <div>
-            <h2 style={{ margin: 0, color: "#0f172a", fontSize: "22px", fontWeight: 800 }}>SMART HOME</h2>
-            <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#64748b" }}>
-              Sales & Services · Smart Home Automation
-            </p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <span style={{
-              display: "inline-block",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              fontWeight: 700,
-              fontSize: "12px",
-              letterSpacing: "0.5px",
-              background: isBill ? "#e0f2fe" : "#f3e8ff",
-              color: isBill ? "#0369a1" : "#6b21a8",
-              border: isBill ? "1px solid #bae6fd" : "1px solid #e9d5ff"
-            }}>
-              {isBill ? "TAX INVOICE / BILL" : "ORDER COPY"}
-            </span>
-            <div style={{ fontSize: "12px", fontWeight: 600, color: "#475569", marginTop: "6px" }}>
-              #{order.id.toUpperCase()}
-            </div>
-            <div style={{ fontSize: "11px", color: "#64748b" }}>Date: {order.date}</div>
-          </div>
-        </div>
-
-        {/* Customer & Order Details */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "16px",
-          marginBottom: "20px",
-          background: "#f8fafc",
-          padding: "12px 16px",
-          borderRadius: "8px"
-        }}>
-          <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Customer Info</div>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a", marginTop: "2px" }}>{order.customerName}</div>
-            {customer?.phone && <div style={{ fontSize: "12px", color: "#334155" }}>📞 {customer.phone}</div>}
-            {customer?.address && <div style={{ fontSize: "12px", color: "#334155" }}>📍 {customer.address}</div>}
-          </div>
-          <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Order Info</div>
-            <div style={{ fontSize: "12px", color: "#334155", marginTop: "2px" }}>
-              <strong>Status:</strong> <span style={{ color: order.status === "Approved" || order.status === "Delivered" ? "#16a34a" : "#ca8a04", fontWeight: 700 }}>{order.status}</span>
-            </div>
-            <div style={{ fontSize: "12px", color: "#334155" }}>
-              <strong>Assigned To:</strong> {order.assignedToName || order.createdBy || "—"}
-            </div>
-            {order.bookingExpiryDate && (
-              <div style={{ fontSize: "12px", color: order.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? "#dc2626" : "#4338ca", marginTop: "4px", fontWeight: 700 }}>
-                {order.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? (
-                  <span>⚠️ Booking Expired: {order.bookingExpiryDate}</span>
-                ) : (
-                  <span>⏳ Booking Valid Until: {order.bookingExpiryDate}</span>
-                )}
-              </div>
-            )}
-            {order.customerBargain && (
-              <div style={{ fontSize: "12px", color: "#dc2626" }}>
-                <strong>Remarks:</strong> {order.customerBargain}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Items Table */}
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
-          <thead>
-            <tr style={{ background: "#f1f5f9", textAlign: "left" }}>
-              <th style={{ padding: "8px 12px", fontSize: "12px", color: "#475569", borderBottom: "1px solid #cbd5e1" }}>Item Description</th>
-              <th style={{ padding: "8px 12px", fontSize: "12px", color: "#475569", borderBottom: "1px solid #cbd5e1", textAlign: "center" }}>Qty</th>
-              <th style={{ padding: "8px 12px", fontSize: "12px", color: "#475569", borderBottom: "1px solid #cbd5e1", textAlign: "right" }}>Unit Price</th>
-              <th style={{ padding: "8px 12px", fontSize: "12px", color: "#475569", borderBottom: "1px solid #cbd5e1", textAlign: "right" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9" }}>
-                <div style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>{order.productName}</div>
-                {product?.brand && <div style={{ fontSize: "11px", color: "#64748b" }}>Brand: {product.brand}</div>}
-                {product?.sku && <div style={{ fontSize: "11px", color: "#64748b" }}>SKU: {product.sku}</div>}
-              </td>
-              <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", textAlign: "center", fontWeight: 600 }}>{order.qty}</td>
-              <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", textAlign: "right" }}>₹{unitPrice.toLocaleString()}</td>
-              <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", textAlign: "right", fontWeight: 600 }}>₹{orderBasePrice.toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        {/* Calculation Summary */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "24px" }}>
-          <div style={{ width: "220px", display: "flex", flexDirection: "column", gap: "6px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#64748b" }}>
-              <span>Subtotal:</span>
-              <span>₹{orderBasePrice.toLocaleString()}</span>
-            </div>
-            {order.discount && order.discount > 0 ? (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#dc2626" }}>
-                <span>Discount ({order.discount}%):</span>
-                <span>- ₹{discountVal.toLocaleString()}</span>
-              </div>
-            ) : null}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "15px",
-              fontWeight: 800,
-              color: "#0f172a",
-              borderTop: "2px dashed #cbd5e1",
-              paddingTop: "8px",
-              marginTop: "4px"
-            }}>
-              <span>Total Payable:</span>
-              <span>₹{order.total.toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer info */}
-        <div style={{ textAlign: "center", fontSize: "11px", color: "#94a3b8", borderTop: "1px solid #f1f5f9", paddingTop: "12px" }}>
-          Thank you for your business! · Smart Home Systems
-        </div>
-      </div>
-
-      {/* Modal Actions */}
-      <div className="modal-actions" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end", gap: "10px", flexWrap: "wrap" }}>
-        <button className="btn btn-ghost" onClick={onClose}>
-          Close
-        </button>
-        <button
-          className="btn btn-primary"
-          onClick={handlePrint}
-          style={{ background: "linear-gradient(135deg, #0284c7, #0369a1)", border: "none", color: "#fff" }}
-        >
-          🖨️ Print / Save PDF
-        </button>
-        {!isAdmin && (
-          sentSuccess ? (
-            <button
-              className="btn btn-success"
-              disabled
-              style={{ background: "#16a34a", border: "none", color: "#fff", fontWeight: 700, cursor: "default" }}
-            >
-              ✅ Sent to Admin
-            </button>
-          ) : (
-            <button
-              className="btn btn-primary"
-              onClick={handleSendToAdmin}
-              style={{ background: "linear-gradient(135deg, #16a34a, #15803d)", border: "none", color: "#fff", fontWeight: 700 }}
-            >
-              📤 Send to Admin
-            </button>
-          )
-        )}
-      </div>
-    </Modal>
-  );
-}
-
-export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
-  const { customers, products, setState, uid, currentUser } = useStore();
-  const activeProducts = products.filter(p => p.status === "Active" || p.status === "Verified");
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
-  const [productId, setProductId] = useState(activeProducts[0]?.id || "");
-  const [qty, setQty] = useState(1);
-  const [discountPct, setDiscountPct] = useState<number | "">("");
-  const [docType, setDocType] = useState<"Bill" | "Order Copy">("Bill");
-  const [bookingExpiryDate, setBookingExpiryDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
-  const [customerBargain, setCustomerBargain] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-
-  const selectedProduct = activeProducts.find(p => p.id === productId);
-  const unitPrice = selectedProduct ? selectedProduct.price : 0;
-  const baseTotal = unitPrice * qty;
-  const discountVal = discountPct ? Math.round(((Number(discountPct) || 0) / 100) * baseTotal) : 0;
-  const finalTotal = Math.max(0, baseTotal - discountVal);
-
-  const handleSubmit = () => {
-    setErrorMsg("");
-    if (!customerName.trim() || !customerPhone.trim()) {
-      setErrorMsg("Please fill in customer name and phone number.");
-      return;
-    }
-    if (!selectedProduct) {
-      setErrorMsg("Please select a product.");
-      return;
-    }
-
-    const orderId = uid("o");
-    const today = new Date().toISOString().slice(0, 10);
-
-    setState((s: any) => {
-      let customerId = s.customers.find((c: any) => c.phone.trim() === customerPhone.trim())?.id;
-      let nextCustomers = s.customers;
-      if (!customerId) {
-        customerId = uid("c");
-        const newCust = {
-          id: customerId,
-          name: customerName.trim(),
-          phone: customerPhone.trim(),
-          address: customerAddress.trim(),
-          email: "",
-          status: "Active"
-        };
-        nextCustomers = [...s.customers, newCust];
-      }
-
-      const docLabel = docType === "Bill" ? "Bill" : "Order Copy";
-      const expiryStr = docType === "Order Copy" && bookingExpiryDate ? ` (Valid Until: ${bookingExpiryDate})` : "";
-      const notifMsg = `New ${docLabel} order pending for ${customerName.trim()} (Order #${orderId})${expiryStr}`;
-      const notifId = uid("n");
-
-      const newOrder: Order = {
-        id: orderId,
-        customerId,
-        customerName: customerName.trim(),
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-        qty,
-        total: finalTotal,
-        discount: Number(discountPct) || 0,
-        createdBy: currentUser?.name || "Employee",
-        status: "Pending",
-        date: today,
-        assignedTo: currentUser?.id,
-        assignedToName: currentUser?.name,
-        sentToEmployee: true,
-        customerBargain: customerBargain.trim() || undefined,
-        docType,
-        bookingExpiryDate: docType === "Order Copy" ? bookingExpiryDate : undefined
-      };
-
-      return {
-        ...s,
-        customers: nextCustomers,
-        orders: [...s.orders, newOrder],
-        notifications: [
-          {
-            id: notifId,
-            to: "superadmin",
-            from: currentUser?.name || "Employee",
-            message: notifMsg,
-            date: today,
-            read: false
-          },
-          ...s.notifications
-        ]
-      };
-    });
-
-    setSuccessMsg(`Order #${orderId} submitted for Admin approval successfully!`);
-    setTimeout(() => {
-      onClose();
-    }, 1200);
-  };
-
-  return (
-    <Modal title="➕ Add New Order" onClose={onClose}>
-      {errorMsg && (
-        <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
-          ⚠️ {errorMsg}
-        </div>
-      )}
-      {successMsg && (
-        <div style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 700, marginBottom: "14px" }}>
-          ✅ {successMsg}
-        </div>
-      )}
-      <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Customer Name *
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            list="employee-customers-datalist"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            placeholder="Type customer name"
-          />
-          <datalist id="employee-customers-datalist">
-            {customers.map((c) => (
-              <option key={c.id} value={c.name} />
-            ))}
-          </datalist>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Phone Number *
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            placeholder="Enter customer phone number"
-          />
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Address
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={customerAddress}
-            onChange={(e) => setCustomerAddress(e.target.value)}
-            placeholder="Enter address (optional)"
-          />
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Select Product *
-          </label>
-          <select className="form-select" value={productId} onChange={(e) => setProductId(e.target.value)}>
-            {activeProducts.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} {p.brand ? `(${p.brand})` : ""} - ₹{p.price.toLocaleString()} (Stock: {p.qty ?? p.stock ?? 0})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-              Quantity *
-            </label>
-            <input
-              type="number"
-              className="form-input"
-              min={1}
-              value={qty}
-              onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
-            />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-              Discount (%)
-            </label>
-            <input
-              type="number"
-              className="form-input"
-              min={0}
-              max={100}
-              value={discountPct}
-              onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
-              placeholder="0%"
-            />
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Document Type *
-          </label>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <label style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: docType === "Bill" ? "2px solid #0284c7" : "1px solid var(--border)",
-              background: docType === "Bill" ? "#f0f9ff" : "#fff",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: "13px",
-              color: docType === "Bill" ? "#0369a1" : "inherit"
-            }}>
-              <input
-                type="radio"
-                name="empModalDocType"
-                value="Bill"
-                checked={docType === "Bill"}
-                onChange={() => setDocType("Bill")}
-              />
-              🧾 Bill
-            </label>
-            <label style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "10px 14px",
-              borderRadius: "10px",
-              border: docType === "Order Copy" ? "2px solid #9333ea" : "1px solid var(--border)",
-              background: docType === "Order Copy" ? "#faf5ff" : "#fff",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: "13px",
-              color: docType === "Order Copy" ? "#6b21a8" : "inherit"
-            }}>
-              <input
-                type="radio"
-                name="empModalDocType"
-                value="Order Copy"
-                checked={docType === "Order Copy"}
-                onChange={() => setDocType("Order Copy")}
-              />
-              📄 Order Copy
-            </label>
-          </div>
-        </div>
-
-        {docType === "Order Copy" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "#faf5ff", padding: "14px", borderRadius: "12px", border: "1px solid #e9d5ff" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "#6b21a8", letterSpacing: "0.5px" }}>
-                ⏳ Booking Expiry Date *
-              </label>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#7e22ce" }}>
-                📅 {bookingExpiryDate ? new Date(bookingExpiryDate + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Select Date"}
-              </span>
-            </div>
-
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", margin: "2px 0" }}>
-              <span style={{ fontSize: "11px", fontWeight: 600, color: "#6b21a8", alignSelf: "center" }}>Quick Set:</span>
-              {[
-                { label: "+7 Days", days: 7 },
-                { label: "+15 Days", days: 15 },
-                { label: "+30 Days (1 Month)", days: 30 },
-                { label: "+60 Days (2 Months)", days: 60 },
-              ].map((preset) => {
-                const targetDate = new Date();
-                targetDate.setDate(targetDate.getDate() + preset.days);
-                const iso = targetDate.toISOString().slice(0, 10);
-                const isSelected = bookingExpiryDate === iso;
-
-                return (
-                  <button
-                    key={preset.days}
-                    type="button"
-                    onClick={() => setBookingExpiryDate(iso)}
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: "6px",
-                      border: isSelected ? "1.5px solid #7e22ce" : "1px solid #d8b4fe",
-                      background: isSelected ? "#7e22ce" : "#fff",
-                      color: isSelected ? "#fff" : "#6b21a8",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      cursor: "pointer"
-                    }}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <input
-              type="date"
-              className="form-input"
-              style={{ height: "42px", padding: "8px 12px", fontSize: "14px", borderRadius: "8px", border: "1px solid #d8b4fe", width: "100%", boxSizing: "border-box", background: "#fff" }}
-              value={bookingExpiryDate}
-              min={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setBookingExpiryDate(e.target.value)}
-            />
-            
-            <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
-              💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
-            </span>
-          </div>
-        )}
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Bargaining / Remarks
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={customerBargain}
-            onChange={(e) => setCustomerBargain(e.target.value)}
-            placeholder="E.g. Customer requested ₹500 discount"
-          />
-        </div>
-
-        <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "10px", marginTop: "4px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#64748b" }}>
-            <span>Subtotal ({qty}x):</span>
-            <span>₹{baseTotal.toLocaleString()}</span>
-          </div>
-          {discountVal > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#dc2626", marginTop: "4px" }}>
-              <span>Discount ({discountPct}%):</span>
-              <span>- ₹{discountVal.toLocaleString()}</span>
-            </div>
-          )}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: 800, color: "#0f172a", marginTop: "6px", borderTop: "1px dashed #cbd5e1", paddingTop: "6px" }}>
-            <span>Total Payable:</span>
-            <span>₹{finalTotal.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal-actions" style={{ marginTop: "20px" }}>
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={handleSubmit} style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))" }}>
-          Submit Order for Approval
-        </button>
-      </div>
-    </Modal>
   );
 }

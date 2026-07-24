@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from "@tanstack/react-router";
+﻿import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useStore, Product, User, Order, Lead, Task } from "../app/store";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
@@ -7,14 +7,14 @@ import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSqu
 import { OrderDocumentModal } from "./EmployeePage";
 
 const NAV: NavItem[] = [
-  { key: "live", label: "Live Dashboard", icon: "📡" },
-  { key: "products", label: "Stocking Inventory", icon: "📦" },
-  { key: "godown", label: "Godowns", icon: "🏭" },
-  { key: "leads", label: "Lead Generation", icon: "🧲" },
-  { key: "assign", label: "Add Employee / manager", icon: "📋" },
-  { key: "task-assign", label: "Task Assign", icon: "📝" },
-  { key: "orders", label: "Order Approvals", icon: "✅" },
-  { key: "incentive", label: "Incentive", icon: "💰" },
+  { key: "live", label: "Live Dashboard", icon: "≡ƒôí" },
+  { key: "products", label: "Stocking Inventory", icon: "≡ƒôª" },
+  { key: "godown", label: "Godowns", icon: "≡ƒÅ¡" },
+  { key: "leads", label: "Lead Generation", icon: "≡ƒº▓" },
+  { key: "assign", label: "Add Employee / manager", icon: "≡ƒôï" },
+  { key: "task-assign", label: "Task Assign", icon: "≡ƒô¥" },
+  { key: "orders", label: "Order Approvals", icon: "Γ£à" },
+  { key: "incentive", label: "Incentive", icon: "≡ƒÆ░" },
 ];
 
 interface SuperAdminPageProps {
@@ -66,21 +66,21 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
           top: "24px",
           left: "50%",
           transform: "translateX(-50%)",
-          background: "linear-gradient(135deg, #ff416c, #ff4b2b)",
+          background: "linear-gradient(135deg, #f87171, #ef4444, #dc2626)",
           color: "white",
-          padding: "14px 14px 14px 28px",
-          borderRadius: "100px",
+          padding: "16px 28px",
+          borderRadius: "16px",
           zIndex: 9999,
-          boxShadow: "0 15px 35px rgba(255, 65, 108, 0.4), inset 0 2px 0 rgba(255,255,255,0.3)",
+          boxShadow: "0 10px 25px -5px rgba(239, 68, 68, 0.5), 0 8px 10px -6px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)",
           display: "flex",
           alignItems: "center",
-          gap: "24px",
+          gap: "20px",
           fontWeight: 500,
           border: "1px solid rgba(255,255,255,0.2)",
           animation: "popupSlideDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
         }}>
-          <span style={{ fontSize: "28px", display: "inline-block", animation: "bellRing 1.5s ease-in-out infinite", transformOrigin: "top center", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.2))" }}>🔔</span>
-          <span style={{ fontSize: "16px", letterSpacing: "0.3px", fontWeight: 600 }}>You have <strong style={{ fontSize: "18px", background: "rgba(255,255,255,0.2)", padding: "2px 10px", borderRadius: "12px", margin: "0 4px" }}>{pendingApprovals}</strong> pending request(s) for approval!</span>
+          <span style={{ fontSize: "26px", display: "inline-block", animation: "bellRing 1.5s ease-in-out infinite", transformOrigin: "top center" }}>≡ƒöö</span>
+          <span style={{ fontSize: "16px", letterSpacing: "0.2px", fontWeight: 600 }}>You have <strong style={{ fontSize: "18px" }}>{pendingApprovals}</strong> pending request(s) for approval!</span>
           <button
             className="btn-review-now"
             onClick={() => {
@@ -90,19 +90,38 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
             style={{
               background: "#ffffff",
               border: "none",
-              color: "#ff416c",
-              padding: "12px 28px",
-              borderRadius: "100px",
+              color: "#dc2626",
+              padding: "10px 20px",
+              borderRadius: "8px",
               cursor: "pointer",
               fontWeight: 700,
-              fontSize: "14px",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+              boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+              transition: "all 0.2s ease"
             }}
           >
             Review Now
+          </button>
+          <button
+            className="btn-dismiss-pop"
+            onClick={() => setShowNotification(false)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "20px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginLeft: "4px",
+              transition: "all 0.2s ease"
+            }}
+            title="Dismiss"
+          >
+            Γ£ò
           </button>
         </div>
       )}
@@ -144,16 +163,16 @@ function LiveDashboard() {
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
         <div>
-          <h2 className="page-title">📡 Live Dashboard Overview</h2>
+          <h2 className="page-title">≡ƒôí Live Dashboard Overview</h2>
           <p className="page-sub" style={{ margin: 0 }}>Real-time lead statistics and follow-ups overview</p>
         </div>
       </div>
 
       <div className="stat-grid" style={{ marginBottom: 4 }}>
-        <StatCard icon="📦" label="TOTAL PRODUCTS" value={totalProducts} onClick={() => goTo("products")} />
-        <StatCard icon="⚠️" label="LOW STOCK (< 20)" value={lowStock} onClick={() => goTo("products")} />
-        <StatCard icon="📈" label="HIGH STOCK (≥ 50)" value={highStock} onClick={() => goTo("products")} />
-        <StatCard icon="💰" label="INCENTIVE (> 90 DAYS)" value={incentive90Days} onClick={() => goTo("incentive")} />
+        <StatCard icon="≡ƒôª" label="TOTAL PRODUCTS" value={totalProducts} onClick={() => goTo("products")} />
+        <StatCard icon="ΓÜá∩╕Å" label="LOW STOCK (< 20)" value={lowStock} onClick={() => goTo("products")} />
+        <StatCard icon="≡ƒôê" label="HIGH STOCK (ΓëÑ 50)" value={highStock} onClick={() => goTo("products")} />
+        <StatCard icon="≡ƒÆ░" label="INCENTIVE (> 90 DAYS)" value={incentive90Days} onClick={() => goTo("incentive")} />
       </div>
 
       <DashboardLeadPipelineOverview />
@@ -186,12 +205,12 @@ function Overview() {
       <h2 className="page-title">Dashboard Overview</h2>
       <p className="page-sub">Full system snapshot across managers, employees, products & orders.</p>
       <div className="stat-grid">
-        <StatCard icon="👥" label="Employees" value={totalEmp} />
-        <StatCard icon="👔" label="Managers" value={totalPage} />
-        <StatCard icon="🧑‍💼" label="Customers" value={customers.length} />
-        <StatCard icon="🧾" label="Orders" value={orders.length} />
-        <StatCard icon="📦" label="Products" value={products.length} />
-        <StatCard icon="💰" label="Revenue" value={`₹${revenue.toLocaleString()}`} />
+        <StatCard icon="≡ƒæÑ" label="Employees" value={totalEmp} />
+        <StatCard icon="≡ƒæö" label="Managers" value={totalPage} />
+        <StatCard icon="≡ƒºæΓÇì≡ƒÆ╝" label="Customers" value={customers.length} />
+        <StatCard icon="≡ƒº╛" label="Orders" value={orders.length} />
+        <StatCard icon="≡ƒôª" label="Products" value={products.length} />
+        <StatCard icon="≡ƒÆ░" label="Revenue" value={`Γé╣${revenue.toLocaleString()}`} />
       </div>
 
       <div className="row-2">
@@ -204,7 +223,7 @@ function Overview() {
           <ul className="notif-list">
             {notifications.slice(0, 6).map((n) => (
               <li key={n.id}>
-                <span className="notif-from">{n.from}</span> — {n.message}
+                <span className="notif-from">{n.from}</span> ΓÇö {n.message}
                 <span className="notif-date">{n.date}</span>
               </li>
             ))}
@@ -244,14 +263,14 @@ function ManagersSection() {
                   <span className="data-card-subtitle">{m.email}</span>
                 </div>
                 <div className="actions-row">
-                  <button className="btn btn-circle" onClick={() => setEditing(m)} title="Edit Manager" style={{ width: 32, height: 32, fontSize: 14 }}>✏️</button>
-                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(m.id)} title="Delete Manager" style={{ width: 32, height: 32, fontSize: 14 }}>🗑️</button>
+                  <button className="btn btn-circle" onClick={() => setEditing(m)} title="Edit Manager" style={{ width: 32, height: 32, fontSize: 14 }}>Γ£Å∩╕Å</button>
+                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(m.id)} title="Delete Manager" style={{ width: 32, height: 32, fontSize: 14 }}>≡ƒùæ∩╕Å</button>
                 </div>
               </div>
               <div className="data-card-body">
                 <div className="data-row"><span className="data-label">ID / Username</span><span className="data-value">{m.username}</span></div>
-                <div className="data-row"><span className="data-label">Password</span><span className="data-value">{m.password ?? "—"}</span></div>
-                <div className="data-row"><span className="data-label">Phone</span><span className="data-value">{m.phone ?? "—"}</span></div>
+                <div className="data-row"><span className="data-label">Password</span><span className="data-value">{m.password ?? "ΓÇö"}</span></div>
+                <div className="data-row"><span className="data-label">Phone</span><span className="data-value">{m.phone ?? "ΓÇö"}</span></div>
               </div>
             </div>
           ))}
@@ -487,7 +506,7 @@ export function EmployeeForm({
           disabled={isSaving}
           style={{ background: "linear-gradient(135deg, var(--accent), var(--light-brown))", borderColor: "var(--accent)", color: "#fff", opacity: isSaving ? 0.7 : 1 }}
         >
-          {isSaving ? "Saving..." : "💾 Save Employee"}
+          {isSaving ? "Saving..." : "≡ƒÆ╛ Save Employee"}
         </button>
         <button className="btn btn-ghost" onClick={onClose} style={{ background: "var(--biscuit-light)" }}>
           Cancel
@@ -509,28 +528,28 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 850, width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-head" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          <h3 className="modal-title">📊 Work Details: {employee.name}</h3>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
+          <h3 className="modal-title">≡ƒôè Work Details: {employee.name}</h3>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>Γ£ò</button>
         </div>
         <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 20, overflowY: "auto", flex: 1 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 15 }}>
             <div style={{ background: "var(--warm-white)", border: "1px solid var(--border)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-              <span style={{ fontSize: 20 }}>📋</span>
+              <span style={{ fontSize: 20 }}>≡ƒôï</span>
               <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 4 }}>Total Tasks</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "var(--brown-dark)" }}>{empTasks.length}</div>
             </div>
             <div style={{ background: "var(--warm-white)", border: "1px solid var(--border)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-              <span style={{ fontSize: 20 }}>✅</span>
+              <span style={{ fontSize: 20 }}>Γ£à</span>
               <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 4 }}>Completed Tasks</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "var(--success)" }}>{completedTasks}</div>
             </div>
             <div style={{ background: "var(--warm-white)", border: "1px solid var(--border)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-              <span style={{ fontSize: 20 }}>⏳</span>
+              <span style={{ fontSize: 20 }}>ΓÅ│</span>
               <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 4 }}>Pending Tasks</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "var(--accent)" }}>{pendingTasks}</div>
             </div>
             <div style={{ background: "var(--warm-white)", border: "1px solid var(--border)", borderRadius: 10, padding: 12, textAlign: "center" }}>
-              <span style={{ fontSize: 20 }}>🚚</span>
+              <span style={{ fontSize: 20 }}>≡ƒÜÜ</span>
               <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 4 }}>Assigned Orders</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "var(--brown-dark)" }}>{empOrders.length}</div>
             </div>
@@ -540,7 +559,7 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
             {/* Tasks Panel */}
             <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 15 }}>
               <h4 style={{ margin: "0 0 10px 0", color: "var(--brown-dark)", display: "flex", alignItems: "center", gap: 6 }}>
-                📝 Task List
+                ≡ƒô¥ Task List
               </h4>
               <div style={{ maxHeight: 250, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 5 }}>
                 {empTasks.map((t) => (
@@ -567,7 +586,7 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
             {/* Orders Panel */}
             <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 15 }}>
               <h4 style={{ margin: "0 0 10px 0", color: "var(--brown-dark)", display: "flex", alignItems: "center", gap: 6 }}>
-                📦 Assigned Orders
+                ≡ƒôª Assigned Orders
               </h4>
               <div style={{ maxHeight: 250, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 5 }}>
                 {empOrders.map((o) => {
@@ -637,7 +656,7 @@ function EmployeesSection() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <h4 style={{ margin: "0 0 4px 0", color: "var(--brown-dark)", fontSize: 16 }}>{e.name}</h4>
-                    <span style={{ fontSize: 12, color: "var(--brown)", fontWeight: 500 }}>ID: {e.employeeId ?? "—"}</span>
+                    <span style={{ fontSize: 12, color: "var(--brown)", fontWeight: 500 }}>ID: {e.employeeId ?? "ΓÇö"}</span>
                   </div>
                   <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`} style={{ fontSize: 10 }}>
                     {e.status ?? "Verified"}
@@ -647,17 +666,17 @@ function EmployeesSection() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
                   <div>
                     <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>ROLE</span>
-                    <strong style={{ color: "var(--brown-dark)" }}>{e.jobTitle ?? "—"}</strong>
+                    <strong style={{ color: "var(--brown-dark)" }}>{e.jobTitle ?? "ΓÇö"}</strong>
                   </div>
                   <div>
                     <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>PHONE</span>
-                    <strong style={{ color: "var(--brown-dark)" }}>{e.phone ?? "—"}</strong>
+                    <strong style={{ color: "var(--brown-dark)" }}>{e.phone ?? "ΓÇö"}</strong>
                   </div>
                   <div style={{ gridColumn: "1 / -1" }}>
                     <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>CREDENTIALS</span>
                     <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.username ?? "—"}</code>
-                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.password ?? "—"}</code>
+                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.username ?? "ΓÇö"}</code>
+                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.password ?? "ΓÇö"}</code>
                     </div>
                   </div>
                 </div>
@@ -674,9 +693,9 @@ function EmployeesSection() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "auto" }}>
-                  <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)", color: "var(--brown-dark)" }}>📊</button>
-                  <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee" style={{ background: "var(--biscuit-light)", color: "var(--accent)" }}>✏️</button>
-                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee" style={{ background: "#fef2f2", color: "#ef4444" }}>🗑️</button>
+                  <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)", color: "var(--brown-dark)" }}>≡ƒôè</button>
+                  <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee" style={{ background: "var(--biscuit-light)", color: "var(--accent)" }}>Γ£Å∩╕Å</button>
+                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee" style={{ background: "#fef2f2", color: "#ef4444" }}>≡ƒùæ∩╕Å</button>
                 </div>
               </div>
             );
@@ -725,7 +744,6 @@ function ProductsSection() {
   const { products, setState, uid } = useStore();
   const [editing, setEditing] = useState<Product | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
 
   // Filter states
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -765,30 +783,8 @@ function ProductsSection() {
       }
       const matchLoc = locationFilter === "All" || (p.location || "Unassigned") === locationFilter;
       return matchCat && matchStock && matchLoc;
-    }).sort((a, b) => {
-      const nameCompare = a.name.localeCompare(b.name);
-      if (nameCompare !== 0) return nameCompare;
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
-      return dateA - dateB;
     });
   }, [products, categoryFilter, stockFilter, locationFilter]);
-
-  const groupedProducts = useMemo(() => {
-    const map = new Map<string, Product & { batches: Product[] }>();
-    filteredProducts.forEach(p => {
-      const key = (p.sku || p.name).toLowerCase();
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.qty = (existing.qty ?? existing.stock ?? 0) + (p.qty ?? p.stock ?? 0);
-        existing.stock = existing.qty;
-        existing.batches.push(p);
-      } else {
-        map.set(key, { ...p, batches: [p] });
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [filteredProducts]);
 
   const remove = (id: string) => {
     if (!confirm("Delete this product?")) return;
@@ -805,7 +801,7 @@ function ProductsSection() {
 
       <div className="panel">
         <div className="panel-head">
-          <h3 className="panel-title">📋 Full Inventory Register</h3>
+          <h3 className="panel-title">≡ƒôï Full Inventory Register</h3>
           <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
             <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>
@@ -829,27 +825,27 @@ function ProductsSection() {
               </tr>
             </thead>
             <tbody>
-              {groupedProducts.map((p) => {
+              {filteredProducts.map((p) => {
                 const totalValue = (p.qty ?? p.stock ?? 0) * p.cost;
                 const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", {
                   day: "2-digit",
                   month: "short",
                   year: "numeric"
-                }) : "—";
+                }) : "ΓÇö";
                 return (
                   <tr key={p.id}>
                     <td>
                       {p.image ? (
                         <img src={p.image} className="product-image-cell" alt={p.name} />
                       ) : (
-                        <div className="product-image-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--biscuit-light)", fontSize: 20 }}>📦</div>
+                        <div className="product-image-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--biscuit-light)", fontSize: 20 }}>≡ƒôª</div>
                       )}
                     </td>
                     <td>
                       <div style={{ fontWeight: 600 }}>{p.name}</div>
                       <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
-                        <span>Brand: {p.brand || "—"}</span>
-                        {p.warranty && <span> · Warranty: {p.warranty}</span>}
+                        <span>Brand: {p.brand || "ΓÇö"}</span>
+                        {p.warranty && <span> ┬╖ Warranty: {p.warranty}</span>}
                       </div>
                     </td>
                     <td>{p.sku}</td>
@@ -871,32 +867,22 @@ function ProductsSection() {
                             whiteSpace: "nowrap"
                           }}
                         >
-                          {p.location === "Shop" ? "🏪 In Stock" : p.location === "Godown 1" ? "🏭 Godown 1" : p.location === "Godown 2" ? "🏭 Godown 2" : p.location === "Display" ? "📺 Display" : "🚫 Unassigned"}
+                          {p.location === "Shop" ? "≡ƒÅ¬ In Stock" : p.location === "Godown 1" ? "≡ƒÅ¡ Godown 1" : p.location === "Godown 2" ? "≡ƒÅ¡ Godown 2" : p.location === "Display" ? "≡ƒô║ Display" : "≡ƒÜ½ Unassigned"}
                         </span>
                       </div>
                     </td>
                     <td>{p.qty ?? p.stock}</td>
-                    <td>₹{p.cost.toLocaleString()}</td>
-                    <td>₹{p.incentive.toLocaleString()}</td>
-                    <td style={{ fontWeight: 600 }}>₹{totalValue.toLocaleString()}</td>
+                    <td>Γé╣{p.cost.toLocaleString()}</td>
+                    <td>Γé╣{p.incentive.toLocaleString()}</td>
+                    <td style={{ fontWeight: 600 }}>Γé╣{totalValue.toLocaleString()}</td>
                     <td>{p.supplier}</td>
                     <td>{formattedDate}</td>
                     <td><span style={{ fontWeight: 600 }}>{p.status}</span></td>
                     <td className="text-right">
-                      {p.batches.length > 0 ? (
-                        <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                          <button 
-                            className="btn btn-circle"
-                            onClick={() => setViewingBatches(p)}
-                            title="View Batch Details"
-                            style={{ background: "#fdf8f2", border: "1px solid #f5e3cc", color: "var(--accent)" }}
-                          >
-                            ℹ️
-                          </button>
-                        </div>
-                      ) : (
-                        "—"
-                      )}
+                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
+                        <button className="btn btn-circle" onClick={() => setEditing(p)} title="Edit Product">Γ£Å∩╕Å</button>
+                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(p.id)} title="Delete Product">≡ƒùæ∩╕Å</button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -911,111 +897,8 @@ function ProductsSection() {
         </div>
       </div>
 
-      {showAdd && (
-        <ProductForm
-          title="+ New Product"
-          onClose={() => setShowAdd(false)}
-          onSave={(d) => {
-            const nextId = uid("p");
-            setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] }));
-            setShowAdd(false);
-          }}
-        />
-      )}
+      {showAdd && <ProductForm title="Add Product" onClose={() => setShowAdd(false)} onSave={(d) => { const nextId = uid("p"); setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] })); setShowAdd(false); }} />}
       {editing && <ProductForm title="Edit Product" initial={editing} onClose={() => setEditing(null)} onSave={(d) => { setState((s) => ({ ...s, products: s.products.map((p) => p.id === editing.id ? { ...p, ...d } : p) })); setEditing(null); }} />}
-
-      {viewingBatches && (
-        <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-            {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white" }} />
-            ) : (
-              <div style={{ width: "120px", height: "120px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
-            )}
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "22px", color: "var(--text)" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", fontSize: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "16px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
-              </div>
-            </div>
-          </div>
-
-          <h4 style={{ borderBottom: "2px solid var(--biscuit)", paddingBottom: "10px", marginBottom: "16px", color: "var(--text)" }}>Batch History</h4>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date Added</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                  <th>Supplier</th>
-                  <th>Status</th>
-                  <th>Incentive</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingBatches.batches.map((b, idx) => (
-                  <tr key={b.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                      {idx === viewingBatches.batches.length - 1 && <div style={{ fontSize: "10px", color: "var(--accent)", marginTop: "2px" }}>Latest Batch</div>}
-                    </td>
-                    <td style={{ fontWeight: 600, fontSize: "15px" }}>{b.qty ?? b.stock}</td>
-                    <td>₹{b.cost.toLocaleString()}</td>
-                    <td>{b.supplier || "—"}</td>
-                    <td>
-                      <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
-                    <td className="text-right">
-                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button 
-                          className="btn btn-circle" 
-                          title="Edit Batch"
-                          onClick={() => {
-                            setEditing(b);
-                            setViewingBatches(null);
-                          }}
-                        >
-                          ✏️
-                        </button>
-                        <button 
-                          className="btn btn-circle btn-circle-danger" 
-                          title="Delete Batch"
-                          onClick={() => {
-                            if (confirm("Delete this batch?")) {
-                              setState((s: any) => ({ ...s, products: s.products.filter((p: any) => p.id !== b.id) }));
-                              setViewingBatches((prev: any) => {
-                                const remaining = prev.batches.filter((batch: any) => batch.id !== b.id);
-                                if (remaining.length === 0) return null;
-                                return { ...prev, batches: remaining };
-                              });
-                            }
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="modal-actions" style={{ marginTop: "24px" }}>
-            <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-          </div>
-        </Modal>
-      )}
     </>
   );
 }
@@ -1139,7 +1022,7 @@ function CustomSelect({
         style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--warm-white)" }}
       >
         <span style={{ color: value ? "inherit" : "#aaa" }}>{value || placeholder}</span>
-        <span style={{ fontSize: 10, opacity: 0.5 }}>▼</span>
+        <span style={{ fontSize: 10, opacity: 0.5 }}>Γû╝</span>
       </div>
       {open && (
         <div style={{ position: "absolute", top: "100%", left: 0, minWidth: "100%", width: options.length > 6 ? "220%" : "100%", background: "var(--warm-white)", border: "1px solid var(--border)", zIndex: 100, boxShadow: "var(--shadow-md)", borderRadius: 8, marginTop: 6, padding: 6 }}>
@@ -1171,7 +1054,7 @@ function CustomSelect({
                   onMouseLeave={(e) => { e.currentTarget.style.color = "#bbb"; e.currentTarget.style.background = "transparent"; }}
                   title="Delete Option"
                 >
-                  ✕
+                  Γ£ò
                 </button>
               </div>
             ))}
@@ -1492,7 +1375,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                   style={{ padding: "4px 8px", fontSize: 11, background: "#f6ede2", height: "36px", alignSelf: "center", border: "1px solid var(--border)" }}
                   title="Show suggestions list"
                 >
-                  📋 List
+                  ≡ƒôï List
                 </button>
               )}
             </div>
@@ -1545,7 +1428,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                   style={{ padding: "4px 8px", fontSize: 11, background: "#f6ede2", height: "36px", alignSelf: "center", border: "1px solid var(--border)" }}
                   title="Show suggestions list"
                 >
-                  📋 List
+                  ≡ƒôï List
                 </button>
               )}
             </div>
@@ -1653,7 +1536,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
               />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UNIT COST (₹)</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UNIT COST (Γé╣)</label>
               <input
                 type="number"
                 className="form-input"
@@ -1669,7 +1552,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
               />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>TOTAL COST (₹)</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>TOTAL COST (Γé╣)</label>
               <input
                 type="number"
                 className="form-input"
@@ -1748,7 +1631,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
 
       <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 10 }}>
         <button className="btn btn-primary" onClick={save} style={{ background: "linear-gradient(135deg, var(--accent), var(--light-brown))", borderColor: "var(--accent)", color: "#fff" }}>
-          💾 Save Entry
+          ≡ƒÆ╛ Save Entry
         </button>
         <button className="btn btn-ghost" onClick={onClose} style={{ background: "var(--biscuit-light)" }}>
           Cancel
@@ -1797,34 +1680,63 @@ export function CustomersSection() {
 
 export function OrdersTable() {
   const { orders, products } = useStore();
+  const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
+
   return (
-    <div className={orders.length > 0 ? "card-grid" : ""}>
-      {orders.map((o) => {
-        const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-        const brandStr = product?.brand ? ` (${product.brand})` : "";
-        return (
-          <div key={o.id} className="data-card">
-            <div className="data-card-header">
-              <div>
-                <h4 className="data-card-title">Order #{o.id}</h4>
-                <span className="data-card-subtitle">{o.date}</span>
+    <>
+      <div className={orders.length > 0 ? "card-grid" : ""}>
+        {orders.map((o) => {
+          const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+          const brandStr = product?.brand ? ` (${product.brand})` : "";
+          return (
+            <div key={o.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                    <span>{o.date}</span>
+                    {o.docType && (
+                      <span className="pill" style={{
+                        background: o.docType === "Bill" ? "#e0f2fe" : "#f3e8ff",
+                        color: o.docType === "Bill" ? "#0369a1" : "#6b21a8",
+                        border: o.docType === "Bill" ? "1px solid #bae6fd" : "1px solid #e9d5ff",
+                        fontSize: "10px",
+                        padding: "2px 6px",
+                        fontWeight: 600
+                      }}>
+                        {o.docType === "Bill" ? "≡ƒº╛ Bill" : "≡ƒôä Order Copy"}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div><Pill status={o.status} /></div>
               </div>
-              <div><Pill status={o.status} /></div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Document Type</span><span className="data-value"><span style={{ display: "inline-block", background: o.docType === "Order Copy" ? "#f3e8ff" : "#e0f2fe", color: o.docType === "Order Copy" ? "#6b21a8" : "#0369a1", border: o.docType === "Order Copy" ? "1px solid #e9d5ff" : "1px solid #bae6fd", padding: "2px 8px", borderRadius: "6px", fontWeight: 700, fontSize: "11px" }}>{o.docType === "Order Copy" ? "≡ƒôä Order Copy" : "≡ƒº╛ Bill / Invoice"}</span></span></div>
+                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "ΓÇö"}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>Γé╣{o.total.toLocaleString()}</span>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: (!o.docType || o.docType === "Bill") ? "#e0f2fe" : undefined, borderColor: "#bae6fd", color: (!o.docType || o.docType === "Bill") ? "#0369a1" : undefined, fontWeight: (!o.docType || o.docType === "Bill") ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>≡ƒº╛ View Bill</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: o.docType === "Order Copy" ? "#f3e8ff" : undefined, borderColor: "#e9d5ff", color: o.docType === "Order Copy" ? "#6b21a8" : undefined, fontWeight: o.docType === "Order Copy" ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>≡ƒôä View Order Copy</button>
+                </div>
+              </div>
             </div>
-            <div className="data-card-body">
-              <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-              <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
-              <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-            </div>
-            <div className="data-card-footer" style={{ justifyContent: "space-between" }}>
-              <span className="data-label" style={{ alignSelf: "center" }}>Total</span>
-              <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-            </div>
-          </div>
-        );
-      })}
-      {orders.length === 0 && <div className="empty">No orders yet.</div>}
-    </div>
+          );
+        })}
+        {orders.length === 0 && <div className="empty">No orders yet.</div>}
+      </div>
+      {activeDoc && (
+        <OrderDocumentModal
+          order={activeDoc.order}
+          type={activeDoc.type}
+          onClose={() => setActiveDoc(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -1881,7 +1793,7 @@ function OrderApprovalSection() {
               finalDiscount = newDiscountPct;
               finalTotal = Math.max(0, (basePrice * o.qty) - Math.round((newDiscountPct / 100) * (basePrice * o.qty)));
             }
-            return { ...o, status, discount: finalDiscount, total: finalTotal, sentToEmployee: true };
+            return { ...o, status, discount: finalDiscount, total: finalTotal };
           }
           return o;
         }),
@@ -1926,7 +1838,7 @@ function OrderApprovalSection() {
                       <span>By: {o.createdBy}</span>
                       {isIncentiveOrder ? (
                         <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
-                          ✨ Incentive
+                          Γ£¿ Incentive
                         </span>
                       ) : (
                         <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
@@ -1941,16 +1853,16 @@ function OrderApprovalSection() {
                         padding: "2px 6px",
                         fontWeight: 700
                       }}>
-                        {o.docType === "Order Copy" ? "📄 Order Copy" : "🧾 Bill / Invoice"}
+                        {o.docType === "Order Copy" ? "≡ƒôä Order Copy" : "≡ƒº╛ Bill / Invoice"}
                       </span>
                       {o.docType === "Order Copy" && o.bookingExpiryDate && (
                         o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? (
                           <span className="pill" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", fontSize: "10px", padding: "2px 6px", fontWeight: 800, animation: "pulse 1.5s infinite" }}>
-                            🚨 Booking Expired ({o.bookingExpiryDate})
+                            ≡ƒÜ¿ Booking Expired ({o.bookingExpiryDate})
                           </span>
                         ) : (
                           <span className="pill" style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0", fontSize: "10px", padding: "2px 6px", fontWeight: 600 }}>
-                            ⏳ Valid Until {o.bookingExpiryDate}
+                            ΓÅ│ Valid Until {o.bookingExpiryDate}
                           </span>
                         )
                       )}
@@ -1972,7 +1884,7 @@ function OrderApprovalSection() {
                         fontWeight: 700,
                         fontSize: "11px"
                       }}>
-                        {o.docType === "Order Copy" ? "📄 Order Copy" : "🧾 Bill / Invoice"}
+                        {o.docType === "Order Copy" ? "≡ƒôä Order Copy" : "≡ƒº╛ Bill / Invoice"}
                       </span>
                     </span>
                   </div>
@@ -1980,17 +1892,17 @@ function OrderApprovalSection() {
                     <div className="data-row">
                       <span className="data-label">Booking Expiry</span>
                       <span className="data-value" style={{ color: o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? "#dc2626" : "#166534", fontWeight: 700 }}>
-                        {o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? `🚨 Expired (${o.bookingExpiryDate})` : `⏳ Valid until ${o.bookingExpiryDate}`}
+                        {o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? `≡ƒÜ¿ Expired (${o.bookingExpiryDate})` : `ΓÅ│ Valid until ${o.bookingExpiryDate}`}
                       </span>
                     </div>
                   )}
                   <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
-                  <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{Math.round(orderBasePrice / o.qty).toLocaleString()}</span></div>
+                  <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">Γé╣{Math.round(orderBasePrice / o.qty).toLocaleString()}</span></div>
                   {o.customerBargain && (
                     <div className="data-row"><span className="data-label">Bargaining</span><span className="data-value" style={{ color: "var(--danger)", fontWeight: 600, textAlign: "right" }}>{o.customerBargain}</span></div>
                   )}
-                  <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+                  <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "ΓÇö"}</span></div>
                 </div>
                 <div className="data-card-footer" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {o.status === "Pending" ? (
@@ -2019,15 +1931,15 @@ function OrderApprovalSection() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "6px" }}>
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>
-                        ₹{calculatedTotal.toLocaleString()}
+                        Γé╣{calculatedTotal.toLocaleString()}
                       </span>
                       {o.status === "Pending" && currentDiscount > 0 && (
                         <span style={{ fontSize: "10px", color: "var(--brown)" }}>Includes discount</span>
                       )}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: (!o.docType || o.docType === "Bill") ? "#e0f2fe" : undefined, borderColor: "#bae6fd", color: (!o.docType || o.docType === "Bill") ? "#0369a1" : undefined, fontWeight: (!o.docType || o.docType === "Bill") ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 View Bill</button>
-                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: o.docType === "Order Copy" ? "#f3e8ff" : undefined, borderColor: "#e9d5ff", color: o.docType === "Order Copy" ? "#6b21a8" : undefined, fontWeight: o.docType === "Order Copy" ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 View Order Copy</button>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: (!o.docType || o.docType === "Bill") ? "#e0f2fe" : undefined, borderColor: "#bae6fd", color: (!o.docType || o.docType === "Bill") ? "#0369a1" : undefined, fontWeight: (!o.docType || o.docType === "Bill") ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>≡ƒº╛ View Bill</button>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: o.docType === "Order Copy" ? "#f3e8ff" : undefined, borderColor: "#e9d5ff", color: o.docType === "Order Copy" ? "#6b21a8" : undefined, fontWeight: o.docType === "Order Copy" ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>≡ƒôä View Order Copy</button>
                       {o.status === "Pending" ? (
                         <div className="actions-row">
                           <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved", editDiscounts[o.id])}>Approve</button>
@@ -2144,30 +2056,30 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
 
   const parseNotification = (n: { from: string; message: string }) => {
     let title = "System Update";
-    let icon = "🔔";
+    let icon = "≡ƒöö";
     let color = "var(--info)";
 
     const msg = n.message.toLowerCase();
 
     if (msg.includes("approved")) {
       title = "Order Approved";
-      icon = "✅";
+      icon = "Γ£à";
       color = "var(--success)";
     } else if (msg.includes("delivered")) {
       title = "Order Delivered";
-      icon = "🚚";
+      icon = "≡ƒÜÜ";
       color = "#3b82f6";
     } else if (msg.includes("pending") || msg.includes("created")) {
       title = "New Order Pending";
-      icon = "⏳";
+      icon = "ΓÅ│";
       color = "var(--accent)";
     } else if (msg.includes("rejected")) {
       title = "Order Rejected";
-      icon = "❌";
+      icon = "Γ¥î";
       color = "var(--danger)";
     } else if (msg.includes("task")) {
       title = "Task Assignment";
-      icon = "📝";
+      icon = "≡ƒô¥";
       color = "var(--accent)";
     }
 
@@ -2188,7 +2100,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                 style={{ color: "var(--success)", borderColor: "var(--success)" }}
                 onClick={markAllAsRead}
               >
-                ✓ Mark all as read
+                Γ£ô Mark all as read
               </button>
             )}
             <button
@@ -2263,8 +2175,17 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                       {icon}
                     </div>
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--brown-dark)" }}>{title}</span>
+                        {(n.message.toLowerCase().includes("order copy") || order?.docType === "Order Copy") ? (
+                          <span style={{ background: "#f3e8ff", color: "#6b21a8", border: "1px solid #e9d5ff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                            ≡ƒôä Order Copy
+                          </span>
+                        ) : (n.message.toLowerCase().includes("bill") || order?.docType === "Bill") ? (
+                          <span style={{ background: "#e0f2fe", color: "#0369a1", border: "1px solid #bae6fd", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                            ≡ƒº╛ Bill / Invoice
+                          </span>
+                        ) : null}
                         {!n.read && (
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <span style={{
@@ -2336,10 +2257,10 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                                     }));
                                   }}
                                 >
-                                  ✉️ Send to Employee
+                                  Γ£ë∩╕Å Send to Employee
                                 </button>
                               ) : (
-                                <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>✓ Sent to Employee Updates</span>
+                                <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Γ£ô Sent to Employee Updates</span>
                               )}
                             </div>
                           )}
@@ -2358,8 +2279,8 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                       )}
 
                       <div style={{ display: "flex", gap: 12, marginTop: 6, fontSize: 11, color: "var(--light-brown)" }}>
-                        <span>👤 {n.from}</span>
-                        <span>📅 {n.date}</span>
+                        <span>≡ƒæñ {n.from}</span>
+                        <span>≡ƒôà {n.date}</span>
                       </div>
                     </div>
                   </div>
@@ -2382,7 +2303,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                       }}
                       title="Delete Notification"
                     >
-                      🗑️
+                      ≡ƒùæ∩╕Å
                     </button>
                   </div>
 
@@ -2399,7 +2320,7 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                 border: "1px solid var(--border)",
                 borderStyle: "dashed"
               }}>
-                <span style={{ fontSize: 32 }}>🔔</span>
+                <span style={{ fontSize: 32 }}>≡ƒöö</span>
                 <p style={{ marginTop: 8, fontSize: 14, fontWeight: 500 }}>All caught up! No new notifications.</p>
               </div>
             )}
@@ -2422,19 +2343,19 @@ export function ProfileSection() {
       badgeClass: "badge-superadmin",
       label: "Super Admin",
       desc: "Full system administration and control",
-      icon: "👑"
+      icon: "≡ƒææ"
     },
     manager: {
       badgeClass: "badge-manager",
       label: "Store Manager",
       desc: "Manage inventory, users, and orders",
-      icon: "💼"
+      icon: "≡ƒÆ╝"
     },
     employee: {
       badgeClass: "badge-employee",
       label: "Employee",
       desc: "Handle daily tasks, operations, and sales",
-      icon: "👥"
+      icon: "≡ƒæÑ"
     }
   };
 
@@ -2465,27 +2386,27 @@ export function ProfileSection() {
 
         {/* Profile Details Body */}
         <div className="profile-body-content">
-          <h4 className="profile-section-title">📌 Personal Specifications</h4>
+          <h4 className="profile-section-title">≡ƒôî Personal Specifications</h4>
 
           <div className="profile-info-grid">
             <div className="profile-info-card">
-              <div className="profile-info-icon">📧</div>
+              <div className="profile-info-icon">≡ƒôº</div>
               <div className="profile-info-details">
                 <div className="profile-info-label">Email Address</div>
-                <div className="profile-info-value">{currentUser.email ?? "—"}</div>
+                <div className="profile-info-value">{currentUser.email ?? "ΓÇö"}</div>
               </div>
             </div>
 
             <div className="profile-info-card">
-              <div className="profile-info-icon">📞</div>
+              <div className="profile-info-icon">≡ƒô₧</div>
               <div className="profile-info-details">
                 <div className="profile-info-label">Phone Number</div>
-                <div className="profile-info-value">{currentUser.phone ?? "—"}</div>
+                <div className="profile-info-value">{currentUser.phone ?? "ΓÇö"}</div>
               </div>
             </div>
 
             <div className="profile-info-card">
-              <div className="profile-info-icon">👤</div>
+              <div className="profile-info-icon">≡ƒæñ</div>
               <div className="profile-info-details">
                 <div className="profile-info-label">Username</div>
                 <div className="profile-info-value">{currentUser.username}</div>
@@ -2493,7 +2414,7 @@ export function ProfileSection() {
             </div>
 
             <div className="profile-info-card">
-              <div className="profile-info-icon">🆔</div>
+              <div className="profile-info-icon">≡ƒåö</div>
               <div className="profile-info-details">
                 <div className="profile-info-label">User / Employee ID</div>
                 <div className="profile-info-value">{currentUser.employeeId ?? currentUser.id}</div>
@@ -2502,19 +2423,19 @@ export function ProfileSection() {
 
             {currentUser.password && (
               <div className="profile-info-card">
-                <div className="profile-info-icon">🔑</div>
+                <div className="profile-info-icon">≡ƒöæ</div>
                 <div className="profile-info-details">
                   <div className="profile-info-label">Login Password</div>
                   <div className="profile-info-value" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                     <span style={{ fontFamily: showPassword ? "monospace" : "inherit", letterSpacing: showPassword ? "0.5px" : "normal", fontWeight: 600 }}>
-                      {showPassword ? currentUser.password : "••••••••"}
+                      {showPassword ? currentUser.password : "ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó"}
                     </span>
                     <button
                       onClick={() => setShowPassword(!showPassword)}
                       style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, padding: 0, opacity: 0.8, display: "inline-flex", alignSelf: "center" }}
                       title={showPassword ? "Hide Password" : "Show Password"}
                     >
-                      {showPassword ? "👁️" : "🙈"}
+                      {showPassword ? "≡ƒæü∩╕Å" : "≡ƒÖê"}
                     </button>
                   </div>
                 </div>
@@ -2523,7 +2444,7 @@ export function ProfileSection() {
 
             {currentUser.jobTitle && (
               <div className="profile-info-card">
-                <div className="profile-info-icon">💼</div>
+                <div className="profile-info-icon">≡ƒÆ╝</div>
                 <div className="profile-info-details">
                   <div className="profile-info-label">Job Designation</div>
                   <div className="profile-info-value">{currentUser.jobTitle}</div>
@@ -2533,7 +2454,7 @@ export function ProfileSection() {
 
             {currentUser.address && (
               <div className="profile-info-card">
-                <div className="profile-info-icon">📍</div>
+                <div className="profile-info-icon">≡ƒôì</div>
                 <div className="profile-info-details">
                   <div className="profile-info-label">Residential Address</div>
                   <div className="profile-info-value">{currentUser.address}</div>
@@ -2628,7 +2549,7 @@ export function UpcomingFollowUps() {
     <div className="panel" style={{ padding: "24px", background: "#fffdf7", borderColor: "#f2e6d0" }}>
       <div className="panel-head" style={{ marginBottom: upcoming.length ? "16px" : "0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "20px", color: "#d97706" }}>🔔</span>
+          <span style={{ fontSize: "20px", color: "#d97706" }}>≡ƒöö</span>
           <h3 className="panel-title" style={{ fontSize: "22px", color: "#5c4115", fontWeight: 700 }}>Upcoming Follow-ups</h3>
         </div>
         {currentUser?.role !== "superadmin" && (
@@ -2769,65 +2690,65 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
   return (
     <>
       <h2 className="page-title">{isManager ? "Manage Employees" : "Add Employee / manager"}</h2>
-      <p className="page-sub">{isManager ? "Manage your team — add, edit, or remove employees." : "Manage your team — add, edit, or remove managers and employees."}</p>
+      <p className="page-sub">{isManager ? "Manage your team ΓÇö add, edit, or remove employees." : "Manage your team ΓÇö add, edit, or remove managers and employees."}</p>
 
-      {/* ── Tab Buttons ── */}
+      {/* ΓöÇΓöÇ Tab Buttons ΓöÇΓöÇ */}
       {!isManager && (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "employee" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "employee" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
-            <span>👤 Employees</span>
+            <span>≡ƒæñ Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "employee" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "employee" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "employee" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{employees.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "manager" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "manager" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
-            <span>👔 Managers</span>
+            <span>≡ƒæö Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "manager" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "manager" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "manager" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{managers.length}</span>
           </button>
         </div>
       )}
 
-      {/* ── Employee Tab Content ── */}
+      {/* ΓöÇΓöÇ Employee Tab Content ΓöÇΓöÇ */}
       {activeTab === "employee" && (
         <div style={{
           background: "#fffdf9",
@@ -2836,7 +2757,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#78350f", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>👤 All Employees</span>
+              <span>≡ƒæñ All Employees</span>
             </h3>
             {!readOnly && (
               <button onClick={() => setShowAddEmployee(true)} style={{
@@ -2860,7 +2781,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
                       width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #f5e3cc",
                       background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
                       alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
-                    }}>✏️</button>
+                    }}>Γ£Å∩╕Å</button>
                     <button onClick={() => removeUser(e.id, "employee")} title="Delete" style={{
                       width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #fee2e2",
                       background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
@@ -2879,7 +2800,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
         </div>
       )}
 
-      {/* ── Manager Tab Content ── */}
+      {/* ΓöÇΓöÇ Manager Tab Content ΓöÇΓöÇ */}
       {activeTab === "manager" && (
         <div style={{
           background: "#fffdf9",
@@ -2888,7 +2809,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#78350f", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>👔 All Managers</span>
+              <span>≡ƒæö All Managers</span>
             </h3>
             {!readOnly && (
               <button onClick={() => setShowAddManager(true)} style={{
@@ -2911,7 +2832,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
                       width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #f5e3cc",
                       background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
                       alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
-                    }}>✏️</button>
+                    }}>Γ£Å∩╕Å</button>
                     <button onClick={() => removeUser(m.id, "manager")} title="Delete" style={{
                       width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #fee2e2",
                       background: "#fef2f2", color: "#ef4444", cursor: "pointer", display: "flex",
@@ -3050,70 +2971,70 @@ export function TaskAssignmentSection() {
         <button className="btn btn-primary btn-sm" onClick={() => setShowAssignModal(true)}>+ Assign Task</button>
       </div>
 
-      {/* ── Tab Buttons (Show only if Admin) ── */}
+      {/* ΓöÇΓöÇ Tab Buttons (Show only if Admin) ΓöÇΓöÇ */}
       {isSuperAdmin ? (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "employee" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "employee" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "employee" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "employee" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
-            <span>👤 Employees</span>
+            <span>≡ƒæñ Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "employee" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "employee" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "employee" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "employee" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{employeesWithTasks.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "manager" ? "#ffffff" : "#faf8f5",
+            padding: "6px 16px", border: "1px solid", cursor: "pointer", fontWeight: 700, fontSize: "14px",
+            borderRadius: "20px",
+            borderColor: activeTab === "manager" ? "#fcd34d" : "#e2dcd5",
+            background: activeTab === "manager" ? "#fef3c7" : "#faf8f5",
             color: activeTab === "manager" ? "#92400e" : "#a18265",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
-            gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            gap: "6px"
           }}>
-            <span>👔 Managers</span>
+            <span>≡ƒæö Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "20px",
+              height: "20px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "manager" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "manager" ? "#92400e" : "#7c6249",
+              fontSize: "11px",
+              background: activeTab === "manager" ? "#92400e" : "#e2dcd5",
+              color: activeTab === "manager" ? "#fff" : "#7c6249",
               fontWeight: 800,
             }}>{managersWithTasks.length}</span>
           </button>
         </div>
       ) : null}
 
-      {/* ── Employee List (Active Tab = Employee or if user is Manager) ── */}
+      {/* ΓöÇΓöÇ Employee List (Active Tab = Employee or if user is Manager) ΓöÇΓöÇ */}
       {(activeTab === "employee" || !isSuperAdmin) && (
         <div style={{
           background: "#fffdf9",
           borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6",
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
-          <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👤 Employees Tasks</h3>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>≡ƒæñ Employees Tasks</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
             {employeesWithTasks.map(e => (
               <UnifiedEmployeeCard
@@ -3131,7 +3052,7 @@ export function TaskAssignmentSection() {
                       width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #f5e3cc",
                       background: "#fdf8f2", color: "#b45309", cursor: "pointer", display: "flex",
                       alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
-                    }}>✏️</button>
+                    }}>Γ£Å∩╕Å</button>
                     <button onClick={() => {
                       const userTasks = tasks.filter(t => t.assignedTo === e.id);
                       if (userTasks.length > 0) {
@@ -3149,7 +3070,7 @@ export function TaskAssignmentSection() {
               >
                 {/* Tasks Section */}
                 <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
-                  <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
+                  <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>≡ƒôï Tasks:</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                     {tasks.filter(t => t.assignedTo === e.id).map(t => {
                       const styles = t.status === "Completed"
@@ -3210,7 +3131,7 @@ export function TaskAssignmentSection() {
                               color: "#14532d"
                             }}>
                               <div style={{ fontWeight: 700, marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
-                                <span>📄</span> Proof of Completion:
+                                <span>≡ƒôä</span> Proof of Completion:
                               </div>
                               {t.proofNote && <div style={{ fontStyle: "italic", whiteSpace: "pre-wrap" }}>"{t.proofNote}"</div>}
                               {t.proofUrl && (
@@ -3228,7 +3149,7 @@ export function TaskAssignmentSection() {
                                       fontWeight: 600
                                     }}
                                   >
-                                    📸 View Attachment/Photo
+                                    ≡ƒô╕ View Attachment/Photo
                                   </a>
                                 </div>
                               )}
@@ -3248,14 +3169,14 @@ export function TaskAssignmentSection() {
         </div>
       )}
 
-      {/* ── Manager List (Only if Admin & Tab = Manager) ── */}
+      {/* ΓöÇΓöÇ Manager List (Only if Admin & Tab = Manager) ΓöÇΓöÇ */}
       {isSuperAdmin && activeTab === "manager" && (
         <div style={{
           background: "#fffdf9",
           borderRadius: "16px", padding: "20px", border: "1px solid #f0e6d6",
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
-          <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👔 Managers Tasks</h3>
+          <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>≡ƒæö Managers Tasks</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "12px" }}>
             {managersWithTasks.map(m => (
               <div key={m.id} style={{
@@ -3274,18 +3195,18 @@ export function TaskAssignmentSection() {
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                       <UserIcon size={12} style={{ color: "#c29153" }} />
                       <span style={{ color: "#9c8069", width: "65px" }}>Username:</span>
-                      <strong style={{ color: "#543d2b" }}>{m.username || "—"}</strong>
+                      <strong style={{ color: "#543d2b" }}>{m.username || "ΓÇö"}</strong>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                       <Phone size={12} style={{ color: "#c29153" }} />
                       <span style={{ color: "#9c8069", width: "65px" }}>Phone:</span>
-                      <strong style={{ color: "#543d2b" }}>{m.phone || "—"}</strong>
+                      <strong style={{ color: "#543d2b" }}>{m.phone || "ΓÇö"}</strong>
                     </div>
                   </div>
 
                   {/* Tasks Section */}
                   <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
-                    <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
+                    <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>≡ƒôï Tasks:</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       {tasks.filter(t => t.assignedTo === m.id).map(t => (
                         <div key={t.id} style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#fdfbfa", border: "1px solid #efe8df", padding: "8px 10px", borderRadius: "8px", fontSize: "11px" }}>
@@ -3300,7 +3221,7 @@ export function TaskAssignmentSection() {
                                 color: t.status === "Completed" ? "#065f46" : t.status === "In Progress" ? "#1e40af" : "#991b1b",
                                 fontWeight: 700
                               }}>{t.status}</span>
-                              <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>✕</button>
+                              <button onClick={() => handleDeleteTask(t.id)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#ef4444", padding: 0, fontWeight: 700 }}>Γ£ò</button>
                             </div>
                           </div>
 
@@ -3315,7 +3236,7 @@ export function TaskAssignmentSection() {
                               fontSize: "10px",
                               color: "#14532d"
                             }}>
-                              <div style={{ fontWeight: 700, marginBottom: "2px" }}>📄 Proof of Completion:</div>
+                              <div style={{ fontWeight: 700, marginBottom: "2px" }}>≡ƒôä Proof of Completion:</div>
                               {t.proofNote && <div style={{ fontStyle: "italic", whiteSpace: "pre-wrap" }}>"{t.proofNote}"</div>}
                               {t.proofUrl && (
                                 <div style={{ marginTop: "4px" }}>
@@ -3329,7 +3250,7 @@ export function TaskAssignmentSection() {
                                       fontWeight: 600
                                     }}
                                   >
-                                    📸 View Attachment
+                                    ≡ƒô╕ View Attachment
                                   </a>
                                 </div>
                               )}
@@ -3349,7 +3270,7 @@ export function TaskAssignmentSection() {
         </div>
       )}
 
-      {/* ── Assign Task Modal ── */}
+      {/* ΓöÇΓöÇ Assign Task Modal ΓöÇΓöÇ */}
       {showAssignModal && (
         <Modal title="Assign Task" onClose={() => setShowAssignModal(false)}>
           <form onSubmit={handleAssignTaskSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -3464,12 +3385,12 @@ export function LeadPipelineOverview({ activeFilter, onFilterChange }: { activeF
   });
 
   const statuses = [
-    { key: "New", label: "New Leads", color: "#3b82f6", bg: "#eff6ff", icon: "🆕" },
-    { key: "Cold", label: "Cold Leads", color: "#6b7280", bg: "#f3f4f6", icon: "❄️" },
-    { key: "Warm", label: "Warm Leads", color: "#f59e0b", bg: "#fef3c7", icon: "🌤️" },
-    { key: "Hot", label: "Hot Leads", color: "#ef4444", bg: "#fee2e2", icon: "🔥" },
-    { key: "Enrolled", label: "Enrolled", color: "#10b981", bg: "#d1fae5", icon: "🎓" },
-    { key: "Cancelled", label: "Cancelled", color: "#ec4899", bg: "#fce7f3", icon: "❌" },
+    { key: "New", label: "New Leads", color: "#3b82f6", bg: "#eff6ff", icon: "≡ƒåò" },
+    { key: "Cold", label: "Cold Leads", color: "#6b7280", bg: "#f3f4f6", icon: "Γ¥ä∩╕Å" },
+    { key: "Warm", label: "Warm Leads", color: "#f59e0b", bg: "#fef3c7", icon: "≡ƒîñ∩╕Å" },
+    { key: "Hot", label: "Hot Leads", color: "#ef4444", bg: "#fee2e2", icon: "≡ƒöÑ" },
+    { key: "Enrolled", label: "Enrolled", color: "#10b981", bg: "#d1fae5", icon: "≡ƒÄô" },
+    { key: "Cancelled", label: "Cancelled", color: "#ec4899", bg: "#fce7f3", icon: "Γ¥î" },
   ];
 
   return (
@@ -3595,7 +3516,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
           display: "flex", alignItems: "center", justifyContent: "center", color: "#d97706", fontSize: "18px",
           marginTop: "2px"
         }}>
-          👤
+          ≡ƒæñ
         </div>
 
         <div style={{ flex: 1 }}>
@@ -3607,21 +3528,21 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
               background: "#f3f4f6", color: "#4b5563", fontSize: "12px", fontWeight: 600,
               padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #e5e7eb"
             }}>
-              👤 {lead.status}
+              ≡ƒæñ {lead.status}
             </span>
             {lead.product && (
               <span style={{
                 background: "#fff7ed", color: "#ea580c", fontSize: "12px", fontWeight: 600,
                 padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #ffedd5"
               }}>
-                📋 {lead.product}{lead.brand ? ` - ${lead.brand}` : ""}
+                ≡ƒôï {lead.product}{lead.brand ? ` - ${lead.brand}` : ""}
               </span>
             )}
             <span style={{
               background: "#f5f3ff", color: "#6d28d9", fontSize: "12px", fontWeight: 600,
               padding: "4px 12px", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "6px", border: "1px solid #ede9fe"
             }}>
-              ✍️ Added By: {lead.createdBy || "System"}
+              Γ£ì∩╕Å Added By: {lead.createdBy || "System"}
               {(() => {
                 const creator = users.find(u => u.username === lead.createdBy || u.name === lead.createdBy);
                 return creator?.role ? ` (${creator.role.charAt(0).toUpperCase() + creator.role.slice(1)})` : "";
@@ -3650,7 +3571,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
                 opacity: isSuperAdmin && !isActive ? 0.6 : 1,
               }}
             >
-              {opt.key === "Cancelled" ? <span>🚫</span> : <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: isActive ? "#ffffff" : opt.dot }} />}
+              {opt.key === "Cancelled" ? <span>≡ƒÜ½</span> : <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", backgroundColor: isActive ? "#ffffff" : opt.dot }} />}
               {opt.label}
             </button>
           );
@@ -3666,7 +3587,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
                 fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fee2e2", transition: "all 0.2s ease"
               }}
             >
-              🗑 Remove
+              ≡ƒùæ Remove
             </button>
           </>
         )}
@@ -3679,7 +3600,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
               fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: "#fafaf9", color: "#5c4115", border: "1px solid #e7e5e4", transition: "all 0.2s ease", marginLeft: "auto"
             }}
           >
-            ✏ Edit Details
+            Γ£Å Edit Details
           </button>
         )}
       </div>
@@ -3689,15 +3610,15 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
         {/* Left Column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "16px" }}>✉</span>
+            <span style={{ fontSize: "16px" }}>Γ£ë</span>
             <span>{lead.email || "--"}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "16px" }}>📖</span>
+            <span style={{ fontSize: "16px" }}>≡ƒôû</span>
             <span>{lead.gender ? `Gender: ${lead.gender}` : "NA"}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "16px" }}>📍</span>
+            <span style={{ fontSize: "16px" }}>≡ƒôì</span>
             <span style={{ textTransform: "uppercase" }}>{lead.city || "UNKNOWN"}</span>
           </div>
         </div>
@@ -3705,11 +3626,11 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
         {/* Right Column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "16px" }}>📞</span>
+            <span style={{ fontSize: "16px" }}>≡ƒô₧</span>
             <span>{lead.phone}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "16px" }}>📅</span>
+            <span style={{ fontSize: "16px" }}>≡ƒôà</span>
             <span>{new Date(lead.date).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
           </div>
         </div>
@@ -3748,7 +3669,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
-            <span>📅</span>
+            <span>≡ƒôà</span>
             <span style={{ fontSize: "12px", fontWeight: 800, color: "#8a6632", textTransform: "uppercase", letterSpacing: "0.5px" }}>Next Follow-up Date</span>
           </div>
           <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
@@ -3793,7 +3714,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
               alignItems: "center"
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 600, color: "#854d0e" }}>
-                <span>🔔</span>
+                <span>≡ƒöö</span>
                 <span>Reminder set for: {formatReminderDate(lead.followUpDate)}</span>
               </div>
               {!isSuperAdmin && (
@@ -3809,7 +3730,7 @@ export function LeadCard({ lead, onDelete, onEdit }: { lead: Lead; onDelete: (id
                   }}
                   title="Remove Reminder"
                 >
-                  🗑
+                  ≡ƒùæ
                 </button>
               )}
             </div>
@@ -4115,7 +4036,7 @@ export function LeadsSection() {
 
             {/* Search Box */}
             <div style={{ position: "relative", display: "flex", alignItems: "center", minWidth: "260px" }}>
-              <span style={{ position: "absolute", left: "10px", color: "var(--text-muted)", fontSize: "14px" }}>🔍</span>
+              <span style={{ position: "absolute", left: "10px", color: "var(--text-muted)", fontSize: "14px" }}>≡ƒöì</span>
               <input
                 className="form-input"
                 style={{ paddingLeft: "32px", margin: 0, height: "36px", fontSize: "13px" }}
@@ -4136,7 +4057,7 @@ export function LeadsSection() {
                     color: "var(--text-muted)",
                   }}
                 >
-                  ✕
+                  Γ£ò
                 </button>
               )}
             </div>
@@ -4329,27 +4250,10 @@ export function SuperAdminIncentiveSection() {
   const { products, setState, users } = useStore();
   const [editing, setEditing] = useState<Product | null>(null);
   const [incentiveMode, setIncentiveMode] = useState<boolean>(false);
-  const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
 
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-  const groupedOldProducts = useMemo(() => {
-    const oldBatches = products.filter(p => p.date && new Date(p.date) < ninetyDaysAgo);
-    const map = new Map<string, Product & { batches: Product[] }>();
-    oldBatches.forEach(p => {
-      const key = (p.sku || p.name).toLowerCase();
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.qty = (existing.qty ?? existing.stock ?? 0) + (p.qty ?? p.stock ?? 0);
-        existing.stock = existing.qty;
-        existing.batches.push(p);
-      } else {
-        map.set(key, { ...p, batches: [p] });
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [products]);
+  const oldProducts = products.filter(p => (p.date && new Date(p.date) < ninetyDaysAgo) || (p.incentive && p.incentive > 0));
 
   const remove = (id: string) => {
     if (!confirm("Delete this product?")) return;
@@ -4371,13 +4275,13 @@ export function SuperAdminIncentiveSection() {
           }}
           style={{ padding: "8px 16px", borderRadius: "8px", fontWeight: 600 }}
         >
-          ➕ Add Incentive Product
+          Γ₧ò Add Incentive Product
         </button>
       </div>
 
       <div className="panel" style={{ marginTop: 24 }}>
         <div className="panel-head">
-          <h3 className="panel-title">💰 Products Eligible for Incentive (&gt; 90 Days)</h3>
+          <h3 className="panel-title">≡ƒÆ░ Products Eligible for Incentive (&gt; 90 Days)</h3>
         </div>
         <div className="table-wrap">
           <table className="tbl">
@@ -4387,13 +4291,12 @@ export function SuperAdminIncentiveSection() {
                 <th>PRODUCT</th>
                 <th>SKU</th>
                 <th>LOCATION</th>
-                <th>QTY</th>
-                <th style={{ whiteSpace: "nowrap" }}>INCENTIVE / UNIT</th>
+                <th className="text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {groupedOldProducts.map((p) => {
-                const hasUnseen = p.batches.some(b => !b.incentiveSeen);
+              {oldProducts.map((p) => {
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "ΓÇö";
                 return (
                   <tr key={p.id}>
                     <td>
@@ -4403,55 +4306,35 @@ export function SuperAdminIncentiveSection() {
                         </div>
                       ) : (
                         <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--biscuit)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
-                          📦
+                          ≡ƒôª
                         </div>
                       )}
                     </td>
                     <td>
-                      <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
-                        {p.name}
-                        {hasUnseen && (
-                          <span style={{ background: "#ef4444", color: "white", fontSize: "9px", padding: "2px 6px", borderRadius: "10px", fontWeight: 800, animation: "pulse 2s infinite" }}>NEW</span>
-                        )}
-                      </div>
+                      <div style={{ fontWeight: 600 }}>{p.name}</div>
                       <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
-                        <span>Brand: {p.brand || "—"}</span>
+                        <span>Brand: {p.brand || "ΓÇö"}</span>
+                        {p.warranty && <span> ┬╖ Warranty: {p.warranty}</span>}
                       </div>
+                      {p.assignedEmployeeId && (
+                        <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                          ≡ƒæñ Assigned: {p.assignedEmployeeId === "all" ? "All Employees" : (users.find(u => u.id === p.assignedEmployeeId)?.name || p.assignedEmployeeId)}
+                        </div>
+                      )}
                     </td>
                     <td>{p.sku}</td>
                     <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span>{p.qty ?? p.stock}</span>
-                        {p.batches.length > 0 && (
-                          <div
-                            style={{ cursor: "pointer", position: "relative" }}
-                            onClick={() => {
-                              setViewingBatches(p);
-                              const unseenBatches = p.batches.filter(b => !b.incentiveSeen);
-                              if (unseenBatches.length > 0) {
-                                setState((s: any) => ({
-                                  ...s,
-                                  products: s.products.map((prod: any) =>
-                                    unseenBatches.some(ub => ub.id === prod.id)
-                                      ? { ...prod, incentiveSeen: true }
-                                      : prod
-                                  )
-                                }));
-                              }
-                            }}
-                            title="Click to view full batch details"
-                          >
-                            <span style={{ fontSize: "16px", color: "var(--accent)" }}>ℹ️</span>
-                            {hasUnseen && <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
-                          </div>
-                        )}
+                    <td className="text-right">
+                      <div className="actions-row" style={{ justifyContent: "flex-end", gap: "8px" }}>
+                        <button className="btn btn-sm" style={{ background: "var(--biscuit-light)", color: "var(--accent)", border: "1px solid var(--border)", fontWeight: 600, borderRadius: "6px" }} onClick={() => { setEditing(p); setIncentiveMode(true); }} title="Add/Edit Incentive">≡ƒÆ░ Add Incentive</button>
+                        <button className="btn btn-circle" onClick={() => setEditing(p)} title="Edit Product">Γ£Å∩╕Å</button>
+                        <button className="btn btn-circle btn-circle-danger" onClick={() => remove(p.id)} title="Delete Product">≡ƒùæ∩╕Å</button>
                       </div>
                     </td>
-                    <td style={{ fontWeight: 600, color: "var(--green)" }}>₹{p.incentive.toLocaleString()}</td>
                   </tr>
                 );
               })}
+              {oldProducts.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center", padding: 24, color: "var(--text-muted)" }}>No products found.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -4469,68 +4352,6 @@ export function SuperAdminIncentiveSection() {
             setIncentiveMode(false);
           }}
         />
-      )}
-
-      {viewingBatches && (
-        <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
-            {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white" }} />
-            ) : (
-              <div style={{ width: "120px", height: "120px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
-            )}
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "22px", color: "var(--text)" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", fontSize: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "16px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
-              </div>
-            </div>
-          </div>
-
-          <h4 style={{ borderBottom: "2px solid var(--biscuit)", paddingBottom: "10px", marginBottom: "16px", color: "var(--text)" }}>Batch History</h4>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date Added</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                  <th>Supplier</th>
-                  <th>Status</th>
-                  <th>Incentive</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingBatches.batches.map((b, idx) => (
-                  <tr key={b.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                      {idx === viewingBatches.batches.length - 1 && <div style={{ fontSize: "10px", color: "var(--accent)", marginTop: "2px" }}>Latest Batch</div>}
-                    </td>
-                    <td style={{ fontWeight: 600, fontSize: "15px" }}>{b.qty ?? b.stock}</td>
-                    <td>₹{b.cost.toLocaleString()}</td>
-                    <td>{b.supplier || "—"}</td>
-                    <td>
-                      <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="modal-actions" style={{ marginTop: "24px" }}>
-            <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-          </div>
-        </Modal>
       )}
     </>
   );
@@ -4571,7 +4392,7 @@ export function SuperAdminGodownSection() {
                     </div>
                   ) : (
                     <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--biscuit)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
-                      📦
+                      ≡ƒôª
                     </div>
                   )}
                 </td>
@@ -4579,8 +4400,8 @@ export function SuperAdminGodownSection() {
                 <td>{p.sku}</td>
                 <td>{p.category}</td>
                 <td style={{ fontWeight: 600, color: qty < 20 ? "var(--danger)" : "inherit" }}>{qty}</td>
-                <td>₹{p.cost.toLocaleString()}</td>
-                <td style={{ fontWeight: 600 }}>₹{totalValue.toLocaleString()}</td>
+                <td>Γé╣{p.cost.toLocaleString()}</td>
+                <td style={{ fontWeight: 600 }}>Γé╣{totalValue.toLocaleString()}</td>
               </tr>
             );
           })}
@@ -4623,7 +4444,7 @@ export function SuperAdminGodownSection() {
           onMouseOver={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "none"; }}
         >
-          <span style={{ fontSize: "20px" }}>🏭</span>
+          <span style={{ fontSize: "20px" }}>≡ƒÅ¡</span>
           <span style={{ color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)" }}>Godown 1</span>
           <span style={{
             background: activeTab === "Godown 1" ? "#ffffff" : "var(--biscuit)",
@@ -4660,7 +4481,7 @@ export function SuperAdminGodownSection() {
           onMouseOver={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "none"; }}
         >
-          <span style={{ fontSize: "20px" }}>🏭</span>
+          <span style={{ fontSize: "20px" }}>≡ƒÅ¡</span>
           <span style={{ color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)" }}>Godown 2</span>
           <span style={{
             background: activeTab === "Godown 2" ? "#ffffff" : "var(--biscuit)",
@@ -4677,7 +4498,7 @@ export function SuperAdminGodownSection() {
 
       <div className="panel" style={{ margin: 0 }}>
         <div className="panel-head">
-          <h3 className="panel-title">🏭 {activeTab} Inventory</h3>
+          <h3 className="panel-title">≡ƒÅ¡ {activeTab} Inventory</h3>
           <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
             <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>

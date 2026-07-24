@@ -333,7 +333,7 @@ function OrderUpdates() {
           onClick={() => setShowAddOrder(true)}
           style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))", fontWeight: 700, borderRadius: 10, padding: "8px 18px", fontSize: "14px" }}
         >
-          ➕ Create Order
+          ➕ Add Order
         </button>
       </div>
 
