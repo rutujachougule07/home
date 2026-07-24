@@ -1499,7 +1499,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr", gap: 16, marginBottom: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px", marginBottom: 12 }}>
         <div className="form-group">
           <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>BRAND</label>
           {brandOptions && !isCustomBrand ? (
@@ -1642,7 +1642,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
       )}
 
       {isIncentiveMode ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 14 }}>
           <div className="form-group">
             <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>INCENTIVE (%)</label>
             <select
@@ -1683,7 +1683,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
         </div>
       ) : (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.2fr 1.2fr", gap: 16, marginBottom: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 12 }}>
             <div className="form-group">
               <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>QUANTITY</label>
               <input
@@ -1760,7 +1760,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 14 }}>
             <div className="form-group">
               <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
               <select
