@@ -1008,8 +1008,51 @@ function ProductsSection() {
                   </tr>
                 ))}
               </tbody>
+              {viewingBatches.batches.length >= 2 && (() => {
+                const maxCost = Math.max(...viewingBatches.batches.map((b: any) => b.cost));
+                const minCost = Math.min(...viewingBatches.batches.map((b: any) => b.cost));
+                const diff = maxCost - minCost;
+                const isDown = viewingBatches.batches[viewingBatches.batches.length - 1].cost < viewingBatches.batches[0].cost;
+                return (
+                  <tfoot>
+                    <tr>
+                      <td colSpan={7} style={{ padding: 0 }}>
+                        <div style={{
+                          background: isDown ? "linear-gradient(135deg, #fef2f2, #fee2e2)" : "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+                          border: isDown ? "1.5px solid #fca5a5" : "1.5px solid #86efac",
+                          borderRadius: 12,
+                          padding: "12px 20px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginTop: 8
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span style={{ fontSize: 22 }}>{isDown ? "📉" : "📈"}</span>
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: isDown ? "#991b1b" : "#166534", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                Price {isDown ? "Decreased" : "Increased"}
+                              </div>
+                              <div style={{ fontSize: 10, color: isDown ? "#b91c1c" : "#15803d", marginTop: 1 }}>
+                                ₹{minCost.toLocaleString()} → ₹{maxCost.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 10, fontWeight: 600, color: isDown ? "#b91c1c" : "#15803d", textTransform: "uppercase", marginBottom: 2 }}>Difference</div>
+                            <div style={{ fontSize: 26, fontWeight: 900, color: isDown ? "#dc2626" : "#16a34a" }}>
+                              {isDown ? "−" : "+"}₹{diff.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                );
+              })()}
             </table>
           </div>
+
 
           <div className="modal-actions" style={{ marginTop: "24px" }}>
             <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
@@ -1203,6 +1246,9 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
   const [totalCost, setTotalCost] = useState(initial ? parseFloat((initial.qty * initial.cost).toFixed(2)) : 0);
   const { products, users } = useStore();
   const [assignedEmployeeId, setAssignedEmployeeId] = useState(initial?.assignedEmployeeId ?? "");
+  const [serialNumbers, setSerialNumbers] = useState<string[]>(() => Array(initial?.qty ?? 0).fill(""));
+  const [scanningIndex, setScanningIndex] = useState<number | null>(null);
+  const [showSerials, setShowSerials] = useState(false);
   const [incentivePercent, setIncentivePercent] = useState(() => {
     if (initial && initial.cost > 0 && initial.incentive) {
       const pct = Math.round((initial.incentive / initial.cost) * 100);
@@ -1645,9 +1691,14 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                 className="form-input"
                 value={qty || ""}
                 onChange={(e) => {
-                  const val = +e.target.value;
+                  const val = Math.max(0, +e.target.value);
                   setQty(val);
                   setTotalCost(parseFloat((val * cost).toFixed(2)));
+                  setSerialNumbers(prev => {
+                    const next = Array(val).fill("");
+                    for (let i = 0; i < Math.min(prev.length, val); i++) next[i] = prev[i];
+                    return next;
+                  });
                 }}
                 placeholder="0"
               />
@@ -1754,9 +1805,242 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
           Cancel
         </button>
       </div>
+
+      {serialNumbers.length > 0 && (
+        <div style={{ marginTop: 18, borderTop: "1.5px dashed var(--border)", paddingTop: 14 }}>
+          {/* Collapsible header */}
+          <button
+            type="button"
+            onClick={() => setShowSerials(v => !v)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+              background: showSerials ? "linear-gradient(135deg, #fdf6ec, #f9ede0)" : "#f8f9fa",
+              border: "1.5px solid var(--border)", borderRadius: 10, padding: "10px 14px",
+              cursor: "pointer", transition: "all 0.2s", marginBottom: showSerials ? 12 : 0
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>📦</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--brown-dark)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Serial / Batch Numbers
+              </span>
+              <span style={{
+                background: "var(--accent)", color: "#fff", fontSize: 10, fontWeight: 700,
+                borderRadius: 20, padding: "2px 8px"
+              }}>
+                {serialNumbers.length} items
+              </span>
+              {serialNumbers.filter(s => s.trim()).length > 0 && (
+                <span style={{
+                  background: "#dcfce7", color: "#166534", fontSize: 10, fontWeight: 700,
+                  borderRadius: 20, padding: "2px 8px"
+                }}>
+                  ✓ {serialNumbers.filter(s => s.trim()).length} filled
+                </span>
+              )}
+            </div>
+            <span style={{
+              fontSize: 18, color: "var(--brown)", transform: showSerials ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s", lineHeight: 1
+            }}>▾</span>
+          </button>
+
+          {showSerials && (
+            <div style={{ animation: "fadeIn 0.2s ease" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 8 }}>
+                {serialNumbers.map((sn, i) => (
+                  <div key={i} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <label style={{ fontSize: 10, fontWeight: 600, color: "var(--brown)", textTransform: "uppercase" }}>Item #{i + 1}</label>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      <input
+                        className="form-input"
+                        style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, flex: 1, borderColor: sn.trim() ? "var(--accent)" : undefined }}
+                        value={sn}
+                        onChange={(e) => {
+                          const next = [...serialNumbers];
+                          next[i] = e.target.value;
+                          setSerialNumbers(next);
+                        }}
+                        placeholder={`Serial #${i + 1}`}
+                      />
+                      <button
+                        type="button"
+                        title="Scan Barcode"
+                        onClick={() => setScanningIndex(i)}
+                        style={{
+                          width: 32, height: 32, borderRadius: 8, border: "1.5px solid var(--accent)",
+                          background: "linear-gradient(135deg, var(--accent), var(--accent-dark))",
+                          color: "#fff", cursor: "pointer", display: "flex", alignItems: "center",
+                          justifyContent: "center", fontSize: 16, flexShrink: 0,
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.12)", transition: "transform 0.15s"
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
+                        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+
+      {scanningIndex !== null && (
+        <BarcodeScannerModal
+          onDetected={(code) => {
+            const next = [...serialNumbers];
+            next[scanningIndex] = code;
+            setSerialNumbers(next);
+            setScanningIndex(null);
+          }}
+          onClose={() => setScanningIndex(null)}
+          itemLabel={`Item #${scanningIndex + 1}`}
+        />
+      )}
     </Modal>
   );
 }
+
+function BarcodeScannerModal({ onDetected, onClose, itemLabel }: { onDetected: (code: string) => void; onClose: () => void; itemLabel: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [error, setError] = useState<string>("");
+  const [scanning, setScanning] = useState(true);
+  const [manualCode, setManualCode] = useState("");
+  const streamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number>(0);
+
+  useEffect(() => {
+    let active = true;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then((stream) => {
+        streamRef.current = stream;
+        if (videoRef.current && active) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+        // Start scanning using BarcodeDetector if available
+        if ("BarcodeDetector" in window) {
+          // @ts-ignore
+          const detector = new window.BarcodeDetector({ formats: ["qr_code", "ean_13", "ean_8", "code_128", "code_39", "upc_a", "upc_e", "itf", "codabar", "data_matrix", "aztec", "pdf417"] });
+          const scan = async () => {
+            if (!active || !videoRef.current) return;
+            try {
+              // @ts-ignore
+              const barcodes = await detector.detect(videoRef.current);
+              if (barcodes.length > 0) {
+                const code = barcodes[0].rawValue;
+                if (active) { onDetected(code); stop(); }
+                return;
+              }
+            } catch (_) {}
+            if (active) animFrameRef.current = requestAnimationFrame(scan);
+          };
+          if (videoRef.current) {
+            videoRef.current.addEventListener("playing", () => { if (active) scan(); }, { once: true });
+          }
+        } else {
+          setError("Barcode scanner not supported in this browser. Please enter manually.");
+        }
+      })
+      .catch(() => setError("Camera access denied. Please allow camera or enter manually."));
+
+    const stop = () => {
+      active = false;
+      cancelAnimationFrame(animFrameRef.current);
+      streamRef.current?.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    };
+
+    return stop;
+  }, []);
+
+  const handleManual = () => {
+    if (manualCode.trim()) { onDetected(manualCode.trim()); }
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 9999,
+      display: "flex", alignItems: "center", justifyContent: "center"
+    }}>
+      <div style={{
+        background: "#fff", borderRadius: 20, padding: "24px 22px", width: 340,
+        boxShadow: "0 24px 64px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", gap: 14
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--brown-dark)" }}>📷 Scan Barcode</div>
+            <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 2 }}>Scanning for: <b>{itemLabel}</b></div>
+          </div>
+          <button onClick={onClose} style={{ background: "#f1f5f9", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16, fontWeight: 700, color: "#64748b" }}>✕</button>
+        </div>
+
+        {error ? (
+          <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600 }}>
+            ⚠️ {error}
+          </div>
+        ) : (
+          <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", background: "#000", aspectRatio: "1" }}>
+            <video
+              ref={videoRef}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              playsInline
+              muted
+            />
+            {/* Scanner overlay */}
+            <div style={{
+              position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none"
+            }}>
+              <div style={{
+                width: 180, height: 180, border: "3px solid #22c55e", borderRadius: 14,
+                boxShadow: "0 0 0 4000px rgba(0,0,0,0.35)"
+              }}>
+                <div style={{ position: "absolute", top: 0, left: 0, width: 24, height: 24, borderTop: "4px solid #22c55e", borderLeft: "4px solid #22c55e", borderRadius: "4px 0 0 0" }} />
+                <div style={{ position: "absolute", top: 0, right: 0, width: 24, height: 24, borderTop: "4px solid #22c55e", borderRight: "4px solid #22c55e", borderRadius: "0 4px 0 0" }} />
+                <div style={{ position: "absolute", bottom: 0, left: 0, width: 24, height: 24, borderBottom: "4px solid #22c55e", borderLeft: "4px solid #22c55e", borderRadius: "0 0 0 4px" }} />
+                <div style={{ position: "absolute", bottom: 0, right: 0, width: 24, height: 24, borderBottom: "4px solid #22c55e", borderRight: "4px solid #22c55e", borderRadius: "0 0 4px 0" }} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ fontSize: 11, color: "#64748b", textAlign: "center" }}>
+          Barcode camera frame madhe dhara — automatic detect hoil
+        </div>
+
+        <div style={{ borderTop: "1px dashed #e2e8f0", paddingTop: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--brown)", marginBottom: 6, textTransform: "uppercase" }}>Manually Enter</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              className="form-input"
+              style={{ flex: 1, fontSize: 13 }}
+              value={manualCode}
+              onChange={e => setManualCode(e.target.value)}
+              placeholder="Type barcode / serial..."
+              onKeyDown={e => { if (e.key === "Enter") handleManual(); }}
+            />
+            <button
+              onClick={handleManual}
+              style={{
+                background: "linear-gradient(135deg, var(--accent), var(--accent-dark))",
+                color: "#fff", border: "none", borderRadius: 8, padding: "0 14px",
+                fontWeight: 700, cursor: "pointer", fontSize: 13
+              }}
+            >
+              ✓
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 export function CustomersSection() {
   const { customers, orders } = useStore();
