@@ -4862,7 +4862,7 @@ export function SuperAdminGodownSection() {
                   )}
                 </td>
                 <td style={{ fontWeight: 600 }}>{p.name}</td>
-                <td>{p.sku}</td>
+                <td>{p.sku || "—"}</td>
                 <td>{p.category}</td>
                 <td style={{ fontWeight: 600, color: qty < 20 ? "var(--danger)" : "inherit" }}>{qty}</td>
                 <td>₹{p.cost.toLocaleString()}</td>
@@ -4885,38 +4885,38 @@ export function SuperAdminGodownSection() {
       <h2 className="page-title">Godown Management</h2>
       <p className="page-sub">Manage and track inventory specific to Godowns.</p>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "30px", marginBottom: "30px", background: "var(--cream)", padding: "16px", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "0 4px 15px rgba(139, 107, 74, 0.05)" }}>
+      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "var(--cream)", padding: "12px", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "0 4px 15px rgba(139, 107, 74, 0.05)" }}>
         <button
           onClick={() => setActiveTab("Godown 1")}
           style={{
-            flex: 1,
+            flex: "1 1 140px",
             maxWidth: "250px",
-            padding: "12px 24px",
+            padding: "10px 18px",
             borderRadius: "12px",
             border: activeTab === "Godown 1" ? "2px solid var(--primary)" : "2px solid transparent",
             background: activeTab === "Godown 1" ? "var(--primary)" : "#ffffff",
             color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)",
-            fontSize: "16px",
+            fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "12px",
+            gap: "10px",
             boxShadow: activeTab === "Godown 1" ? "0 8px 20px rgba(17, 34, 51, 0.25)" : "0 2px 8px rgba(0,0,0,0.05)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "none"; }}
         >
-          <span style={{ fontSize: "20px" }}>🏭</span>
+          <span style={{ fontSize: "18px" }}>🏭</span>
           <span style={{ color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)" }}>Godown 1</span>
           <span style={{
             background: activeTab === "Godown 1" ? "#ffffff" : "var(--biscuit)",
             color: activeTab === "Godown 1" ? "var(--primary)" : "var(--brown-dark)",
-            padding: "2px 10px",
+            padding: "2px 8px",
             borderRadius: "12px",
-            fontSize: "13px",
+            fontSize: "12px",
             fontWeight: 800
           }}>
             {godown1Products.length}
@@ -4926,34 +4926,34 @@ export function SuperAdminGodownSection() {
         <button
           onClick={() => setActiveTab("Godown 2")}
           style={{
-            flex: 1,
+            flex: "1 1 140px",
             maxWidth: "250px",
-            padding: "12px 24px",
+            padding: "10px 18px",
             borderRadius: "12px",
             border: activeTab === "Godown 2" ? "2px solid var(--primary)" : "2px solid transparent",
             background: activeTab === "Godown 2" ? "var(--primary)" : "#ffffff",
             color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)",
-            fontSize: "16px",
+            fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "12px",
+            gap: "10px",
             boxShadow: activeTab === "Godown 2" ? "0 8px 20px rgba(17, 34, 51, 0.25)" : "0 2px 8px rgba(0,0,0,0.05)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "none"; }}
         >
-          <span style={{ fontSize: "20px" }}>🏭</span>
+          <span style={{ fontSize: "18px" }}>🏭</span>
           <span style={{ color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)" }}>Godown 2</span>
           <span style={{
             background: activeTab === "Godown 2" ? "#ffffff" : "var(--biscuit)",
             color: activeTab === "Godown 2" ? "var(--primary)" : "var(--brown-dark)",
-            padding: "2px 10px",
+            padding: "2px 8px",
             borderRadius: "12px",
-            fontSize: "13px",
+            fontSize: "12px",
             fontWeight: 800
           }}>
             {godown2Products.length}
