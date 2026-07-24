@@ -4,6 +4,7 @@ import { useStore, Product, User, Order, Lead, Task } from "../app/store";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../app/DashboardLayout";
 import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
+import { OrderDocumentModal } from "./EmployeePage";
 
 const NAV: NavItem[] = [
   { key: "live", label: "Live Dashboard", icon: "📡" },
@@ -102,6 +103,28 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
             }}
           >
             Review Now
+          </button>
+          <button
+            className="btn-dismiss-pop"
+            onClick={() => setShowNotification(false)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "20px",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginLeft: "4px",
+              transition: "all 0.2s ease"
+            }}
+            title="Dismiss"
+          >
+            ✕
           </button>
         </div>
       )}
@@ -1796,34 +1819,63 @@ export function CustomersSection() {
 
 export function OrdersTable() {
   const { orders, products } = useStore();
+  const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
+
   return (
-    <div className={orders.length > 0 ? "card-grid" : ""}>
-      {orders.map((o) => {
-        const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-        const brandStr = product?.brand ? ` (${product.brand})` : "";
-        return (
-          <div key={o.id} className="data-card">
-            <div className="data-card-header">
-              <div>
-                <h4 className="data-card-title">Order #{o.id}</h4>
-                <span className="data-card-subtitle">{o.date}</span>
+    <>
+      <div className={orders.length > 0 ? "card-grid" : ""}>
+        {orders.map((o) => {
+          const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+          const brandStr = product?.brand ? ` (${product.brand})` : "";
+          return (
+            <div key={o.id} className="data-card">
+              <div className="data-card-header">
+                <div>
+                  <h4 className="data-card-title">Order #{o.id}</h4>
+                  <span className="data-card-subtitle" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                    <span>{o.date}</span>
+                    {o.docType && (
+                      <span className="pill" style={{
+                        background: o.docType === "Bill" ? "#e0f2fe" : "#f3e8ff",
+                        color: o.docType === "Bill" ? "#0369a1" : "#6b21a8",
+                        border: o.docType === "Bill" ? "1px solid #bae6fd" : "1px solid #e9d5ff",
+                        fontSize: "10px",
+                        padding: "2px 6px",
+                        fontWeight: 600
+                      }}>
+                        {o.docType === "Bill" ? "🧾 Bill" : "📄 Order Copy"}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div><Pill status={o.status} /></div>
               </div>
-              <div><Pill status={o.status} /></div>
+              <div className="data-card-body">
+                <div className="data-row"><span className="data-label">Document Type</span><span className="data-value"><span style={{ display: "inline-block", background: o.docType === "Order Copy" ? "#f3e8ff" : "#e0f2fe", color: o.docType === "Order Copy" ? "#6b21a8" : "#0369a1", border: o.docType === "Order Copy" ? "1px solid #e9d5ff" : "1px solid #bae6fd", padding: "2px 8px", borderRadius: "6px", fontWeight: 700, fontSize: "11px" }}>{o.docType === "Order Copy" ? "📄 Order Copy" : "🧾 Bill / Invoice"}</span></span></div>
+                <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
+                <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+              </div>
+              <div className="data-card-footer" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
+                <div style={{ display: "flex", gap: "6px" }}>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: (!o.docType || o.docType === "Bill") ? "#e0f2fe" : undefined, borderColor: "#bae6fd", color: (!o.docType || o.docType === "Bill") ? "#0369a1" : undefined, fontWeight: (!o.docType || o.docType === "Bill") ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 View Bill</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: o.docType === "Order Copy" ? "#f3e8ff" : undefined, borderColor: "#e9d5ff", color: o.docType === "Order Copy" ? "#6b21a8" : undefined, fontWeight: o.docType === "Order Copy" ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 View Order Copy</button>
+                </div>
+              </div>
             </div>
-            <div className="data-card-body">
-              <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
-              <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
-              <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
-            </div>
-            <div className="data-card-footer" style={{ justifyContent: "space-between" }}>
-              <span className="data-label" style={{ alignSelf: "center" }}>Total</span>
-              <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>₹{o.total.toLocaleString()}</span>
-            </div>
-          </div>
-        );
-      })}
-      {orders.length === 0 && <div className="empty">No orders yet.</div>}
-    </div>
+          );
+        })}
+        {orders.length === 0 && <div className="empty">No orders yet.</div>}
+      </div>
+      {activeDoc && (
+        <OrderDocumentModal
+          order={activeDoc.order}
+          type={activeDoc.type}
+          onClose={() => setActiveDoc(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -1832,6 +1884,7 @@ function OrderApprovalSection() {
   const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("all");
   const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
   const [editDiscounts, setEditDiscounts] = useState<Record<string, number>>({});
+  const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
 
   const decide = (id: string, status: "Approved" | "Rejected", newDiscountPct?: number) => {
     const notifId2 = uid("n");
@@ -1956,11 +2009,57 @@ function OrderApprovalSection() {
                           Regular
                         </span>
                       )}
+                      <span className="pill" style={{
+                        background: o.docType === "Order Copy" ? "#f3e8ff" : "#e0f2fe",
+                        color: o.docType === "Order Copy" ? "#6b21a8" : "#0369a1",
+                        border: o.docType === "Order Copy" ? "1px solid #e9d5ff" : "1px solid #bae6fd",
+                        fontSize: "10px",
+                        padding: "2px 6px",
+                        fontWeight: 700
+                      }}>
+                        {o.docType === "Order Copy" ? "📄 Order Copy" : "🧾 Bill / Invoice"}
+                      </span>
+                      {o.docType === "Order Copy" && o.bookingExpiryDate && (
+                        o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? (
+                          <span className="pill" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", fontSize: "10px", padding: "2px 6px", fontWeight: 800, animation: "pulse 1.5s infinite" }}>
+                            🚨 Booking Expired ({o.bookingExpiryDate})
+                          </span>
+                        ) : (
+                          <span className="pill" style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0", fontSize: "10px", padding: "2px 6px", fontWeight: 600 }}>
+                            ⏳ Valid Until {o.bookingExpiryDate}
+                          </span>
+                        )
+                      )}
                     </span>
                   </div>
                   <div><Pill status={o.status} /></div>
                 </div>
                 <div className="data-card-body">
+                  <div className="data-row">
+                    <span className="data-label">Document Type</span>
+                    <span className="data-value">
+                      <span style={{
+                        display: "inline-block",
+                        background: o.docType === "Order Copy" ? "#f3e8ff" : "#e0f2fe",
+                        color: o.docType === "Order Copy" ? "#6b21a8" : "#0369a1",
+                        border: o.docType === "Order Copy" ? "1px solid #e9d5ff" : "1px solid #bae6fd",
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        fontWeight: 700,
+                        fontSize: "11px"
+                      }}>
+                        {o.docType === "Order Copy" ? "📄 Order Copy" : "🧾 Bill / Invoice"}
+                      </span>
+                    </span>
+                  </div>
+                  {o.bookingExpiryDate && (
+                    <div className="data-row">
+                      <span className="data-label">Booking Expiry</span>
+                      <span className="data-value" style={{ color: o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? "#dc2626" : "#166534", fontWeight: 700 }}>
+                        {o.bookingExpiryDate < new Date().toISOString().slice(0, 10) ? `🚨 Expired (${o.bookingExpiryDate})` : `⏳ Valid until ${o.bookingExpiryDate}`}
+                      </span>
+                    </div>
+                  )}
                   <div className="data-row"><span className="data-label">Customer</span><span className="data-value">{o.customerName}</span></div>
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
                   <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{Math.round(orderBasePrice / o.qty).toLocaleString()}</span></div>
@@ -1993,7 +2092,7 @@ function OrderApprovalSection() {
                     ) : null
                   )}
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: "6px" }}>
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       <span style={{ fontWeight: 700, color: "var(--brown-dark)", fontSize: 16 }}>
                         ₹{calculatedTotal.toLocaleString()}
@@ -2002,12 +2101,16 @@ function OrderApprovalSection() {
                         <span style={{ fontSize: "10px", color: "var(--brown)" }}>Includes discount</span>
                       )}
                     </div>
-                    {o.status === "Pending" ? (
-                      <div className="actions-row">
-                        <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved", editDiscounts[o.id])}>Approve</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
-                      </div>
-                    ) : <span style={{ color: "var(--brown)", fontSize: 12 }}>—</span>}
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: (!o.docType || o.docType === "Bill") ? "#e0f2fe" : undefined, borderColor: "#bae6fd", color: (!o.docType || o.docType === "Bill") ? "#0369a1" : undefined, fontWeight: (!o.docType || o.docType === "Bill") ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 View Bill</button>
+                      <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, background: o.docType === "Order Copy" ? "#f3e8ff" : undefined, borderColor: "#e9d5ff", color: o.docType === "Order Copy" ? "#6b21a8" : undefined, fontWeight: o.docType === "Order Copy" ? 700 : 500 }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 View Order Copy</button>
+                      {o.status === "Pending" ? (
+                        <div className="actions-row">
+                          <button className="btn btn-success btn-sm" onClick={() => decide(o.id, "Approved", editDiscounts[o.id])}>Approve</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => decide(o.id, "Rejected")}>Reject</button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2016,6 +2119,13 @@ function OrderApprovalSection() {
           {list.length === 0 && <div className="empty">No orders.</div>}
         </div>
       </div>
+      {activeDoc && (
+        <OrderDocumentModal
+          order={activeDoc.order}
+          type={activeDoc.type}
+          onClose={() => setActiveDoc(null)}
+        />
+      )}
     </>
   );
 }
@@ -2229,8 +2339,17 @@ export function NotificationsSection({ role }: { role: "superadmin" | "manager" 
                       {icon}
                     </div>
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                         <span style={{ fontWeight: 700, fontSize: 14, color: "var(--brown-dark)" }}>{title}</span>
+                        {(n.message.toLowerCase().includes("order copy") || order?.docType === "Order Copy") ? (
+                          <span style={{ background: "#f3e8ff", color: "#6b21a8", border: "1px solid #e9d5ff", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                            📄 Order Copy
+                          </span>
+                        ) : (n.message.toLowerCase().includes("bill") || order?.docType === "Bill") ? (
+                          <span style={{ background: "#e0f2fe", color: "#0369a1", border: "1px solid #bae6fd", fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                            🧾 Bill / Invoice
+                          </span>
+                        ) : null}
                         {!n.read && (
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <span style={{
