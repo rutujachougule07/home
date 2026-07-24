@@ -926,21 +926,21 @@ function ProductsSection() {
 
       {viewingBatches && (
         <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)", alignItems: "flex-start" }}>
             {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white" }} />
+              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white", flexShrink: 0 }} />
             ) : (
-              <div style={{ width: "120px", height: "120px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
+              <div style={{ width: "100px", height: "100px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
             )}
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "22px", color: "var(--text)" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", fontSize: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "16px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
+            <div style={{ flex: 1, minWidth: "200px" }}>
+              <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "var(--text)", textTransform: "capitalize" }}>{viewingBatches.name}</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
               </div>
             </div>
           </div>
@@ -4759,21 +4759,21 @@ export function SuperAdminIncentiveSection() {
 
       {viewingBatches && (
         <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", gap: "24px", marginBottom: "24px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)", alignItems: "flex-start" }}>
             {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white" }} />
+              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white", flexShrink: 0 }} />
             ) : (
-              <div style={{ width: "120px", height: "120px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "40px" }}>📦</div>
+              <div style={{ width: "100px", height: "100px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
             )}
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: "0 0 12px 0", fontSize: "22px", color: "var(--text)" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px", fontSize: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ color: "var(--brown)" }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "16px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
+            <div style={{ flex: 1, minWidth: "200px" }}>
+              <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "var(--text)", textTransform: "capitalize" }}>{viewingBatches.name}</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
               </div>
             </div>
           </div>
