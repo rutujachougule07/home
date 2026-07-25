@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useStore, User, Customer, Order } from "../app/store";
 import { DashboardLayout, StatCard, Pill, Modal, NavItem, BarChart } from "../app/DashboardLayout";
-import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection, ProductForm } from "./SuperAdminPage";
+import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection, ProductForm, SuperAdminIncentiveSection } from "./SuperAdminPage";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 
 const NAV: NavItem[] = [
@@ -33,24 +33,34 @@ export function ManagerPage({ tab = "overview" }: ManagerPageProps) {
 
   return (
     <DashboardLayout role="manager" title="Manager" nav={NAV} active={active} onNav={setActive}>
-      {active === "overview" && <Overview />}
+      {active === "overview" && <Overview onNav={setActive} />}
       {active === "assign" && <TasksAssignSection />}
       {active === "task-assign" && <TaskAssignmentSection />}
       {active === "customers" && <CustomersMgmt />}
       {active === "leads" && <LeadsSection />}
       {active === "orders" && <OrdersMgmt />}
       {active === "products" && <ProductsAvail />}
-      {active === "incentive" && <EmployeeIncentiveSection />}
+      {active === "incentive" && <SuperAdminIncentiveSection />}
       {active === "notifications" && <NotificationsSection role="manager" />}
       {active === "profile" && <ProfileSection />}
     </DashboardLayout>
   );
 }
 
-function Overview() {
-  const { users, customers, orders, tasks } = useStore();
+function Overview({ onNav }: { onNav: (tab: string) => void }) {
+  const { users, customers, orders, tasks, products } = useStore();
   const emp = users.filter((u) => u.role === "employee").length;
   const pending = orders.filter((o) => o.status === "Pending").length;
+
+  const incentive90Days = useMemo(() => {
+    return products.filter(p => {
+      if (!p.date || !p.incentive || p.incentive <= 0) return false;
+      const diffTime = new Date().getTime() - new Date(p.date).getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      return diffDays > 90;
+    }).length;
+  }, [products]);
+
   return (
     <>
       <h2 className="page-title">Manager Dashboard</h2>
@@ -63,6 +73,7 @@ function Overview() {
         <StatCard icon="🧾" label="Orders" value={orders.length} />
         <StatCard icon="⏳" label="Pending Approvals" value={pending} />
         <StatCard icon="✅" label="Tasks Completed" value={tasks.filter((t) => t.status === "Completed").length} />
+        <StatCard icon="💰" label="INCENTIVE (> 90 DAYS)" value={incentive90Days} onClick={() => onNav("incentive")} />
       </div>
       <div className="row-2">
         <div className="panel">
@@ -347,7 +358,10 @@ function OrdersMgmt() {
           {orders.map((o) => {
             const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
             const brandStr = product?.brand ? ` (${product.brand})` : "";
-            const isIncentiveOrder = product && (product.incentive ?? 0) > 0;
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            const isProdIncentive = !!(product && (product.incentive ?? 0) > 0 && product.date && new Date(product.date) < ninetyDaysAgo);
+            const isIncentiveOrder = o.isIncentive ?? isProdIncentive;
 
             const orderBasePrice = Math.round(o.total / (1 - ((o.discount || 0) / 100)));
             const orderUnitPrice = Math.round(orderBasePrice / o.qty);

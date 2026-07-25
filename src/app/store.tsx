@@ -7,7 +7,7 @@ export type Role = "superadmin" | "manager" | "employee";
 export interface User { id: string; name: string; username: string; role: Role; email?: string; phone?: string; employeeId?: string; jobTitle?: string; password?: string; address?: string; status?: string; }
 export interface Product { id: string; name: string; category: string; price: number; stock: number; status: string; sku: string; image: string; qty: number; cost: number; incentive: number; supplier: string; date: string; warranty?: string; brand?: string; location?: "Shop" | "Godown 1" | "Godown 2" | "Display"; assignedEmployeeId?: string; incentiveSeen?: boolean; }
 export interface Customer { id: string; name: string; email: string; phone: string; address: string; status: string; }
-export interface Order { id: string; customerId: string; customerName: string; productId: string; productName: string; qty: number; total: number; discount?: number; createdBy: string; status: "Pending" | "Approved" | "Rejected" | "Delivered"; date: string; assignedTo?: string; assignedToName?: string; sentToEmployee?: boolean; customerBargain?: string; docType?: "Bill" | "Order Copy"; bookingExpiryDate?: string; }
+export interface Order { id: string; customerId: string; customerName: string; productId: string; productName: string; qty: number; total: number; discount?: number; createdBy: string; status: "Pending" | "Approved" | "Rejected" | "Delivered"; date: string; assignedTo?: string; assignedToName?: string; sentToEmployee?: boolean; customerBargain?: string; docType?: "Bill" | "Order Copy"; bookingExpiryDate?: string; isIncentive?: boolean; }
 export interface Task { id: string; title: string; assignedTo: string; assignedToName: string; customerId?: string; status: "Pending" | "In Progress" | "Completed"; date: string; proofNote?: string; proofUrl?: string; }
 export interface Notification { id: string; to: Role | "all"; from: string; message: string; date: string; read: boolean; }
 export interface Lead { id: string; name: string; phone: string; email?: string; source?: string; product?: string; brand?: string; gender?: "Male" | "Female" | "Other"; status: "New" | "Cold" | "Warm" | "Hot" | "Enrolled" | "Cancelled"; followUpDate?: string; notes?: string; date: string; assignedTo?: string; city?: string; createdBy?: string; }
@@ -26,78 +26,14 @@ interface State {
 const initialUsers: User[] = [
   { id: "u1", name: "Super Admin", username: "admin@gmail.com", role: "superadmin", email: "admin@gmail.com", password: "admin123" },
   { id: "u2", name: "Rohan Patil", username: "manager@gmail.com", role: "manager", email: "manager@gmail.com", phone: "9876543210", employeeId: "MGR001", jobTitle: "Store Manager", password: "manager123", address: "Kothrud, Pune", status: "Verified" },
-  { id: "u3", name: "Aarti Joshi", username: "employee@gmail.com", role: "employee", email: "employee@gmail.com", phone: "9876501234", employeeId: "EMP001", jobTitle: "Sales Associate", password: "employee123", address: "123 Baker Street, Pune", status: "Verified" },
-  { id: "u4", name: "Vikram Singh", username: "manager2", role: "manager", email: "vikram@smarthome.com", phone: "9123456780", employeeId: "MGR002", jobTitle: "Assistant Manager", password: "manager123", address: "Bandra, Mumbai", status: "Verified" },
-  { id: "u5", name: "Sneha Desai", username: "employee2", role: "employee", email: "sneha@smarthome.com", phone: "9012345678", employeeId: "EMP002", jobTitle: "Technician", password: "sneha456", address: "456 MG Road, Mumbai", status: "Verified" },
 ];
 
-const initialProducts: Product[] = [
-  {
-    id: "p1",
-    name: "fan",
-    sku: "WH-X200-Bkk",
-    category: "Electronics",
-    brand: "Atomberg",
-    qty: 15,
-    stock: 15,
-    cost: 15000,
-    price: 15000,
-    incentive: 2000,
-    supplier: "vaishnavi",
-    date: "2026-05-21",
-    status: "Verified",
-    image: "",
-    location: "Shop"
-  },
-  {
-    id: "p2",
-    name: "whashin machine",
-    sku: "WH-X200-Bkk",
-    category: "Electronics",
-    brand: "Samsung",
-    qty: 5,
-    stock: 5,
-    cost: 50000,
-    price: 50000,
-    incentive: 3000,
-    supplier: "rutuja",
-    date: "2026-05-21",
-    status: "Verified",
-    image: "",
-    location: "Godown 1"
-  }
-];
-
-const initialCustomers: Customer[] = [
-  { id: "c1", name: "Mahesh Kulkarni", email: "mahesh@mail.com", phone: "9000011111", address: "Pune, MH", status: "Active" },
-  { id: "c2", name: "Priya Sharma", email: "priya@mail.com", phone: "9000022222", address: "Mumbai, MH", status: "Contacted" },
-  { id: "c3", name: "Rahul Iyer", email: "rahul@mail.com", phone: "9000033333", address: "Bengaluru, KA", status: "Active" },
-];
-
-const initialOrders: Order[] = [
-  { id: "o1", customerId: "c1", customerName: "Mahesh Kulkarni", productId: "p2", productName: "Smart Thermostat", qty: 1, total: 4999, createdBy: "manager", status: "Pending", date: "2026-05-20", assignedTo: "u3", assignedToName: "Aarti Joshi", docType: "Bill" },
-  { id: "o2", customerId: "c2", customerName: "Priya Sharma", productId: "p1", productName: "Smart LED Bulb", qty: 4, total: 3196, createdBy: "manager", status: "Approved", date: "2026-05-18", assignedTo: "u3", assignedToName: "Aarti Joshi", docType: "Order Copy" },
-  { id: "o3", customerId: "c3", customerName: "Rahul Iyer", productId: "p4", productName: "Smart Door Lock", qty: 1, total: 6499, createdBy: "manager", status: "Rejected", date: "2026-05-15", assignedTo: "u5", assignedToName: "Sneha Desai", docType: "Bill" },
-];
-
-const initialTasks: Task[] = [
-  { id: "t1", title: "Follow up with Mahesh on thermostat install", assignedTo: "u3", assignedToName: "Aarti Joshi", customerId: "c1", status: "In Progress", date: "2026-05-22" },
-  { id: "t2", title: "Call Priya for bulb delivery confirmation", assignedTo: "u3", assignedToName: "Aarti Joshi", customerId: "c2", status: "Pending", date: "2026-05-24" },
-  { id: "t3", title: "Demo voice hub for Rahul", assignedTo: "u5", assignedToName: "Sneha Desai", customerId: "c3", status: "Completed", date: "2026-05-12" },
-];
-
-const initialNotifications: Notification[] = [
-  { id: "n1", to: "superadmin", from: "Rohan Patil", message: "New order pending for approval", date: "2026-05-20", read: false },
-  { id: "n3", to: "employee", from: "Rohan Patil", message: "New task assigned: follow up Mahesh", date: "2026-05-22", read: false },
-];
-
-const initialLeads: Lead[] = [
-  { id: "l1", name: "Amit Deshmukh", phone: "9876500001", email: "amit@mail.com", source: "Walk-in", product: "Smart AC", status: "Hot", followUpDate: "2026-06-20", notes: "Interested in 1.5 ton split AC", date: "2026-06-15", assignedTo: "u3", city: "Mumbai", createdBy: "Super Admin" },
-  { id: "l2", name: "Snehal Patil", phone: "9876500002", email: "snehal@mail.com", source: "Phone", product: "Washing Machine", status: "Warm", followUpDate: "2026-06-22", notes: "Comparing prices", date: "2026-06-14", assignedTo: "u5", city: "Pune", createdBy: "Rohan Patil" },
-  { id: "l3", name: "Ravi Kulkarni", phone: "9876500003", source: "Referral", product: "Refrigerator", status: "New", date: "2026-06-17", city: "Sangli", createdBy: "Super Admin" },
-  { id: "l4", name: "Pooja Sharma", phone: "9876500004", source: "Online", product: "Smart TV", status: "Cold", followUpDate: "2026-06-25", date: "2026-06-10", city: "Kolhapur", createdBy: "Rohan Patil" },
-  { id: "l5", name: "Kiran Jadhav", phone: "9876500005", source: "Walk-in", product: "Ceiling Fan", status: "Enrolled", date: "2026-06-08", city: "Satara", createdBy: "Sneha Desai" },
-];
+const initialProducts: Product[] = [];
+const initialCustomers: Customer[] = [];
+const initialOrders: Order[] = [];
+const initialTasks: Task[] = [];
+const initialNotifications: Notification[] = [];
+const initialLeads: Lead[] = [];
 
 const USER_STORAGE_KEY = "sham_current_user_v2";
 
@@ -250,7 +186,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     seedDatabase().then(() => {
       const unsubscribers = [
         onSnapshot(collection(db, "users"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as User);
+          const list = snap.docs
+            .map((d) => d.data() as User)
+            .filter((u) => u.id !== "u3" && u.id !== "u5" && u.id !== "u4" && u.username !== "employee@gmail.com" && u.username !== "employee2");
           setStateRaw((s) => ({ ...s, users: list }));
         }),
         onSnapshot(collection(db, "products"), (snap) => {

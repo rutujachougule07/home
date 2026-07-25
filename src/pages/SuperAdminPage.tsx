@@ -627,56 +627,136 @@ function EmployeesSection() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20, marginTop: 15 }}>
           {employees.map((e) => {
-            const list = tasks.filter((t) => t.assignedTo === e.id);
+            const list = tasks.filter((t) => t.assignedTo === e.id || t.assignedToName === e.name);
             const comp = list.filter((t) => t.status === "Completed").length;
             const total = list.length;
             const score = total ? Math.round((comp / total) * 100) : 0;
+            const initials = (e.name || "U").split(" ").map(s => s[0]).slice(0, 2).join("").toUpperCase();
 
             return (
-              <div key={e.id} style={{ background: "var(--warm-white)", borderRadius: "16px", padding: "20px", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", gap: 15 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <h4 style={{ margin: "0 0 4px 0", color: "var(--brown-dark)", fontSize: 16 }}>{e.name}</h4>
-                    <span style={{ fontSize: 12, color: "var(--brown)", fontWeight: 500 }}>ID: {e.employeeId ?? "—"}</span>
+              <div
+                key={e.id}
+                style={{
+                  background: "#ffffff",
+                  borderRadius: "20px",
+                  padding: "24px",
+                  border: "1px solid #e2e8f0",
+                  borderTop: "4px solid var(--accent)",
+                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.05)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "18px",
+                  position: "relative",
+                  transition: "transform 0.2s ease, boxShadow 0.2s ease"
+                }}
+              >
+                {/* Header Row */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "50%",
+                      background: "linear-gradient(135deg, var(--accent, #d97706), #b45309)",
+                      color: "#ffffff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 800,
+                      fontSize: "16px",
+                      boxShadow: "0 4px 10px rgba(217, 119, 6, 0.25)"
+                    }}>
+                      {initials}
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, color: "#0f172a", fontSize: "17px", fontWeight: 800 }}>{e.name}</h4>
+                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, display: "inline-block", marginTop: "2px" }}>
+                        • ID: {e.employeeId ?? "EMP001"} •
+                      </span>
+                    </div>
                   </div>
-                  <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`} style={{ fontSize: 10 }}>
+                  <span className={`pill ${e.status === "Inactive" ? "pill-rejected" : "pill-approved"}`} style={{ fontSize: "11px", padding: "3px 10px", fontWeight: 700 }}>
                     {e.status ?? "Verified"}
                   </span>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
-                  <div>
-                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>ROLE</span>
-                    <strong style={{ color: "var(--brown-dark)" }}>{e.jobTitle ?? "—"}</strong>
+                {/* Info Fields Grid */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "#f8fafc", padding: "14px", borderRadius: "14px", border: "1px solid #f1f5f9" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px" }}>
+                    <span style={{ color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                      💼 ROLE
+                    </span>
+                    <strong style={{ color: "#0f172a", fontWeight: 800 }}>{e.jobTitle ?? "Sales Associate"}</strong>
                   </div>
-                  <div>
-                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>PHONE</span>
-                    <strong style={{ color: "var(--brown-dark)" }}>{e.phone ?? "—"}</strong>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px" }}>
+                    <span style={{ color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                      👤 USERNAME
+                    </span>
+                    <strong style={{ color: "#0f172a", fontWeight: 700 }}>{e.username ?? "—"}</strong>
                   </div>
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>CREDENTIALS</span>
-                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.username ?? "—"}</code>
-                      <code style={{ fontSize: 11, background: "var(--biscuit-light)", padding: "2px 6px", borderRadius: 4, color: "var(--brown-dark)" }}>{e.password ?? "—"}</code>
-                    </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px" }}>
+                    <span style={{ color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                      🔑 PASSWORD
+                    </span>
+                    <strong style={{ color: "#0f172a", fontWeight: 700, background: "#ffffff", padding: "2px 8px", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
+                      {e.password ?? "—"}
+                    </strong>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px" }}>
+                    <span style={{ color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                      📞 PHONE
+                    </span>
+                    <strong style={{ color: "#0f172a", fontWeight: 700 }}>{e.phone ?? "—"}</strong>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px" }}>
+                    <span style={{ color: "#64748b", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                      ✉ EMAIL
+                    </span>
+                    <strong style={{ color: "#0f172a", fontWeight: 700 }}>{e.email || e.username || "—"}</strong>
                   </div>
                 </div>
 
-                <div style={{ background: "var(--biscuit-light)", borderRadius: 8, padding: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>TASKS</span>
-                    <strong style={{ color: "var(--brown-dark)", fontSize: 14 }}>{comp} / {total}</strong>
+                {/* Progress Score Bar */}
+                <div style={{ background: "#ffffff", borderRadius: "12px", padding: "10px 14px", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", fontSize: "11px" }}>
+                    <span style={{ fontWeight: 700, color: "#64748b" }}>WORK COMPLETED</span>
+                    <span style={{ fontWeight: 800, color: "var(--success, #10b981)" }}>{comp} / {total} ({score}%)</span>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span style={{ color: "var(--brown)", fontSize: 11, display: "block" }}>SCORE</span>
-                    <strong style={{ color: "var(--success)", fontSize: 14 }}>{score}%</strong>
+                  <div style={{ width: "100%", height: "6px", background: "#e2e8f0", borderRadius: "999px", overflow: "hidden" }}>
+                    <div style={{ width: `${score}%`, height: "100%", background: "linear-gradient(90deg, #10b981, #059669)", borderRadius: "999px", transition: "width 0.4s ease" }} />
                   </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: "auto" }}>
-                  <button className="btn btn-circle" onClick={() => setViewingWork(e)} title="View Work Details" style={{ background: "var(--biscuit-light)", color: "var(--brown-dark)" }}>📊</button>
-                  <button className="btn btn-circle" onClick={() => setEditing(e)} title="Edit Employee" style={{ background: "var(--biscuit-light)", color: "var(--accent)" }}>✏️</button>
-                  <button className="btn btn-circle btn-circle-danger" onClick={() => remove(e.id)} title="Delete Employee" style={{ background: "#fef2f2", color: "#ef4444" }}>🗑️</button>
+                {/* Actions Footer */}
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "auto", paddingTop: "4px" }}>
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => setViewingWork(e)}
+                    title="View Work Details"
+                    style={{ background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe", fontWeight: 700, borderRadius: "10px", padding: "6px 12px", fontSize: "12px" }}
+                  >
+                    📊 View Work
+                  </button>
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => setEditing(e)}
+                    title="Edit Employee"
+                    style={{ background: "#fffbe6", color: "#d97706", border: "1px solid #fde68a", fontWeight: 700, borderRadius: "10px", padding: "6px 12px", fontSize: "12px" }}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => remove(e.id)}
+                    title="Delete Employee"
+                    style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca", fontWeight: 700, borderRadius: "10px", padding: "6px 12px", fontSize: "12px" }}
+                  >
+                    🗑️ Delete
+                  </button>
                 </div>
               </div>
             );
@@ -885,7 +965,7 @@ function ProductsSection() {
                     <td className="text-right">
                       {p.batches.length > 0 ? (
                         <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                          <button 
+                          <button
                             className="btn btn-circle"
                             onClick={() => setViewingBatches(p)}
                             title="View Batch Details"
@@ -977,8 +1057,8 @@ function ProductsSection() {
                     <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
                     <td className="text-right">
                       <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button 
-                          className="btn btn-circle" 
+                        <button
+                          className="btn btn-circle"
                           title="Edit Batch"
                           onClick={() => {
                             setEditing(b);
@@ -987,8 +1067,8 @@ function ProductsSection() {
                         >
                           ✏️
                         </button>
-                        <button 
-                          className="btn btn-circle btn-circle-danger" 
+                        <button
+                          className="btn btn-circle btn-circle-danger"
                           title="Delete Batch"
                           onClick={() => {
                             if (confirm("Delete this batch?")) {
@@ -1936,7 +2016,7 @@ function BarcodeScannerModal({ onDetected, onClose, itemLabel }: { onDetected: (
                 if (active) { onDetected(code); stop(); }
                 return;
               }
-            } catch (_) {}
+            } catch (_) { }
             if (active) animFrameRef.current = requestAnimationFrame(scan);
           };
           if (videoRef.current) {
@@ -2113,7 +2193,7 @@ export function OrdersTable() {
 }
 
 function OrderApprovalSection() {
-  const { orders, products, setState, uid } = useStore();
+  const { orders, products, users, setState, uid } = useStore();
   const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("all");
   const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
   const [editDiscounts, setEditDiscounts] = useState<Record<string, number>>({});
@@ -2199,7 +2279,13 @@ function OrderApprovalSection() {
             const currentDiscount = editDiscounts[o.id] !== undefined ? editDiscounts[o.id] : (o.discount || 0);
             const calculatedTotal = o.status === "Pending" ? Math.max(0, orderBasePrice - Math.round((currentDiscount / 100) * orderBasePrice)) : o.total;
 
-            const isIncentiveOrder = product && (product.incentive ?? 0) > 0;
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            const isProdIncentive = !!(product && (product.incentive ?? 0) > 0 && product.date && new Date(product.date) < ninetyDaysAgo);
+            const isIncentiveOrder = o.isIncentive ?? isProdIncentive;
+
+            const creatorUser = users.find(u => u.id === o.createdBy || u.username === o.createdBy || u.name.toLowerCase() === o.createdBy.toLowerCase());
+            const creatorName = creatorUser ? `${creatorUser.name} (${creatorUser.role === "employee" ? "Employee" : creatorUser.role === "manager" ? "Manager" : "Admin"})` : (o.assignedToName ? `${o.assignedToName} (Employee)` : o.createdBy);
 
             return (
               <div key={o.id} className="data-card">
@@ -2207,7 +2293,9 @@ function OrderApprovalSection() {
                   <div>
                     <h4 className="data-card-title">Order #{o.id}</h4>
                     <span className="data-card-subtitle" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
-                      <span>By: {o.createdBy}</span>
+                      <span className="pill" style={{ background: "#f1f5f9", color: "#0f172a", border: "1px solid #cbd5e1", fontSize: "10px", padding: "2px 6px", fontWeight: 700 }}>
+                        👤 By: {creatorName}
+                      </span>
                       {isIncentiveOrder ? (
                         <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
                           ✨ Incentive
@@ -2243,6 +2331,12 @@ function OrderApprovalSection() {
                   <div><Pill status={o.status} /></div>
                 </div>
                 <div className="data-card-body">
+                  <div className="data-row">
+                    <span className="data-label">Placed By</span>
+                    <span className="data-value" style={{ fontWeight: 800, color: "var(--accent, #d97706)" }}>
+                      👤 {creatorName}
+                    </span>
+                  </div>
                   <div className="data-row">
                     <span className="data-label">Document Type</span>
                     <span className="data-value">
@@ -4616,6 +4710,7 @@ export function SuperAdminIncentiveSection() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [incentiveMode, setIncentiveMode] = useState<boolean>(false);
   const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
+  const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
 
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -4649,16 +4744,6 @@ export function SuperAdminIncentiveSection() {
           <h2 className="page-title">Incentive Management</h2>
           <p className="page-sub">Track and manage employee incentives and payouts.</p>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            setEditing({ id: Date.now().toString(), name: "", sku: "", cost: 0, stock: 0, status: "Available", incentive: 0, qty: 1 } as any);
-            setIncentiveMode(true);
-          }}
-          style={{ padding: "8px 16px", borderRadius: "8px", fontWeight: 600 }}
-        >
-          ➕ Add Incentive Product
-        </button>
       </div>
 
       <div className="panel" style={{ marginTop: 24 }}>
@@ -4675,6 +4760,7 @@ export function SuperAdminIncentiveSection() {
                 <th>LOCATION</th>
                 <th>QTY</th>
                 <th style={{ whiteSpace: "nowrap" }}>INCENTIVE / UNIT</th>
+                <th style={{ whiteSpace: "nowrap" }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
@@ -4735,6 +4821,28 @@ export function SuperAdminIncentiveSection() {
                       </div>
                     </td>
                     <td style={{ fontWeight: 600, color: "var(--green)" }}>₹{p.incentive.toLocaleString()}</td>
+                    <td>
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => setSellingProduct(p)}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          borderRadius: "8px",
+                          background: "linear-gradient(135deg, #10b981, #059669)",
+                          border: "none",
+                          color: "#fff",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px"
+                        }}
+                        title="Create Order for this Incentive Product"
+                      >
+                        ➕ Add Order
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -4817,6 +4925,13 @@ export function SuperAdminIncentiveSection() {
             <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
           </div>
         </Modal>
+      )}
+
+      {sellingProduct && (
+        <IncentiveSellOrderModal
+          product={sellingProduct}
+          onClose={() => setSellingProduct(null)}
+        />
       )}
     </>
   );
@@ -4985,5 +5100,216 @@ export function SuperAdminGodownSection() {
         />
       )}
     </>
+  );
+}
+
+function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClose: () => void }) {
+  const { customers, users, setState, uid, currentUser } = useStore();
+  const employees = users.filter((u) => u.role === "employee");
+
+  const [assignedEmployeeId, setAssignedEmployeeId] = useState(employees[0]?.id || "");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [docType, setDocType] = useState<"Bill" | "Order Copy">("Bill");
+  const [bookingExpiryDate, setBookingExpiryDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+  const [qty, setQty] = useState(1);
+  const [discountPct, setDiscountPct] = useState<number | "">("");
+  const [customerBargain, setCustomerBargain] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const unitPrice = product.price || product.cost || 0;
+  const baseTotal = unitPrice * qty;
+  const discountVal = discountPct ? Math.round(((Number(discountPct) || 0) / 100) * baseTotal) : 0;
+  const finalTotal = Math.max(0, baseTotal - discountVal);
+  const totalIncentive = (product.incentive || 0) * qty;
+
+  const handleSubmit = () => {
+    const selectedEmp = employees.find(e => e.id === assignedEmployeeId);
+    const empId = selectedEmp?.id || currentUser?.id;
+    const empName = selectedEmp?.name || currentUser?.name || "Employee";
+
+    const orderId = uid("o");
+    const today = new Date().toISOString().slice(0, 10);
+    const finalCustName = customerName.trim() || "Incentive Direct Sale";
+
+    setState((s) => {
+      let customerId = "c_inc_direct";
+      let nextCustomers = s.customers;
+      if (customerName.trim()) {
+        let existingCust = s.customers.find(
+          (c) => c.name.trim().toLowerCase() === customerName.trim().toLowerCase()
+        );
+        if (existingCust) {
+          customerId = existingCust.id;
+        } else {
+          customerId = uid("c");
+          const newCust = {
+            id: customerId,
+            name: customerName.trim(),
+            phone: customerPhone.trim(),
+            address: customerAddress.trim(),
+            email: "",
+            status: "Active"
+          };
+          nextCustomers = [...s.customers, newCust];
+        }
+      }
+
+      const newOrder: Order = {
+        id: orderId,
+        customerId,
+        customerName: finalCustName,
+        productId: product.id,
+        productName: product.name,
+        qty,
+        total: finalTotal,
+        discount: Number(discountPct) || 0,
+        createdBy: empName,
+        status: "Pending",
+        date: today,
+        assignedTo: empId,
+        assignedToName: empName,
+        sentToEmployee: true,
+        customerBargain: customerBargain.trim() || undefined,
+        docType,
+        bookingExpiryDate: docType === "Order Copy" ? bookingExpiryDate : undefined,
+        isIncentive: true
+      };
+
+      const notifId = uid("n");
+      const docLabel = docType === "Bill" ? "Bill" : "Order Copy";
+      const expiryStr = docType === "Order Copy" && bookingExpiryDate ? ` (Valid Until: ${bookingExpiryDate})` : "";
+      const notifMsg = `New Incentive ${docLabel} order assigned to ${empName} (Order #${orderId})${expiryStr}`;
+
+      return {
+        ...s,
+        customers: nextCustomers,
+        orders: [...s.orders, newOrder],
+        notifications: [
+          {
+            id: notifId,
+            to: "superadmin",
+            from: currentUser?.name || "Admin",
+            message: notifMsg,
+            date: today,
+            read: false
+          },
+          ...s.notifications
+        ]
+      };
+    });
+
+    setSuccessMsg(`Incentive Order #${orderId} sent to ${empName}'s Orders successfully!`);
+    setTimeout(() => {
+      onClose();
+    }, 1200);
+  };
+
+  return (
+    <Modal title={`➕ Add Incentive Order — ${product.name}`} onClose={onClose}>
+      {errorMsg && (
+        <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, marginBottom: "14px" }}>
+          ⚠️ {errorMsg}
+        </div>
+      )}
+      {successMsg && (
+        <div style={{ background: "#dcfce7", color: "#15803d", border: "1px solid #86efac", padding: "10px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: 700, marginBottom: "14px" }}>
+          ✅ {successMsg}
+        </div>
+      )}
+
+      {/* Selected Product Summary Card */}
+      <div style={{ background: "#fef3c7", border: "1px solid #fde047", padding: "12px 16px", borderRadius: "12px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontWeight: 800, color: "#92400e", fontSize: "15px" }}>📦 {product.name} {product.brand ? `(${product.brand})` : ""}</div>
+          <div style={{ fontSize: "12px", color: "#b45309", marginTop: "2px" }}>SKU: {product.sku || "—"} · Stock Available: {product.qty ?? product.stock ?? 0}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: "12px", color: "#b45309", fontWeight: 600 }}>Incentive Payout:</div>
+          <div style={{ fontSize: "16px", fontWeight: 800, color: "#15803d" }}>₹{totalIncentive.toLocaleString()}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+        {/* Employee Selection dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
+            Select Employee (ज्या कर्मचाऱ्याच्या ऑर्डरमध्ये पाठवायचे आहे) *
+          </label>
+          <select
+            className="form-select"
+            value={assignedEmployeeId}
+            onChange={(e) => setAssignedEmployeeId(e.target.value)}
+            style={{ fontWeight: 700, fontSize: "14px" }}
+          >
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                👤 {emp.name} ({emp.employeeId || emp.jobTitle || "Employee"})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Quantity & Discount Inputs */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
+              Quantity *
+            </label>
+            <input
+              type="number"
+              className="form-input"
+              min={1}
+              max={product.qty ?? product.stock ?? 999}
+              value={qty}
+              onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
+              style={{ fontWeight: 700, fontSize: "15px" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
+              Discount (%)
+            </label>
+            <input
+              type="number"
+              className="form-input"
+              min={0}
+              max={100}
+              value={discountPct}
+              onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="Enter discount % (e.g. 10)"
+              style={{ fontWeight: 700, fontSize: "15px" }}
+            />
+          </div>
+        </div>
+
+        {/* Total calculation preview */}
+        <div style={{ padding: "14px", background: "var(--biscuit-light)", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--brown)", fontWeight: 600 }}>Total Order Value:</div>
+            <div style={{ fontSize: "11px", color: "var(--brown-dark)", marginTop: "2px" }}>
+              Price (₹{unitPrice.toLocaleString()} / unit) × {qty} Qty {discountPct ? `(-${discountPct}% Discount)` : ""}
+            </div>
+          </div>
+          <div style={{ fontSize: "20px", fontWeight: 900, color: "var(--brown-dark)" }}>₹{finalTotal.toLocaleString()}</div>
+        </div>
+
+        <div className="modal-actions" style={{ marginTop: "12px" }}>
+          <button className="btn btn-ghost" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleSubmit}
+            style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))", border: "none", color: "#fff", fontWeight: 700 }}
+          >
+            ➕ Submit Incentive Order
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }

@@ -176,6 +176,99 @@ export function BarChart({ data }: { data: { label: string; value: number }[] })
   );
 }
 
+export function PieChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const total = data.reduce((acc, d) => acc + d.value, 0);
+
+  if (total === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "30px 10px", color: "var(--brown)", fontSize: "13px" }}>
+        📊 No work activity data recorded yet.
+      </div>
+    );
+  }
+
+  let accumulatedAngle = 0;
+  const radius = 70;
+  const cx = 100;
+  const cy = 100;
+
+  const slices = data.map((d) => {
+    const percentage = d.value / total;
+    const angle = percentage * 360;
+    const startAngle = accumulatedAngle;
+    const endAngle = accumulatedAngle + angle;
+    accumulatedAngle += angle;
+
+    const startRad = ((startAngle - 90) * Math.PI) / 180;
+    const endRad = ((endAngle - 90) * Math.PI) / 180;
+
+    const x1 = cx + radius * Math.cos(startRad);
+    const y1 = cy + radius * Math.sin(startRad);
+    const x2 = cx + radius * Math.cos(endRad);
+    const y2 = cy + radius * Math.sin(endRad);
+
+    const largeArcFlag = angle > 180 ? 1 : 0;
+
+    const pathData = angle >= 359.9
+      ? `M ${cx - radius},${cy} A ${radius},${radius} 0 1,0 ${cx + radius},${cy} A ${radius},${radius} 0 1,0 ${cx - radius},${cy}`
+      : `M ${cx},${cy} L ${x1},${y1} A ${radius},${radius} 0 ${largeArcFlag},1 ${x2},${y2} Z`;
+
+    return {
+      ...d,
+      percentage: Math.round(percentage * 100),
+      pathData,
+    };
+  });
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", flexWrap: "wrap", gap: "20px" }}>
+      <div style={{ position: "relative", width: "160px", height: "160px" }}>
+        <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%" }}>
+          {slices.map((slice, idx) => (
+            <path
+              key={idx}
+              d={slice.pathData}
+              fill={slice.color}
+              stroke="#ffffff"
+              strokeWidth="2"
+              style={{ transition: "all 0.3s ease", cursor: "pointer" }}
+            >
+              <title>{`${slice.label}: ${slice.value} (${slice.percentage}%)`}</title>
+            </path>
+          ))}
+          <circle cx="100" cy="100" r="40" fill="#ffffff" />
+        </svg>
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          textAlign: "center",
+          pointerEvents: "none"
+        }}>
+          <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--brown-dark)" }}>{total}</div>
+          <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--brown)", textTransform: "uppercase" }}>Total Work</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", minWidth: "160px" }}>
+        {slices.map((slice, idx) => (
+          <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", fontSize: "13px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: slice.color, display: "inline-block" }} />
+              <span style={{ fontWeight: 600, color: "#334155" }}>{slice.label}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontWeight: 700, color: "var(--brown-dark)" }}>{slice.value}</span>
+              <span style={{ fontSize: "11px", color: "var(--brown)", fontWeight: 600 }}>({slice.percentage}%)</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Modal({ title, onClose, children, className }: { title: string; onClose: () => void; children: ReactNode; className?: string }) {
   useEffect(() => {
     const originalBodyOverflow = document.body.style.overflow;
