@@ -1714,6 +1714,9 @@ export function EmployeeIncentiveSection() {
                 onChange={(e) => setSellQty(Math.max(1, Number(e.target.value)))}
                 style={{ fontWeight: 700, fontSize: "15px" }}
               />
+              <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
+                💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
+              </span>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>

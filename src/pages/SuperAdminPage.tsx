@@ -5,6 +5,8 @@ import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../app/DashboardLayout";
 import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
 import { OrderDocumentModal } from "./EmployeePage";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const NAV: NavItem[] = [
   { key: "live", label: "Live Dashboard", icon: "📡" },
@@ -119,6 +121,7 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
         {active === "incentive" && <SuperAdminIncentiveSection />}
         {active === "notifications" && <NotificationsSection role="superadmin" />}
       </DashboardLayout>
+      <PDFPreviewContainer />
     </>
   );
 }
@@ -228,8 +231,32 @@ function ManagersSection() {
 
   return (
     <>
-      <h2 className="page-title">Manage Managers</h2>
-      <p className="page-sub">Add, edit, or remove managers in the system.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+        <div>
+          <h2 className="page-title">Manage Managers</h2>
+          <p className="page-sub">Add, edit, or remove managers in the system.</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              const headers = ["Sr. No.", "Manager ID", "Full Name", "Phone", "Email"];
+              const rows = managers.map((m, index) => [index + 1, m.username || m.id, m.name, m.phone || "—", m.email || "—"]);
+              openPDFPreview("Managers Directory Report", headers, rows, `Total Managers: ${managers.length}`);
+            }}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
+          >
+            📄 Download PDF
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportManagersReport(managers)}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
+          >
+            📥 Export CSV
+          </button>
+        </div>
+      </div>
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">All Managers ({managers.length})</h3>
@@ -618,8 +645,32 @@ function EmployeesSection() {
 
   return (
     <>
-      <h2 className="page-title">Employee Details</h2>
-      <p className="page-sub">Manage employees and view their workload.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+        <div>
+          <h2 className="page-title">Employee Details</h2>
+          <p className="page-sub">Manage employees and view their workload.</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              const headers = ["Sr. No.", "Employee ID", "Full Name", "Job Role", "Phone", "Email", "Status"];
+              const rows = employees.map((e, index) => [index + 1, e.employeeId || e.id, e.name, e.jobTitle || "Sales Associate", e.phone || "—", e.email || e.username || "—", e.status || "Verified"]);
+              openPDFPreview("Employees Roster Report", headers, rows, `Total Employees: ${employees.length}`);
+            }}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
+          >
+            📄 Download PDF
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportEmployeesReport(employees)}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
+          >
+            📥 Export CSV
+          </button>
+        </div>
+      </div>
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">All Employees ({employees.length})</h3>
@@ -877,8 +928,38 @@ function ProductsSection() {
 
   return (
     <>
-      <h2 className="page-title">Product Management</h2>
-      <p className="page-sub">Maintain catalog, stock, and status.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+        <div>
+          <h2 className="page-title">Product Management</h2>
+          <p className="page-sub">Maintain catalog, stock, and status.</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
+              const rows = filteredProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitCost = p.cost || 0;
+                const totalCost = qty * unitCost;
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
+              });
+              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`);
+            }}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
+          >
+            📄 Download PDF
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportProductsReport(filteredProducts)}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
+          >
+            📥 Export CSV
+          </button>
+        </div>
+      </div>
 
 
 
@@ -899,9 +980,9 @@ function ProductsSection() {
                 <th>SKU</th>
                 <th>CATEGORY</th>
                 <th>QTY</th>
-                <th>COST</th>
+                <th>UNIT COST</th>
                 <th style={{ whiteSpace: "nowrap" }}>INCENTIVE/UNIT</th>
-                <th style={{ whiteSpace: "nowrap" }}>TOTAL VALUE</th>
+                <th style={{ whiteSpace: "nowrap" }}>TOTAL COST</th>
                 <th>SUPPLIER</th>
                 <th>DATE</th>
                 <th>STATUS</th>
@@ -4712,6 +4793,8 @@ export function SuperAdminIncentiveSection() {
   const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
 
+  const employees = useMemo(() => users.filter((u) => u.role === "employee"), [users]);
+
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
@@ -4725,6 +4808,9 @@ export function SuperAdminIncentiveSection() {
         existing.qty = (existing.qty ?? existing.stock ?? 0) + (p.qty ?? p.stock ?? 0);
         existing.stock = existing.qty;
         existing.batches.push(p);
+        if (!existing.assignedEmployeeId && p.assignedEmployeeId) {
+          existing.assignedEmployeeId = p.assignedEmployeeId;
+        }
       } else {
         map.set(key, { ...p, batches: [p] });
       }
@@ -4744,57 +4830,122 @@ export function SuperAdminIncentiveSection() {
           <h2 className="page-title">Incentive Management</h2>
           <p className="page-sub">Track and manage employee incentives and payouts.</p>
         </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+              const rows = groupedOldProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitIncentive = p.incentive || 0;
+                const totalIncentive = qty * unitIncentive;
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+              });
+              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`);
+            }}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: "8px", padding: "8px 14px", fontWeight: 600 }}
+          >
+            📄 Download PDF
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportIncentiveReport(products)}
+            style={{ border: "1px solid var(--border)", background: "white", borderRadius: "8px", padding: "8px 14px", fontWeight: 600 }}
+          >
+            📥 Export CSV
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setEditing({ id: Date.now().toString(), name: "", sku: "", cost: 0, stock: 0, status: "Available", incentive: 0, qty: 1 } as any);
+              setIncentiveMode(true);
+            }}
+            style={{ padding: "8px 16px", borderRadius: "8px", fontWeight: 600 }}
+          >
+            ➕ Add Incentive Product
+          </button>
+        </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 24 }}>
-        <div className="panel-head">
-          <h3 className="panel-title">💰 Products Eligible for Incentive (&gt; 90 Days)</h3>
+      <div className="panel" style={{ marginTop: 24, borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.04)", border: "1px solid var(--border)", overflow: "hidden" }}>
+        <div className="panel-head" style={{ padding: "18px 24px", background: "linear-gradient(135deg, #fffbf0, #fff7ed)", borderBottom: "1px solid var(--border)" }}>
+          <h3 className="panel-title" style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+            <span>💰</span> Products Eligible for Incentive (&gt; 90 Days)
+          </h3>
         </div>
         <div className="table-wrap">
-          <table className="tbl">
+          <table className="tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr>
-                <th>IMAGE</th>
-                <th>PRODUCT</th>
-                <th>SKU</th>
-                <th>LOCATION</th>
-                <th>QTY</th>
-                <th style={{ whiteSpace: "nowrap" }}>INCENTIVE / UNIT</th>
-                <th style={{ whiteSpace: "nowrap" }}>ACTION</th>
+              <tr style={{ background: "var(--cream-light)", borderBottom: "1px solid var(--border)" }}>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>IMAGE</th>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>PRODUCT</th>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>SKU</th>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>LOCATION</th>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>QTY</th>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>INCENTIVE / UNIT</th>
+                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>👤 ASSIGN EMPLOYEE</th>
               </tr>
             </thead>
             <tbody>
               {groupedOldProducts.map((p) => {
                 const hasUnseen = p.batches.some(b => !b.incentiveSeen);
+                const assignedEmp = p.assignedEmployeeId || p.batches.find(b => b.assignedEmployeeId)?.assignedEmployeeId || "";
+
+                // Styling based on assignment state
+                const isUnassigned = !assignedEmp;
+                const isAll = assignedEmp === "all";
+
+                const selectBg = isUnassigned
+                  ? "linear-gradient(135deg, #f8fafc, #f1f5f9)"
+                  : isAll
+                    ? "linear-gradient(135deg, #eff6ff, #dbeafe)"
+                    : "linear-gradient(135deg, #f0fdf4, #dcfce7)";
+
+                const selectBorder = isUnassigned
+                  ? "1.5px dashed #cbd5e1"
+                  : isAll
+                    ? "1.5px solid #93c5fd"
+                    : "1.5px solid #86efac";
+
+                const selectColor = isUnassigned
+                  ? "#64748b"
+                  : isAll
+                    ? "#1e40af"
+                    : "#15803d";
+
                 return (
-                  <tr key={p.id}>
-                    <td>
+                  <tr key={p.id} style={{ borderBottom: "1px solid var(--border)", transition: "background 0.15s ease" }}>
+                    <td style={{ padding: "12px 16px" }}>
                       {p.image ? (
-                        <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }}>
                           <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </div>
                       ) : (
-                        <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--biscuit)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--biscuit)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
                           📦
                         </div>
                       )}
                     </td>
-                    <td>
-                      <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+                    <td style={{ padding: "12px 16px" }}>
+                      <div style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: "8px", color: "var(--text)" }}>
                         {p.name}
                         {hasUnseen && (
                           <span style={{ background: "#ef4444", color: "white", fontSize: "9px", padding: "2px 6px", borderRadius: "10px", fontWeight: 800, animation: "pulse 2s infinite" }}>NEW</span>
                         )}
                       </div>
-                      <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                      <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 2 }}>
                         <span>Brand: {p.brand || "—"}</span>
                       </div>
                     </td>
-                    <td>{p.sku}</td>
-                    <td><span style={{ padding: "4px 8px", background: "var(--biscuit)", borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{p.location || "Unassigned"}</span></td>
-                    <td>
+                    <td style={{ padding: "12px 16px", fontSize: 13, color: "var(--text)", fontWeight: 500 }}>{p.sku || "—"}</td>
+                    <td style={{ padding: "12px 16px" }}>
+                      <span style={{ padding: "4px 10px", background: "var(--biscuit)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 11, fontWeight: 600, color: "var(--brown)" }}>
+                        📍 {p.location || "Unassigned"}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span>{p.qty ?? p.stock}</span>
+                        <span style={{ fontWeight: 700, fontSize: 14 }}>{p.qty ?? p.stock}</span>
                         {p.batches.length > 0 && (
                           <div
                             style={{ cursor: "pointer", position: "relative" }}
@@ -4820,32 +4971,75 @@ export function SuperAdminIncentiveSection() {
                         )}
                       </div>
                     </td>
-                    <td style={{ fontWeight: 600, color: "var(--green)" }}>₹{p.incentive.toLocaleString()}</td>
-                    <td>
-                      <button
-                        className="btn btn-success btn-sm"
-                        onClick={() => setSellingProduct(p)}
-                        style={{
-                          padding: "6px 12px",
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          borderRadius: "8px",
-                          background: "linear-gradient(135deg, #10b981, #059669)",
-                          border: "none",
-                          color: "#fff",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px"
-                        }}
-                        title="Create Order for this Incentive Product"
-                      >
-                        ➕ Add Order
-                      </button>
+                    <td style={{ padding: "12px 16px" }}>
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+                        color: "#15803d",
+                        border: "1px solid #bbf7d0",
+                        padding: "5px 12px",
+                        borderRadius: "20px",
+                        fontWeight: 700,
+                        fontSize: "13px"
+                      }}>
+                        💰 ₹{p.incentive.toLocaleString()}
+                      </span>
+                    </td>
+                    <td style={{ padding: "12px 16px", minWidth: 190 }}>
+                      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                        <select
+                          className="form-input"
+                          value={assignedEmp}
+                          onChange={(e) => {
+                            const empId = e.target.value;
+                            const batchIds = p.batches.map(b => b.id);
+                            setState((s: any) => ({
+                              ...s,
+                              products: s.products.map((prod: any) =>
+                                batchIds.includes(prod.id)
+                                  ? { ...prod, assignedEmployeeId: empId }
+                                  : prod
+                              )
+                            }));
+                          }}
+                          style={{
+                            padding: "8px 12px",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            borderRadius: 10,
+                            border: selectBorder,
+                            background: selectBg,
+                            color: selectColor,
+                            appearance: "auto",
+                            width: "100%",
+                            cursor: "pointer",
+                            boxShadow: isUnassigned ? "none" : "0 2px 6px rgba(0,0,0,0.04)",
+                            outline: "none",
+                            transition: "all 0.2s ease"
+                          }}
+                        >
+                          <option value="" style={{ background: "white", color: "#333" }}>-- Select Employee --</option>
+                          <option value="all" style={{ background: "white", color: "#1e40af", fontWeight: 700 }}>👥 All Employees</option>
+                          {employees.map((u) => (
+                            <option key={u.id} value={u.id} style={{ background: "white", color: "#333" }}>
+                              👤 {u.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
+              {groupedOldProducts.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--brown)" }}>
+                    No products eligible for incentive (&gt; 90 days) found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -4956,7 +5150,7 @@ export function SuperAdminGodownSection() {
             <th>CATEGORY</th>
             <th>QTY</th>
             <th>UNIT COST</th>
-            <th>TOTAL VALUE</th>
+            <th>TOTAL COST</th>
           </tr>
         </thead>
         <tbody>
@@ -5311,5 +5505,1001 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
         </div>
       </div>
     </Modal>
+  );
+}
+
+// ========================================================
+// SECTION PDF DOWNLOAD & CSV REPORT UTILITIES FOR ALL SECTIONS
+// ========================================================
+
+export function openPDFPreview(sectionTitle: string, tableHeaders: string[], rows: (string | number)[][], summaryText?: string) {
+  const event = new CustomEvent("open-pdf-preview", {
+    detail: { sectionTitle, tableHeaders, rows, summaryText }
+  });
+  window.dispatchEvent(event);
+}
+
+export function PDFPreviewContainer() {
+  const [data, setData] = useState<{
+    sectionTitle: string;
+    tableHeaders: string[];
+    rows: (string | number)[][];
+    summaryText?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent;
+      if (custom.detail) {
+        setData(custom.detail);
+      }
+    };
+    window.addEventListener("open-pdf-preview", handler);
+    return () => window.removeEventListener("open-pdf-preview", handler);
+  }, []);
+
+  if (!data) return null;
+
+  const today = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  const handleConfirmDownload = () => {
+    downloadSectionPDF(data.sectionTitle, data.tableHeaders, data.rows, data.summaryText);
+    setData(null);
+  };
+
+  return (
+    <Modal title={`📄 Report Document Preview`} className="modal-report-preview" onClose={() => setData(null)}>
+      <div style={{ padding: "16px 20px", maxHeight: "80vh", overflowY: "auto" }}>
+        <div style={{
+          background: "#ffffff",
+          border: "1px solid #cbd5e1",
+          borderRadius: 10,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+          padding: 24,
+          fontFamily: "Inter, system-ui, sans-serif"
+        }}>
+          <div style={{ borderBottom: "2px solid #2563eb", paddingBottom: 14, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 18, color: "#1e293b", fontWeight: 700 }}>
+                Smart Home Systems - {data.sectionTitle}
+              </h2>
+              <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>
+                Super Admin System Report | Generated: {today}
+              </div>
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, border: "1px solid #bfdbfe" }}>
+              PDF PREVIEW MODE
+            </span>
+          </div>
+
+          {data.summaryText && (
+            <div style={{
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: 6,
+              padding: "10px 14px",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#334155",
+              marginBottom: 16
+            }}>
+              📋 {data.summaryText}
+            </div>
+          )}
+
+          <div style={{ overflowX: "auto", border: "1px solid #e2e8f0", borderRadius: 8 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, textAlign: "left" }}>
+              <thead>
+                <tr style={{ background: "#2563eb", color: "#ffffff" }}>
+                  {data.tableHeaders.map((h, idx) => (
+                    <th key={idx} style={{ padding: "10px 12px", fontWeight: 600, borderBottom: "2px solid #1d4ed8", whiteSpace: "nowrap" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.rows.map((row, rIdx) => (
+                  <tr key={rIdx} style={{ background: rIdx % 2 === 0 ? "#ffffff" : "#f8fafc" }}>
+                    {row.map((cell, cIdx) => (
+                      <td key={cIdx} style={{ padding: "9px 12px", borderBottom: "1px solid #e2e8f0", color: "#334155", whiteSpace: "nowrap" }}>
+                        {String(cell ?? "—")}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {data.rows.length === 0 && (
+                  <tr>
+                    <td colSpan={data.tableHeaders.length} style={{ textAlign: "center", padding: 20, color: "#94a3b8" }}>
+                      No items found in this report section.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 20, paddingTop: 12, borderTop: "1px solid #e2e8f0" }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => setData(null)}
+            style={{ padding: "9px 18px", borderRadius: 8, border: "1px solid var(--border)", fontWeight: 600 }}
+          >
+            ✕ Cancel
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleConfirmDownload}
+            style={{
+              padding: "10px 24px",
+              borderRadius: 8,
+              background: "#2563eb",
+              color: "#ffffff",
+              fontWeight: 700,
+              fontSize: 14,
+              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer"
+            }}
+          >
+            📥 Confirm & Download PDF
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+export function downloadSectionPDF(sectionTitle: string, tableHeaders: string[], rows: (string | number)[][], summaryText?: string) {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const today = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  // Document Title Header
+  doc.setFontSize(16);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`Smart Home Systems - ${sectionTitle}`, 14, 16);
+
+  // Metadata Subtitle
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Super Admin System Report | Generated: ${today}`, 14, 22);
+
+  let startY = 27;
+
+  if (summaryText) {
+    doc.setFillColor(248, 250, 252);
+    doc.rect(14, startY, 182, 9, "F");
+    doc.setFontSize(9);
+    doc.setTextColor(51, 65, 85);
+    doc.text(summaryText, 18, startY + 6);
+    startY += 13;
+  }
+
+  // Generate Table
+  autoTable(doc, {
+    startY: startY,
+    head: [tableHeaders],
+    body: rows.map(r => r.map(c => String(c ?? "—"))),
+    styles: { fontSize: 8, cellPadding: 2.5 },
+    headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 14, right: 14 }
+  });
+
+  const fileName = `${sectionTitle.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`;
+  doc.save(fileName);
+}
+
+export function exportToCSV(filename: string, headers: string[], rows: (string | number)[][]) {
+  const csvRows = [
+    headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(","),
+    ...rows.map(row => row.map(cell => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
+  ];
+  const blob = new Blob(["\uFEFF" + csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function exportProductsReport(products: Product[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost (₹)", "Total Cost (₹)", "Selling Price (₹)", "Supplier", "Date Added", "Status"];
+  const rows = products.map((p, index) => {
+    const qty = p.qty ?? p.stock ?? 0;
+    const unitCost = p.cost || 0;
+    const totalCost = qty * unitCost;
+    const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+    return [
+      index + 1,
+      p.name,
+      p.sku || "",
+      p.brand || "—",
+      p.location || "Unassigned",
+      qty,
+      unitCost,
+      totalCost,
+      p.price || 0,
+      p.supplier || "—",
+      formattedDate,
+      p.status || "Verified"
+    ];
+  });
+  exportToCSV(`Inventory_Stock_Report_${today}.csv`, headers, rows);
+}
+
+export function exportOrdersReport(orders: Order[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  const headers = ["Order ID", "Customer Name", "Product Name", "Quantity", "Total Amount (₹)", "Discount (%)", "Doc Type", "Status", "Created By", "Assigned To", "Date"];
+  const rows = orders.map(o => [
+    o.id,
+    o.customerName || "",
+    o.productName || "",
+    o.qty || 1,
+    o.total || 0,
+    o.discount || 0,
+    o.docType || "Bill",
+    o.status,
+    o.createdBy || "",
+    o.assignedToName || o.assignedTo || "",
+    o.date || ""
+  ]);
+  exportToCSV(`Orders_Approval_Report_${today}.csv`, headers, rows);
+}
+
+export function exportIncentiveReport(products: Product[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const oldBatches = products.filter(p => p.date && new Date(p.date) < ninetyDaysAgo);
+
+  const headers = ["Product ID", "Product Name", "SKU", "Brand", "Location", "Quantity (>90 Days)", "Incentive Per Unit (₹)", "Total Potential Incentive (₹)", "Assigned Seller ID", "Date Added"];
+  const rows = oldBatches.map(p => [
+    p.id,
+    p.name,
+    p.sku || "",
+    p.brand || "",
+    p.location || "Unassigned",
+    p.qty ?? p.stock ?? 0,
+    p.incentive || 0,
+    (p.qty ?? p.stock ?? 0) * (p.incentive || 0),
+    p.assignedEmployeeId || "Unassigned",
+    p.date || ""
+  ]);
+  exportToCSV(`Incentive_Products_Report_${today}.csv`, headers, rows);
+}
+
+export function exportLeadsReport(leads: Lead[], users: User[] = []) {
+  const today = new Date().toISOString().slice(0, 10);
+  const headers = ["Lead ID", "Customer Name", "Phone", "Email", "Status", "Source", "Interested Product", "Assigned Employee", "Date Created"];
+  const rows = leads.map(l => [
+    l.id,
+    l.name,
+    l.phone || "",
+    l.email || "",
+    l.status,
+    l.source || "",
+    l.product || "",
+    users.find(u => u.id === l.assignedTo)?.name || l.assignedTo || "",
+    l.date || ""
+  ]);
+  exportToCSV(`Leads_Pipeline_Report_${today}.csv`, headers, rows);
+}
+
+export function exportTasksReport(tasks: Task[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  const headers = ["Task ID", "Task Title", "Assigned Employee", "Status", "Assigned Date"];
+  const rows = tasks.map(t => [
+    t.id,
+    t.title,
+    t.assignedToName || t.assignedTo || "",
+    t.status,
+    t.date || ""
+  ]);
+  exportToCSV(`Employee_Tasks_Report_${today}.csv`, headers, rows);
+}
+
+export function exportEmployeesReport(employees: User[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  const headers = ["Sr. No.", "Employee ID", "Full Name", "Job Role", "Phone", "Email", "Status"];
+  const rows = employees.map((e, index) => [
+    index + 1,
+    e.employeeId || e.id,
+    e.name,
+    e.jobTitle || "Sales Associate",
+    e.phone || "—",
+    e.email || e.username || "—",
+    e.status || "Verified"
+  ]);
+  exportToCSV(`Employees_Roster_Report_${today}.csv`, headers, rows);
+}
+
+export function exportManagersReport(managers: User[]) {
+  const today = new Date().toISOString().slice(0, 10);
+  const headers = ["Sr. No.", "Manager ID", "Full Name", "Phone", "Email"];
+  const rows = managers.map((m, index) => [
+    index + 1,
+    m.username || m.id,
+    m.name,
+    m.phone || "—",
+    m.email || "—"
+  ]);
+  exportToCSV(`Managers_Directory_Report_${today}.csv`, headers, rows);
+}
+
+export function SuperAdminReportsSection() {
+  const { products, orders, leads, tasks, users } = useStore();
+  const [reportType, setReportType] = useState<"all" | "products" | "orders" | "incentive" | "leads" | "tasks" | "employees" | "managers">("all");
+
+  const ninetyDaysAgo = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 90);
+    return d;
+  }, []);
+
+  const incentiveProducts = useMemo(() => {
+    return products.filter(p => p.date && new Date(p.date) < ninetyDaysAgo);
+  }, [products, ninetyDaysAgo]);
+
+  const totalInventoryValuation = useMemo(() => {
+    return products.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || p.price || 0)), 0);
+  }, [products]);
+
+  const totalOrderRevenue = useMemo(() => {
+    return orders.filter(o => o.status === "Approved" || o.status === "Delivered").reduce((acc, o) => acc + (o.total || 0), 0);
+  }, [orders]);
+
+  const totalIncentivePool = useMemo(() => {
+    return incentiveProducts.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.incentive || 0)), 0);
+  }, [incentiveProducts]);
+
+  const employees = useMemo(() => users.filter(u => u.role === "employee"), [users]);
+  const managers = useMemo(() => users.filter(u => u.role === "manager"), [users]);
+
+  const handleExportAll = () => {
+    exportProductsReport(products);
+    exportOrdersReport(orders);
+    exportIncentiveReport(products);
+    exportLeadsReport(leads, users);
+    exportTasksReport(tasks);
+    exportEmployeesReport(employees);
+    exportManagersReport(managers);
+  };
+
+  return (
+    <div className="animated fadeIn">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .printable-report, .printable-report * { visibility: visible; }
+          .printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
+
+      <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+        <div>
+          <h2 className="page-title">📊 Reports & Analytics Hub</h2>
+          <p className="page-sub">Generate, preview, and download detailed reports for all business sections.</p>
+        </div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => window.print()}
+            style={{ border: "1px solid var(--border)", padding: "8px 16px", borderRadius: 10, fontWeight: 600, background: "white" }}
+          >
+            🖨️ Print / Save PDF
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleExportAll}
+            style={{ background: "linear-gradient(135deg, #2563eb, #1d4ed8)", padding: "8px 18px", borderRadius: 10, fontWeight: 700, boxShadow: "0 4px 12px rgba(37,99,235,0.25)" }}
+          >
+            📥 Export All Reports (CSV)
+          </button>
+        </div>
+      </div>
+
+      {/* Summary Stat Grid */}
+      <div className="stat-grid" style={{ marginBottom: 24 }}>
+        <StatCard icon="📦" label="INVENTORY COST VALUATION" value={`₹${totalInventoryValuation.toLocaleString()}`} />
+        <StatCard icon="🧾" label="APPROVED SALES REVENUE" value={`₹${totalOrderRevenue.toLocaleString()}`} />
+        <StatCard icon="💰" label="INCENTIVE POOL (>90 DAYS)" value={`₹${totalIncentivePool.toLocaleString()}`} />
+        <StatCard icon="🧲" label="TOTAL PIPELINE LEADS" value={leads.length} />
+        <StatCard icon="👥" label="ACTIVE EMPLOYEES" value={users.filter(u => u.role === "employee").length} />
+      </div>
+
+      {/* Module Export Cards */}
+      <div className="no-print" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16, marginBottom: 24 }}>
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #3b82f6", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>📦 Inventory & Stock Report</h4>
+            <span style={{ fontSize: 11, background: "#eff6ff", color: "#1d4ed8", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{products.length} Items</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Stock quantities, cost prices, selling values & godown locations.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
+                const rows = products.map((p, index) => {
+                  const qty = p.qty ?? p.stock ?? 0;
+                  const unitCost = p.cost || 0;
+                  const totalCost = qty * unitCost;
+                  const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                  return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
+                });
+                openPDFPreview("Stocking Inventory Report", headers, rows, `Total Items: ${products.length} | Valuation: ₹${totalInventoryValuation.toLocaleString()}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportProductsReport(products)} style={{ flex: 1, justifyContent: "center" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #10b981", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>✅ Orders & Sales Report</h4>
+            <span style={{ fontSize: 11, background: "#ecfdf5", color: "#047857", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{orders.length} Orders</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Customer orders, approval statuses, quantities & total sales value.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Order #", "Customer", "Product", "Qty", "Total (₹)", "Status", "Date"];
+                const rows = orders.map(o => [o.id, o.customerName, o.productName, o.qty, o.total, o.status, o.date]);
+                openPDFPreview("Orders & Sales Approvals Report", headers, rows, `Total Orders: ${orders.length} | Approved Revenue: ₹${totalOrderRevenue.toLocaleString()}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportOrdersReport(orders)} style={{ flex: 1, justifyContent: "center", background: "#10b981" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #f59e0b", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>💰 Incentive Products Report</h4>
+            <span style={{ fontSize: 11, background: "#fef3c7", color: "#b45309", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{incentiveProducts.length} Eligible</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Products older than 90 days, unit incentives & assigned sellers.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+                const rows = incentiveProducts.map((p, index) => {
+                  const qty = p.qty ?? p.stock ?? 0;
+                  const unitIncentive = p.incentive || 0;
+                  const totalIncentive = qty * unitIncentive;
+                  return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+                });
+                openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Eligible Products: ${incentiveProducts.length} | Total Incentive Pool: ₹${totalIncentivePool.toLocaleString()}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportIncentiveReport(products)} style={{ flex: 1, justifyContent: "center", background: "#d97706" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #8b5cf6", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>🧲 Leads & Deals Report</h4>
+            <span style={{ fontSize: 11, background: "#f5f3ff", color: "#6d28d9", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{leads.length} Leads</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Lead stages, customer contact details & assigned employees.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["ID", "Customer Name", "Phone", "Status", "Source", "Product", "Date"];
+                const rows = leads.map(l => [l.id, l.name, l.phone || "", l.status, l.source || "", l.product || "", l.date]);
+                openPDFPreview("Lead Generation Pipeline Report", headers, rows, `Total Leads: ${leads.length}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportLeadsReport(leads, users)} style={{ flex: 1, justifyContent: "center", background: "#7c3aed" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #ec4899", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>📝 Employee Tasks Report</h4>
+            <span style={{ fontSize: 11, background: "#fce7f3", color: "#be185d", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{tasks.length} Tasks</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Task assignments, completion statuses & assigned employees.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["ID", "Task Title", "Assigned Employee", "Status", "Date"];
+                const rows = tasks.map(t => [t.id, t.title, t.assignedToName || t.assignedTo || "", t.status, t.date]);
+                openPDFPreview("Employee Task Assignment Report", headers, rows, `Total Tasks: ${tasks.length}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportTasksReport(tasks)} style={{ flex: 1, justifyContent: "center", background: "#db2777" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #06b6d4", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>👥 Employees Roster Report</h4>
+            <span style={{ fontSize: 11, background: "#ecfeff", color: "#0891b2", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{employees.length} Staff</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Employee list, job roles, contact details & account status.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Sr. No.", "Employee ID", "Full Name", "Job Role", "Phone", "Email", "Status"];
+                const rows = employees.map((e, index) => [index + 1, e.employeeId || e.id, e.name, e.jobTitle || "Sales Associate", e.phone || "—", e.email || e.username || "—", e.status || "Verified"]);
+                openPDFPreview("Employees Roster Report", headers, rows, `Total Employees: ${employees.length}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportEmployeesReport(employees)} style={{ flex: 1, justifyContent: "center", background: "#0891b2" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #6366f1", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>👔 Managers Directory Report</h4>
+            <span style={{ fontSize: 11, background: "#eef2ff", color: "#4f46e5", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{managers.length} Managers</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Managers directory, IDs, passwords & contact info.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Sr. No.", "Manager ID", "Full Name", "Phone", "Email"];
+                const rows = managers.map((m, index) => [index + 1, m.username || m.id, m.name, m.phone || "—", m.email || "—"]);
+                openPDFPreview("Managers Directory Report", headers, rows, `Total Managers: ${managers.length}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportManagersReport(managers)} style={{ flex: 1, justifyContent: "center", background: "#4f46e5" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Filterable Live Printable Report Preview */}
+      <div className="panel printable-report" style={{ marginTop: 24, borderRadius: 14, overflow: "hidden" }}>
+        <div className="panel-head no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <h3 className="panel-title">📋 Live Report Preview</h3>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button className={`btn btn-sm ${reportType === "all" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("all")}>All Summary</button>
+            <button className={`btn btn-sm ${reportType === "products" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("products")}>Inventory ({products.length})</button>
+            <button className={`btn btn-sm ${reportType === "orders" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("orders")}>Orders ({orders.length})</button>
+            <button className={`btn btn-sm ${reportType === "incentive" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("incentive")}>Incentive ({incentiveProducts.length})</button>
+            <button className={`btn btn-sm ${reportType === "leads" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("leads")}>Leads ({leads.length})</button>
+            <button className={`btn btn-sm ${reportType === "tasks" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("tasks")}>Tasks ({tasks.length})</button>
+            <button className={`btn btn-sm ${reportType === "employees" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("employees")}>Employees ({employees.length})</button>
+            <button className={`btn btn-sm ${reportType === "managers" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("managers")}>Managers ({managers.length})</button>
+          </div>
+        </div>
+
+        <div style={{ padding: 20 }}>
+          <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", borderBottom: "2px solid var(--border)", paddingBottom: 12 }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 18, color: "var(--text)" }}>Business Executive Report</h3>
+              <span style={{ fontSize: 12, color: "var(--brown)" }}>Generated on: {new Date().toLocaleString()}</span>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", background: "var(--biscuit)", borderRadius: 6 }}>
+              Super Admin System Report
+            </span>
+          </div>
+
+          {(reportType === "all" || reportType === "products") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "var(--accent)" }}>📦 Stocking Inventory ({products.length} Products)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
+                      const rows = products.map((p, index) => {
+                        const qty = p.qty ?? p.stock ?? 0;
+                        const unitCost = p.cost || 0;
+                        const totalCost = qty * unitCost;
+                        const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                        return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
+                      });
+                      openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${products.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportProductsReport(products)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Product</th>
+                      <th>SKU</th>
+                      <th>Brand</th>
+                      <th>Location</th>
+                      <th>Qty</th>
+                      <th>Unit Cost (₹)</th>
+                      <th>Total Cost (₹)</th>
+                      <th>Supplier</th>
+                      <th>Date</th>
+                      <th>Selling Price (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.slice(0, 10).map((p, index) => {
+                      const qty = p.qty ?? p.stock ?? 0;
+                      const unitCost = p.cost || 0;
+                      const totalCost = qty * unitCost;
+                      const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                      return (
+                        <tr key={p.id}>
+                          <td>{index + 1}</td>
+                          <td><strong>{p.name}</strong></td>
+                          <td>{p.sku || "—"}</td>
+                          <td>{p.brand || "—"}</td>
+                          <td>{p.location || "Unassigned"}</td>
+                          <td>{qty}</td>
+                          <td>₹{unitCost.toLocaleString()}</td>
+                          <td>₹{totalCost.toLocaleString()}</td>
+                          <td>{p.supplier || "—"}</td>
+                          <td>{formattedDate}</td>
+                          <td>₹{(p.price || 0).toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                    {products.length === 0 && <tr><td colSpan={11} style={{ textAlign: "center" }}>No products found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {(reportType === "all" || reportType === "orders") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "var(--green)" }}>✅ Order Approvals & Sales ({orders.length} Orders)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Order #", "Customer", "Product", "Qty", "Total (₹)", "Status", "Date"];
+                      const rows = orders.map(o => [o.id, o.customerName, o.productName, o.qty, o.total, o.status, o.date]);
+                      openPDFPreview("Orders & Sales Approvals Report", headers, rows, `Total Orders: ${orders.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportOrdersReport(orders)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Customer</th>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Total (₹)</th>
+                      <th>Doc Type</th>
+                      <th>Status</th>
+                      <th>Assigned To</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.slice(0, 10).map((o) => (
+                      <tr key={o.id}>
+                        <td><strong>#{o.id}</strong></td>
+                        <td>{o.customerName}</td>
+                        <td>{o.productName}</td>
+                        <td>{o.qty}</td>
+                        <td style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</td>
+                        <td>{o.docType || "Bill"}</td>
+                        <td><Pill status={o.status} /></td>
+                        <td>{o.assignedToName || "—"}</td>
+                        <td>{o.date}</td>
+                      </tr>
+                    ))}
+                    {orders.length === 0 && <tr><td colSpan={9} style={{ textAlign: "center" }}>No orders found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {(reportType === "all" || reportType === "incentive") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#d97706" }}>💰 Incentive Products (&gt;90 Days) ({incentiveProducts.length} Items)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+                      const rows = incentiveProducts.map((p, index) => {
+                        const qty = p.qty ?? p.stock ?? 0;
+                        const unitIncentive = p.incentive || 0;
+                        const totalIncentive = qty * unitIncentive;
+                        return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+                      });
+                      openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Eligible Products: ${incentiveProducts.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportIncentiveReport(products)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>SKU</th>
+                      <th>Location</th>
+                      <th>Stock Qty</th>
+                      <th>Incentive / Unit (₹)</th>
+                      <th>Total Pool (₹)</th>
+                      <th>Assigned Seller</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {incentiveProducts.slice(0, 10).map((p) => {
+                      const assignedName = p.assignedEmployeeId === "all"
+                        ? "All Employees"
+                        : (users.find(u => u.id === p.assignedEmployeeId)?.name || p.assignedEmployeeId || "Unassigned");
+                      return (
+                        <tr key={p.id}>
+                          <td><strong>{p.name}</strong> {p.brand ? `(${p.brand})` : ""}</td>
+                          <td>{p.sku || "—"}</td>
+                          <td>{p.location || "Unassigned"}</td>
+                          <td>{p.qty ?? p.stock}</td>
+                          <td style={{ color: "var(--green)", fontWeight: 700 }}>₹{p.incentive.toLocaleString()}</td>
+                          <td style={{ fontWeight: 700 }}>₹{((p.qty ?? p.stock ?? 0) * (p.incentive || 0)).toLocaleString()}</td>
+                          <td>{assignedName}</td>
+                        </tr>
+                      );
+                    })}
+                    {incentiveProducts.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center" }}>No eligible incentive products found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {(reportType === "all" || reportType === "leads") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#7c3aed" }}>🧲 Lead Generation Pipeline ({leads.length} Leads)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["ID", "Customer Name", "Phone", "Status", "Source", "Product", "Date"];
+                      const rows = leads.map(l => [l.id, l.name, l.phone || "", l.status, l.source || "", l.product || "", l.date]);
+                      openPDFPreview("Lead Generation Pipeline Report", headers, rows, `Total Leads: ${leads.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportLeadsReport(leads, users)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Customer Name</th>
+                      <th>Phone</th>
+                      <th>Status</th>
+                      <th>Source</th>
+                      <th>Interested Product</th>
+                      <th>Assigned To</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leads.slice(0, 10).map((l) => (
+                      <tr key={l.id}>
+                        <td><strong>{l.name}</strong></td>
+                        <td>{l.phone || "—"}</td>
+                        <td><span className="pill">{l.status}</span></td>
+                        <td>{l.source || "—"}</td>
+                        <td>{l.product || "—"}</td>
+                        <td>{users.find(u => u.id === l.assignedTo)?.name || l.assignedTo || "—"}</td>
+                        <td>{l.date}</td>
+                      </tr>
+                    ))}
+                    {leads.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center" }}>No leads found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {(reportType === "all" || reportType === "tasks") && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#db2777" }}>📝 Employee Tasks ({tasks.length} Tasks)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["ID", "Task Title", "Assigned Employee", "Status", "Date"];
+                      const rows = tasks.map(t => [t.id, t.title, t.assignedToName || t.assignedTo || "", t.status, t.date]);
+                      openPDFPreview("Employee Task Assignment Report", headers, rows, `Total Tasks: ${tasks.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportTasksReport(tasks)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Task Title</th>
+                      <th>Assigned Employee</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tasks.slice(0, 10).map((t) => (
+                      <tr key={t.id}>
+                        <td><strong>{t.title}</strong></td>
+                        <td>{t.assignedToName || t.assignedTo || "—"}</td>
+                        <td><Pill status={t.status} /></td>
+                        <td>{t.date}</td>
+                      </tr>
+                    ))}
+                    {tasks.length === 0 && <tr><td colSpan={4} style={{ textAlign: "center" }}>No tasks found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {(reportType === "all" || reportType === "employees") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#0891b2" }}>👥 Active Employees ({employees.length} Staff)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Sr. No.", "Employee ID", "Full Name", "Job Role", "Phone", "Email", "Status"];
+                      const rows = employees.map((e, index) => [index + 1, e.employeeId || e.id, e.name, e.jobTitle || "Sales Associate", e.phone || "—", e.email || e.username || "—", e.status || "Verified"]);
+                      openPDFPreview("Employees Roster Report", headers, rows, `Total Employees: ${employees.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportEmployeesReport(employees)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Employee ID</th>
+                      <th>Full Name</th>
+                      <th>Job Role</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map((e, index) => (
+                      <tr key={e.id}>
+                        <td>{index + 1}</td>
+                        <td><strong>{e.employeeId || e.id}</strong></td>
+                        <td>{e.name}</td>
+                        <td>{e.jobTitle || "Sales Associate"}</td>
+                        <td>{e.phone || "—"}</td>
+                        <td>{e.email || e.username || "—"}</td>
+                        <td><span className="pill pill-approved">{e.status || "Verified"}</span></td>
+                      </tr>
+                    ))}
+                    {employees.length === 0 && <tr><td colSpan={7} style={{ textAlign: "center" }}>No employees found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {(reportType === "all" || reportType === "managers") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "#4f46e5" }}>👔 System Managers ({managers.length} Managers)</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Sr. No.", "Manager ID", "Full Name", "Phone", "Email"];
+                      const rows = managers.map((m, index) => [index + 1, m.username || m.id, m.name, m.phone || "—", m.email || "—"]);
+                      openPDFPreview("Managers Directory Report", headers, rows, `Total Managers: ${managers.length}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportManagersReport(managers)}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Manager ID</th>
+                      <th>Full Name</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {managers.map((m, index) => (
+                      <tr key={m.id}>
+                        <td>{index + 1}</td>
+                        <td><strong>{m.username || m.id}</strong></td>
+                        <td>{m.name}</td>
+                        <td>{m.phone || "—"}</td>
+                        <td>{m.email || "—"}</td>
+                      </tr>
+                    ))}
+                    {managers.length === 0 && <tr><td colSpan={5} style={{ textAlign: "center" }}>No managers found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

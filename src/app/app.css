@@ -994,6 +994,11 @@ table.tbl {
   max-width: 850px;
 }
 
+.modal.modal-report-preview {
+  max-width: 1200px;
+  width: 95vw;
+}
+
 .form-row-2-3 {
   display: grid;
   grid-template-columns: 2.2fr 1fr;
