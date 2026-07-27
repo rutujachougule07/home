@@ -893,6 +893,14 @@ function OrderUpdates() {
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
                   <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{orderUnitPrice.toLocaleString()}</span></div>
                   <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
+                  {isIncentiveOrder && !!o.discount && (
+                    <div className="data-row">
+                      <span className="data-label" style={{ color: "#d97706" }}>Your Incentive</span>
+                      <span className="data-value" style={{ color: "#15803d", fontWeight: 800 }}>
+                        {o.discount}% (₹{(Math.round((o.discount / 100) * orderUnitPrice) * o.qty).toLocaleString()})
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="data-card-footer" style={{ justifyContent: "flex-end", gap: "8px" }}>
                   <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 Bill</button>
@@ -1479,7 +1487,8 @@ export function EmployeeIncentiveSection() {
   }, [sellingProduct]);
 
   const baseTotal = unitPrice * sellQty;
-  const finalTotal = baseTotal;
+  const discountVal = discountPct ? Math.round(((Number(discountPct) || 0) / 100) * baseTotal) : 0;
+  const finalTotal = Math.max(0, baseTotal - discountVal);
 
   const handleSell = () => {
     setIncSellError("");

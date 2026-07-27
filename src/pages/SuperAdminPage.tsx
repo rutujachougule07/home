@@ -5326,15 +5326,10 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
   const [successMsg, setSuccessMsg] = useState("");
 
   const unitPrice = product.price || product.cost || 0;
-  const baseTotal = unitPrice * qty;
-  const finalTotal = baseTotal;
-
-  const incentivePctNum = Number(discountPct) || 0;
-  const calculatedIncentivePerUnit = incentivePctNum > 0
-    ? Math.round((incentivePctNum / 100) * unitPrice)
-    : (product.incentive || 0);
-
-  const totalIncentiveAmount = calculatedIncentivePerUnit * qty;
+  const finalTotal = unitPrice * qty;
+  const incPctNum = Number(discountPct) || 0;
+  const incPerUnit = incPctNum > 0 ? Math.round((incPctNum / 100) * unitPrice) : (product.incentive || 0);
+  const totalEmployeeIncentivePayout = incPerUnit * qty;
 
   const handleSubmit = () => {
     const selectedUser = users.find((u) => u.id === assignedEmployeeId);
@@ -5345,6 +5340,7 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
     const today = new Date().toISOString().slice(0, 10);
     const finalCustName = customerName.trim() || "Incentive Direct Sale";
     const incVal = Number(discountPct) || 0;
+    const calculatedIncentive = incVal > 0 ? Math.round((incVal / 100) * unitPrice) : (product.incentive || 0);
 
     setState((s) => {
       let customerId = "c_inc_direct";
@@ -5456,13 +5452,11 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
       <div style={{ background: "#fef3c7", border: "1px solid #fde047", padding: "12px 16px", borderRadius: "12px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <div style={{ fontWeight: 800, color: "#92400e", fontSize: "15px" }}>📦 {product.name} {product.brand ? `(${product.brand})` : ""}</div>
-          <div style={{ fontSize: "12px", color: "#b45309", marginTop: "2px" }}>
-            Price: ₹{unitPrice.toLocaleString()} · SKU: {product.sku || "—"} · Stock: {product.qty ?? product.stock ?? 0}
-          </div>
+          <div style={{ fontSize: "12px", color: "#b45309", marginTop: "2px" }}>SKU: {product.sku || "—"} · Stock Available: {product.qty ?? product.stock ?? 0}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: "12px", color: "#b45309", fontWeight: 600 }}>Employee Incentive:</div>
-          <div style={{ fontSize: "16px", fontWeight: 800, color: "#15803d" }}>₹{totalIncentiveAmount.toLocaleString()}</div>
+          <div style={{ fontSize: "12px", color: "#b45309", fontWeight: 600 }}>Incentive Payout:</div>
+          <div style={{ fontSize: "16px", fontWeight: 800, color: "#15803d" }}>₹{totalEmployeeIncentivePayout.toLocaleString()}</div>
         </div>
       </div>
 
@@ -5530,46 +5524,29 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
           </div>
         </div>
 
-        {/* Total calculation & Incentive Breakdown preview */}
-        <div style={{
-          padding: "16px",
-          background: "linear-gradient(135deg, #fefce8, #fef3c7)",
-          borderRadius: "14px",
-          border: "1px solid #fde047",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
-            <span style={{ color: "#78350f", fontWeight: 600 }}>📦 Product Unit Price:</span>
-            <strong style={{ color: "#1e293b", fontWeight: 700 }}>₹{unitPrice.toLocaleString()}</strong>
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
-            <span style={{ color: "#78350f", fontWeight: 600 }}>💳 Total Order Value ({qty} Qty):</span>
-            <strong style={{ color: "#1e293b", fontWeight: 800, fontSize: "16px" }}>₹{finalTotal.toLocaleString()}</strong>
-          </div>
-
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingTop: "8px",
-            borderTop: "1px dashed #f59e0b",
-            fontSize: "13px"
-          }}>
+        {/* Total calculation & Incentive Payout preview */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", padding: "14px", background: "#fef3c7", border: "1px solid #fde047", borderRadius: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <span style={{ color: "#b45309", fontWeight: 800 }}>💰 Employee Incentive {incentivePctNum > 0 ? `(${incentivePctNum}%)` : ""}:</span>
-              {incentivePctNum > 0 && (
-                <div style={{ fontSize: "11px", color: "#d97706", fontWeight: 600 }}>
-                  ₹{unitPrice.toLocaleString()} × {incentivePctNum}% = ₹{calculatedIncentivePerUnit.toLocaleString()} / unit
-                </div>
-              )}
+              <div style={{ fontSize: "12px", color: "#92400e", fontWeight: 700 }}>Total Order Value (Selling Price):</div>
+              <div style={{ fontSize: "11px", color: "#b45309", marginTop: "2px" }}>
+                ₹{unitPrice.toLocaleString()} / unit × {qty} Qty
+              </div>
             </div>
-            <strong style={{ color: "#15803d", fontWeight: 900, fontSize: "18px" }}>
-              ₹{totalIncentiveAmount.toLocaleString()}
-            </strong>
+            <div style={{ fontSize: "18px", fontWeight: 900, color: "#92400e" }}>₹{finalTotal.toLocaleString()}</div>
           </div>
+
+          {incPctNum > 0 && (
+            <div style={{ borderTop: "1px dashed #fcd34d", paddingTop: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "12px", color: "#15803d", fontWeight: 700 }}>Employee Incentive Payout ({incPctNum}%):</div>
+                <div style={{ fontSize: "11px", color: "#166534", marginTop: "2px" }}>
+                  ₹{incPerUnit.toLocaleString()} / unit × {qty} Qty
+                </div>
+              </div>
+              <div style={{ fontSize: "18px", fontWeight: 900, color: "#15803d" }}>₹{totalEmployeeIncentivePayout.toLocaleString()}</div>
+            </div>
+          )}
         </div>
 
         <div className="modal-actions" style={{ marginTop: "12px" }}>
