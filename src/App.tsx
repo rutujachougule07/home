@@ -204,10 +204,7 @@ function App() {
             <label>PRODUCT IMAGE URL</label>
             <input className="Form-input" name="imageUrl" value={formData.imageUrl} onChange={handleFormChange} placeholder="https://example.com/image.jpg" />
           </div>
-          <div className="Form-group">
-            <label>OR UPLOAD PHOTO</label>
-            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="Form-input Form-file" />
-          </div>
+
         </div>
         <div className="Inline-form-grid-4" style={{ marginTop: 12 }}>
           <div className="Form-group">

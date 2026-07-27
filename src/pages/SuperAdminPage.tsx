@@ -1760,47 +1760,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
         </div>
       </div>
 
-      {!isIncentiveMode && (
-        <div className="form-group" style={{ marginBottom: 10 }}>
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UPLOAD PHOTO</label>
-          <div
-            className={`form-file-input ${isDragging ? "dragging" : ""}`}
-            style={{
-              border: isDragging ? "2px dashed var(--accent)" : "1px dashed var(--border)",
-              background: isDragging ? "var(--biscuit-light)" : "var(--cream)",
-              transition: "all 0.25s ease-in-out",
-              padding: "8px 14px",
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "48px",
-              borderRadius: "6px",
-              gap: "12px"
-            }}
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              style={{ display: "none" }}
-            />
-            <span style={{ fontSize: 12, color: isDragging ? "var(--accent)" : "var(--brown)", fontWeight: 500, flex: 1, textAlign: "left" }}>
-              {isDragging
-                ? "Drop photo here..."
-                : imageName
-                  ? imageName
-                  : (initial?.image ? "Change Photo" : "Choose File or Drag & Drop here")}
-            </span>
-            {image && <img src={image} className="image-preview-thumbnail" style={{ width: 36, height: 36 }} alt="Preview" />}
-          </div>
-        </div>
-      )}
+
 
       {isIncentiveMode ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 14 }}>
@@ -5138,6 +5098,22 @@ export function SuperAdminGodownSection() {
 
   const godown1Products = products.filter(p => p.location === "Godown 1");
   const godown2Products = products.filter(p => p.location === "Godown 2");
+  const activeProducts = activeTab === "Godown 1" ? godown1Products : godown2Products;
+
+  const activeTotalQty = activeProducts.reduce((acc, p) => acc + (p.qty ?? p.stock ?? 0), 0);
+  const activeTotalCost = activeProducts.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || 0)), 0);
+
+  const handlePDFExport = (locationTag: "Godown 1" | "Godown 2") => {
+    const list = locationTag === "Godown 1" ? godown1Products : godown2Products;
+    const totalValuation = list.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || 0)), 0);
+    const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+    const rows = list.map((p, index) => {
+      const qty = p.qty ?? p.stock ?? 0;
+      const totalValue = qty * (p.cost || 0);
+      return [index + 1, p.name, p.sku || "—", p.category || "—", qty, p.cost || 0, totalValue];
+    });
+    openPDFPreview(`${locationTag} Stock Inventory Report`, headers, rows, `Total Items: ${list.length} | Valuation: ₹${totalValuation.toLocaleString()}`);
+  };
 
   const renderTable = (prods: Product[]) => (
     <div className="table-wrap">
@@ -5191,8 +5167,35 @@ export function SuperAdminGodownSection() {
 
   return (
     <>
-      <h2 className="page-title">Godown Management</h2>
-      <p className="page-sub">Manage and track inventory specific to Godowns.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <h2 className="page-title">Godown Management & Stock Reports</h2>
+          <p className="page-sub">Manage stock and generate detailed reports for Godown 1 and Godown 2.</p>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => handlePDFExport(activeTab)}
+            style={{ border: "1px solid var(--border)", padding: "8px 14px", borderRadius: 10, fontWeight: 600, background: "#ffffff" }}
+          >
+            📄 {activeTab} PDF Report
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => exportGodownReport(products, activeTab)}
+            style={{ padding: "8px 14px", borderRadius: 10, fontWeight: 600 }}
+          >
+            📥 {activeTab} CSV
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportGodownReport(products, "All Godowns")}
+            style={{ border: "1px solid var(--border)", padding: "8px 14px", borderRadius: 10, fontWeight: 600, background: "var(--cream)" }}
+          >
+            📊 Both Godowns CSV
+          </button>
+        </div>
+      </div>
 
       <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "var(--cream)", padding: "12px", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "0 4px 15px rgba(139, 107, 74, 0.05)" }}>
         <button
@@ -5272,12 +5275,21 @@ export function SuperAdminGodownSection() {
 
       <div className="panel" style={{ margin: 0 }}>
         <div className="panel-head">
-          <h3 className="panel-title">🏭 {activeTab} Inventory</h3>
-          <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
+          <div>
+            <h3 className="panel-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span>🏭 {activeTab} Inventory</span>
+              <span style={{ fontSize: 12, background: "var(--biscuit)", padding: "2px 10px", borderRadius: 8, fontWeight: 600 }}>
+                {activeProducts.length} Products | Total Qty: {activeTotalQty} | Value: ₹{activeTotalCost.toLocaleString()}
+              </span>
+            </h3>
+          </div>
+          <div className="actions-row" style={{ alignItems: "center", gap: 10 }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
             <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>
         </div>
-        {renderTable(activeTab === "Godown 1" ? godown1Products : godown2Products)}
+        {renderTable(activeProducts)}
       </div>
 
       {showAdd && (
@@ -5356,10 +5368,10 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
       const nextProducts = s.products.map((p) =>
         p.id === product.id
           ? {
-              ...p,
-              incentive: calculatedIncentive > 0 ? calculatedIncentive : p.incentive,
-              assignedEmployeeId: empId
-            }
+            ...p,
+            incentive: calculatedIncentive > 0 ? calculatedIncentive : p.incentive,
+            assignedEmployeeId: empId
+          }
           : p
       );
 
@@ -5767,6 +5779,38 @@ export function exportProductsReport(products: Product[]) {
   exportToCSV(`Inventory_Stock_Report_${today}.csv`, headers, rows);
 }
 
+export function exportGodownReport(products: Product[], location: "Godown 1" | "Godown 2" | "All Godowns" = "All Godowns") {
+  const today = new Date().toISOString().slice(0, 10);
+  const filtered = location === "All Godowns"
+    ? products.filter(p => p.location === "Godown 1" || p.location === "Godown 2")
+    : products.filter(p => p.location === location);
+
+  const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Brand", "Location", "Quantity", "Unit Cost (₹)", "Total Cost (₹)", "Selling Price (₹)", "Supplier", "Date Added", "Status"];
+  const rows = filtered.map((p, index) => {
+    const qty = p.qty ?? p.stock ?? 0;
+    const unitCost = p.cost || 0;
+    const totalCost = qty * unitCost;
+    const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+    return [
+      index + 1,
+      p.name,
+      p.sku || "",
+      p.category || "—",
+      p.brand || "—",
+      p.location || "Unassigned",
+      qty,
+      unitCost,
+      totalCost,
+      p.price || 0,
+      p.supplier || "—",
+      formattedDate,
+      p.status || "Verified"
+    ];
+  });
+  const fileTag = location.replace(/\s+/g, "_");
+  exportToCSV(`${fileTag}_Stock_Report_${today}.csv`, headers, rows);
+}
+
 export function exportOrdersReport(orders: Order[]) {
   const today = new Date().toISOString().slice(0, 10);
   const headers = ["Order ID", "Customer Name", "Product Name", "Quantity", "Total Amount (₹)", "Discount (%)", "Doc Type", "Status", "Created By", "Assigned To", "Date"];
@@ -5868,7 +5912,12 @@ export function exportManagersReport(managers: User[]) {
 
 export function SuperAdminReportsSection() {
   const { products, orders, leads, tasks, users } = useStore();
-  const [reportType, setReportType] = useState<"all" | "products" | "orders" | "incentive" | "leads" | "tasks" | "employees" | "managers">("all");
+  const [reportType, setReportType] = useState<"all" | "products" | "godown1" | "godown2" | "orders" | "incentive" | "leads" | "tasks" | "employees" | "managers">("all");
+
+  const godown1Products = useMemo(() => products.filter(p => p.location === "Godown 1"), [products]);
+  const godown2Products = useMemo(() => products.filter(p => p.location === "Godown 2"), [products]);
+  const g1Valuation = useMemo(() => godown1Products.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || 0)), 0), [godown1Products]);
+  const g2Valuation = useMemo(() => godown2Products.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || 0)), 0), [godown2Products]);
 
   const ninetyDaysAgo = useMemo(() => {
     const d = new Date();
@@ -5897,6 +5946,8 @@ export function SuperAdminReportsSection() {
 
   const handleExportAll = () => {
     exportProductsReport(products);
+    exportGodownReport(products, "Godown 1");
+    exportGodownReport(products, "Godown 2");
     exportOrdersReport(orders);
     exportIncentiveReport(products);
     exportLeadsReport(leads, users);
@@ -5919,7 +5970,7 @@ export function SuperAdminReportsSection() {
       <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
         <div>
           <h2 className="page-title">📊 Reports & Analytics Hub</h2>
-          <p className="page-sub">Generate, preview, and download detailed reports for all business sections.</p>
+          <p className="page-sub">Generate, preview, and download detailed reports for all business sections including Godown stock.</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button
@@ -5942,9 +5993,9 @@ export function SuperAdminReportsSection() {
       {/* Summary Stat Grid */}
       <div className="stat-grid" style={{ marginBottom: 24 }}>
         <StatCard icon="📦" label="INVENTORY COST VALUATION" value={`₹${totalInventoryValuation.toLocaleString()}`} />
+        <StatCard icon="🏭" label="GODOWN 1 VALUATION" value={`₹${g1Valuation.toLocaleString()}`} />
+        <StatCard icon="🏭" label="GODOWN 2 VALUATION" value={`₹${g2Valuation.toLocaleString()}`} />
         <StatCard icon="🧾" label="APPROVED SALES REVENUE" value={`₹${totalOrderRevenue.toLocaleString()}`} />
-        <StatCard icon="💰" label="INCENTIVE POOL (>90 DAYS)" value={`₹${totalIncentivePool.toLocaleString()}`} />
-        <StatCard icon="🧲" label="TOTAL PIPELINE LEADS" value={leads.length} />
         <StatCard icon="👥" label="ACTIVE EMPLOYEES" value={users.filter(u => u.role === "employee").length} />
       </div>
 
@@ -5952,7 +6003,7 @@ export function SuperAdminReportsSection() {
       <div className="no-print" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 16, marginBottom: 24 }}>
         <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #3b82f6", borderRadius: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>📦 Inventory & Stock Report</h4>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>📦 Total Inventory & Stock Report</h4>
             <span style={{ fontSize: 11, background: "#eff6ff", color: "#1d4ed8", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{products.length} Items</span>
           </div>
           <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Stock quantities, cost prices, selling values & godown locations.</p>
@@ -5975,6 +6026,64 @@ export function SuperAdminReportsSection() {
               📄 PDF
             </button>
             <button className="btn btn-primary btn-sm" onClick={() => exportProductsReport(products)} style={{ flex: 1, justifyContent: "center" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Godown 1 Module Card */}
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #0284c7", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>🏭 Godown 1 Stock Report</h4>
+            <span style={{ fontSize: 11, background: "#e0f2fe", color: "#0369a1", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{godown1Products.length} Items</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Stock items, quantities & valuation stored inside Godown 1.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+                const rows = godown1Products.map((p, index) => {
+                  const qty = p.qty ?? p.stock ?? 0;
+                  const totalValue = qty * (p.cost || 0);
+                  return [index + 1, p.name, p.sku || "—", p.category || "—", qty, p.cost || 0, totalValue];
+                });
+                openPDFPreview("Godown 1 Stock Inventory Report", headers, rows, `Total Items: ${godown1Products.length} | Valuation: ₹${g1Valuation.toLocaleString()}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportGodownReport(products, "Godown 1")} style={{ flex: 1, justifyContent: "center", background: "#0284c7" }}>
+              📥 CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Godown 2 Module Card */}
+        <div className="panel" style={{ margin: 0, padding: 18, borderLeft: "4px solid #0d9488", borderRadius: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>🏭 Godown 2 Stock Report</h4>
+            <span style={{ fontSize: 11, background: "#ccfbf1", color: "#0f766e", padding: "2px 8px", borderRadius: 6, fontWeight: 700 }}>{godown2Products.length} Items</span>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--brown)", margin: "0 0 14px 0" }}>Stock items, quantities & valuation stored inside Godown 2.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+                const rows = godown2Products.map((p, index) => {
+                  const qty = p.qty ?? p.stock ?? 0;
+                  const totalValue = qty * (p.cost || 0);
+                  return [index + 1, p.name, p.sku || "—", p.category || "—", qty, p.cost || 0, totalValue];
+                });
+                openPDFPreview("Godown 2 Stock Inventory Report", headers, rows, `Total Items: ${godown2Products.length} | Valuation: ₹${g2Valuation.toLocaleString()}`);
+              }}
+              style={{ border: "1px solid var(--border)", flex: 1, justifyContent: "center" }}
+            >
+              📄 PDF
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => exportGodownReport(products, "Godown 2")} style={{ flex: 1, justifyContent: "center", background: "#0d9488" }}>
               📥 CSV
             </button>
           </div>
@@ -6136,7 +6245,9 @@ export function SuperAdminReportsSection() {
           <h3 className="panel-title">📋 Live Report Preview</h3>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <button className={`btn btn-sm ${reportType === "all" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("all")}>All Summary</button>
-            <button className={`btn btn-sm ${reportType === "products" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("products")}>Inventory ({products.length})</button>
+            <button className={`btn btn-sm ${reportType === "products" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("products")}>All Inventory ({products.length})</button>
+            <button className={`btn btn-sm ${reportType === "godown1" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("godown1")}>Godown 1 ({godown1Products.length})</button>
+            <button className={`btn btn-sm ${reportType === "godown2" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("godown2")}>Godown 2 ({godown2Products.length})</button>
             <button className={`btn btn-sm ${reportType === "orders" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("orders")}>Orders ({orders.length})</button>
             <button className={`btn btn-sm ${reportType === "incentive" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("incentive")}>Incentive ({incentiveProducts.length})</button>
             <button className={`btn btn-sm ${reportType === "leads" ? "btn-primary" : "btn-ghost"}`} onClick={() => setReportType("leads")}>Leads ({leads.length})</button>
@@ -6156,6 +6267,130 @@ export function SuperAdminReportsSection() {
               Super Admin System Report
             </span>
           </div>
+
+          {/* Godown 1 Section */}
+          {(reportType === "all" || reportType === "godown1") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "var(--primary)" }}>🏭 Godown 1 Stock ({godown1Products.length} Items | Total Value: ₹{g1Valuation.toLocaleString()})</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+                      const rows = godown1Products.map((p, index) => {
+                        const qty = p.qty ?? p.stock ?? 0;
+                        const totalValue = qty * (p.cost || 0);
+                        return [index + 1, p.name, p.sku || "—", p.category || "—", qty, p.cost || 0, totalValue];
+                      });
+                      openPDFPreview("Godown 1 Stock Inventory Report", headers, rows, `Total Items: ${godown1Products.length} | Valuation: ₹${g1Valuation.toLocaleString()}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportGodownReport(products, "Godown 1")}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Product Name</th>
+                      <th>SKU</th>
+                      <th>Category</th>
+                      <th>Qty</th>
+                      <th>Unit Cost (₹)</th>
+                      <th>Total Cost (₹)</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {godown1Products.map((p, index) => {
+                      const qty = p.qty ?? p.stock ?? 0;
+                      const unitCost = p.cost || 0;
+                      const totalCost = qty * unitCost;
+                      return (
+                        <tr key={p.id}>
+                          <td>{index + 1}</td>
+                          <td><strong>{p.name}</strong></td>
+                          <td>{p.sku || "—"}</td>
+                          <td>{p.category || "—"}</td>
+                          <td>{qty}</td>
+                          <td>₹{unitCost.toLocaleString()}</td>
+                          <td>₹{totalCost.toLocaleString()}</td>
+                          <td>{p.status || "Verified"}</td>
+                        </tr>
+                      );
+                    })}
+                    {godown1Products.length === 0 && <tr><td colSpan={8} style={{ textAlign: "center" }}>No products in Godown 1.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Godown 2 Section */}
+          {(reportType === "all" || reportType === "godown2") && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "var(--primary)" }}>🏭 Godown 2 Stock ({godown2Products.length} Items | Total Value: ₹{g2Valuation.toLocaleString()})</h4>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button
+                    className="btn btn-ghost btn-sm no-print"
+                    onClick={() => {
+                      const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+                      const rows = godown2Products.map((p, index) => {
+                        const qty = p.qty ?? p.stock ?? 0;
+                        const totalValue = qty * (p.cost || 0);
+                        return [index + 1, p.name, p.sku || "—", p.category || "—", qty, p.cost || 0, totalValue];
+                      });
+                      openPDFPreview("Godown 2 Stock Inventory Report", headers, rows, `Total Items: ${godown2Products.length} | Valuation: ₹${g2Valuation.toLocaleString()}`);
+                    }}
+                  >
+                    📄 PDF
+                  </button>
+                  <button className="btn btn-ghost btn-sm no-print" onClick={() => exportGodownReport(products, "Godown 2")}>📥 CSV</button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Sr. No.</th>
+                      <th>Product Name</th>
+                      <th>SKU</th>
+                      <th>Category</th>
+                      <th>Qty</th>
+                      <th>Unit Cost (₹)</th>
+                      <th>Total Cost (₹)</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {godown2Products.map((p, index) => {
+                      const qty = p.qty ?? p.stock ?? 0;
+                      const unitCost = p.cost || 0;
+                      const totalCost = qty * unitCost;
+                      return (
+                        <tr key={p.id}>
+                          <td>{index + 1}</td>
+                          <td><strong>{p.name}</strong></td>
+                          <td>{p.sku || "—"}</td>
+                          <td>{p.category || "—"}</td>
+                          <td>{qty}</td>
+                          <td>₹{unitCost.toLocaleString()}</td>
+                          <td>₹{totalCost.toLocaleString()}</td>
+                          <td>{p.status || "Verified"}</td>
+                        </tr>
+                      );
+                    })}
+                    {godown2Products.length === 0 && <tr><td colSpan={8} style={{ textAlign: "center" }}>No products in Godown 2.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {(reportType === "all" || reportType === "products") && (
             <div style={{ marginBottom: 28 }}>
