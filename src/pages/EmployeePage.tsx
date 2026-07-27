@@ -1479,8 +1479,7 @@ export function EmployeeIncentiveSection() {
   }, [sellingProduct]);
 
   const baseTotal = unitPrice * sellQty;
-  const discountVal = discountPct ? Math.round(((Number(discountPct) || 0) / 100) * baseTotal) : 0;
-  const finalTotal = Math.max(0, baseTotal - discountVal);
+  const finalTotal = baseTotal;
 
   const handleSell = () => {
     setIncSellError("");
