@@ -1,27 +1,41 @@
 :root {
-  --biscuit: #e8e2d9;
-  --biscuit-light: #faf6f0;
-  --cream: #F8F6F2;
-  --warm-white: #FFFFFF;
-  --beige: #e5e0d8;
-  --light-brown: #FFB547;
-  --brown: #6B7280;
-  --brown-dark: #1F2937;
-  --accent: #FF7A00;
-  --accent-dark: #E06A00;
-  --danger: #EF4444;
-  --success: #10B981;
-  --info: #0F766E;
-  --border: #E5E7EB;
-  --shadow-sm: 0 2px 6px rgba(31, 41, 55, 0.04);
-  --shadow-md: 0 8px 24px rgba(31, 41, 55, 0.08);
-  --shadow-lg: 0 16px 40px rgba(31, 41, 55, 0.12);
+  /* Luminous Hearth Design Tokens */
+  --primary: #F26B3A;          /* Warm Terracotta Orange */
+  --primary-dark: #B4350C;     /* Burnt Orange Accent */
+  --primary-light: #FDE8E0;    /* Soft Tint */
+
+  --secondary: #2E3D39;        /* Deep Charcoal Slate Green */
+  --secondary-medium: #627F77; /* Medium Slate Green */
+  --secondary-light: #E3EDE9;  /* Light Slate Green Tint */
+
+  --tertiary: #FAD390;         /* Warm Sand Gold / Cream Yellow */
+  --tertiary-dark: #B58229;    /* Golden Brown Accent */
+  --tertiary-light: #FDF0D6;   /* Cream Tint */
+
+  --neutral: #1A1A1A;          /* Rich Dark Charcoal */
+  --brown-dark: #1A1A1A;       /* Primary Text */
+  --brown: #4A5B56;            /* Secondary Muted Text */
+  --light-brown: #FAD390;
+
+  --accent: #F26B3A;
+  --accent-dark: #B4350C;
+  --danger: #EC4913;
+  --success: #2E3D39;
+  --info: #475D57;
+  --warning: #B58229;
+
+  --cream: #F4F2EE;            /* Warm Off-White Page Background */
+  --biscuit-light: #FAF8F5;    /* Soft Surface Tint */
+  --biscuit: #E5DCD3;          /* Warm Neutral Surface */
+  --warm-white: #FFFFFF;       /* Card Background */
+  --beige: #E6DFD5;
+  --border: #E2DCD5;           /* Soft Border */
+
+  --shadow-sm: 0 2px 6px rgba(26, 26, 26, 0.04);
+  --shadow-md: 0 8px 24px rgba(26, 26, 26, 0.08);
+  --shadow-lg: 0 16px 40px rgba(26, 26, 26, 0.12);
   --radius: 14px;
   --radius-sm: 10px;
-
-  --primary: #0F766E;
-  --secondary: #14B8A6;
-  --warning: #F59E0B;
 }
 
 * {
@@ -43,8 +57,16 @@ html, body {
 
 .sham-app,
 .sham-app * {
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
   color: var(--brown-dark);
+}
+
+h1, h2, h3, h4, h5, h6, .page-title, .panel-title, .login-title, .data-card-title {
+  font-family: 'Manrope', 'Work Sans', sans-serif !important;
+}
+
+.form-label, .pill, .mono, .data-label {
+  font-family: 'JetBrains Mono', monospace !important;
 }
 
 .sham-app {
@@ -640,7 +662,7 @@ table.tbl {
 /* Card Grid Layout */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 16px;
   margin-top: 10px;
 }

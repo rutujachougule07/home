@@ -563,7 +563,7 @@ export function EmployeeWorkDetailsModal({ employee, onClose }: { employee: User
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
             {/* Tasks Panel */}
             <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 15 }}>
               <h4 style={{ margin: "0 0 10px 0", color: "var(--brown-dark)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -676,7 +676,7 @@ function EmployeesSection() {
           <h3 className="panel-title">All Employees ({employees.length})</h3>
           <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Employee</button>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20, marginTop: 15 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16, marginTop: 15 }}>
           {employees.map((e) => {
             const list = tasks.filter((t) => t.assignedTo === e.id || t.assignedToName === e.name);
             const comp = list.filter((t) => t.status === "Completed").length;
@@ -2379,7 +2379,7 @@ function OrderApprovalSection() {
                       </span>
                       {isIncentiveOrder ? (
                         <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
-                          ✨ Incentive
+                          ✨ Incentive {o.discount ? `(${o.discount}%)` : ""}
                         </span>
                       ) : (
                         <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
@@ -3307,7 +3307,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               }}>+ Add Employee</button>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>
             {employees.map(e => (
               <UnifiedEmployeeCard
                 key={e.id}
@@ -3359,7 +3359,7 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               }}>+ Add Manager</button>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>
             {managers.map(m => (
               <UnifiedEmployeeCard
                 key={m.id}
@@ -3573,7 +3573,7 @@ export function TaskAssignmentSection() {
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
           <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👤 Employees Tasks</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>
             {employeesWithTasks.map(e => (
               <UnifiedEmployeeCard
                 key={e.id}
@@ -3715,7 +3715,7 @@ export function TaskAssignmentSection() {
           boxShadow: "0 4px 20px rgba(139, 92, 26, 0.02)",
         }}>
           <h3 style={{ margin: "0 0 16px 0", fontSize: "16px", fontWeight: 700, color: "#78350f" }}>👔 Managers Tasks</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 340px))", gap: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "12px" }}>
             {managersWithTasks.map(m => (
               <div key={m.id} style={{
                 background: "#fff", borderRadius: "12px", padding: "14px",
@@ -5299,9 +5299,9 @@ export function SuperAdminGodownSection() {
 
 function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClose: () => void }) {
   const { customers, users, setState, uid, currentUser } = useStore();
-  const employees = users.filter((u) => u.role === "employee");
+  const assignableUsers = users.filter((u) => u.role === "employee" || u.role === "manager");
 
-  const [assignedEmployeeId, setAssignedEmployeeId] = useState(employees[0]?.id || "");
+  const [assignedEmployeeId, setAssignedEmployeeId] = useState(assignableUsers[0]?.id || "all");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
@@ -5320,13 +5320,15 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
   const totalIncentive = (product.incentive || 0) * qty;
 
   const handleSubmit = () => {
-    const selectedEmp = employees.find(e => e.id === assignedEmployeeId);
-    const empId = selectedEmp?.id || currentUser?.id;
-    const empName = selectedEmp?.name || currentUser?.name || "Employee";
+    const selectedUser = users.find((u) => u.id === assignedEmployeeId);
+    const empId = assignedEmployeeId === "all" ? "all" : (selectedUser?.id || currentUser?.id || "all");
+    const empName = assignedEmployeeId === "all" ? "All Employees" : (selectedUser?.name || currentUser?.name || "Assignee");
 
     const orderId = uid("o");
     const today = new Date().toISOString().slice(0, 10);
     const finalCustName = customerName.trim() || "Incentive Direct Sale";
+    const incVal = Number(discountPct) || 0;
+    const calculatedIncentive = incVal > 0 ? Math.round((incVal / 100) * unitPrice) : (product.incentive || 0);
 
     setState((s) => {
       let customerId = "c_inc_direct";
@@ -5351,6 +5353,16 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
         }
       }
 
+      const nextProducts = s.products.map((p) =>
+        p.id === product.id
+          ? {
+              ...p,
+              incentive: calculatedIncentive > 0 ? calculatedIncentive : p.incentive,
+              assignedEmployeeId: empId
+            }
+          : p
+      );
+
       const newOrder: Order = {
         id: orderId,
         customerId,
@@ -5359,9 +5371,9 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
         productName: product.name,
         qty,
         total: finalTotal,
-        discount: Number(discountPct) || 0,
-        createdBy: empName,
-        status: "Pending",
+        discount: incVal,
+        createdBy: currentUser?.name || "Admin",
+        status: "Approved",
         date: today,
         assignedTo: empId,
         assignedToName: empName,
@@ -5376,14 +5388,24 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
       const docLabel = docType === "Bill" ? "Bill" : "Order Copy";
       const expiryStr = docType === "Order Copy" && bookingExpiryDate ? ` (Valid Until: ${bookingExpiryDate})` : "";
       const notifMsg = `New Incentive ${docLabel} order assigned to ${empName} (Order #${orderId})${expiryStr}`;
+      const empNotifMsg = `New Incentive order (${incVal > 0 ? `${incVal}%` : "assigned"} incentive) assigned for ${product.name} (Order #${orderId})`;
 
       return {
         ...s,
         customers: nextCustomers,
+        products: nextProducts,
         orders: [...s.orders, newOrder],
         notifications: [
           {
             id: notifId,
+            to: empId === "all" ? "all" : (selectedUser?.role as any || "employee"),
+            from: currentUser?.name || "Admin",
+            message: empNotifMsg,
+            date: today,
+            read: false
+          },
+          {
+            id: uid("n"),
             to: "superadmin",
             from: currentUser?.name || "Admin",
             message: notifMsg,
@@ -5427,10 +5449,10 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-        {/* Employee Selection dropdown */}
+        {/* Employee & Manager Selection dropdown */}
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
           <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Select Employee (ज्या कर्मचाऱ्याच्या ऑर्डरमध्ये पाठवायचे आहे) *
+            Select Assignee (ज्या कर्मचाऱ्याच्या/मॅनेजरच्या ऑर्डरमध्ये पाठवायचे आहे) *
           </label>
           <select
             className="form-select"
@@ -5438,15 +5460,25 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
             onChange={(e) => setAssignedEmployeeId(e.target.value)}
             style={{ fontWeight: 700, fontSize: "14px" }}
           >
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                👤 {emp.name} ({emp.employeeId || emp.jobTitle || "Employee"})
-              </option>
-            ))}
+            <option value="all">🌐 All Employees & Managers</option>
+            <optgroup label="Employees">
+              {users.filter((u) => u.role === "employee").map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  👤 {emp.name} ({emp.employeeId || emp.jobTitle || "Employee"})
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Managers">
+              {users.filter((u) => u.role === "manager").map((mgr) => (
+                <option key={mgr.id} value={mgr.id}>
+                  👔 {mgr.name} ({mgr.employeeId || mgr.jobTitle || "Manager"})
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
 
-        {/* Quantity & Discount Inputs */}
+        {/* Quantity & Incentive Inputs */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
@@ -5465,7 +5497,7 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
 
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-              Discount (%)
+              INCENTIVE (%)
             </label>
             <input
               type="number"
@@ -5474,7 +5506,7 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
               max={100}
               value={discountPct}
               onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
-              placeholder="Enter discount % (e.g. 10)"
+              placeholder="Enter incentive % (e.g. 10)"
               style={{ fontWeight: 700, fontSize: "15px" }}
             />
           </div>
@@ -5485,7 +5517,7 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
           <div>
             <div style={{ fontSize: "12px", color: "var(--brown)", fontWeight: 600 }}>Total Order Value:</div>
             <div style={{ fontSize: "11px", color: "var(--brown-dark)", marginTop: "2px" }}>
-              Price (₹{unitPrice.toLocaleString()} / unit) × {qty} Qty {discountPct ? `(-${discountPct}% Discount)` : ""}
+              Price (₹{unitPrice.toLocaleString()} / unit) × {qty} Qty {discountPct ? `(${discountPct}% Employee Incentive)` : ""}
             </div>
           </div>
           <div style={{ fontSize: "20px", fontWeight: 900, color: "var(--brown-dark)" }}>₹{finalTotal.toLocaleString()}</div>

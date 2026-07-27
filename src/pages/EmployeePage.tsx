@@ -866,7 +866,7 @@ function OrderUpdates() {
                       <span>{o.customerName}</span>
                       {isIncentiveOrder ? (
                         <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
-                          ✨ Incentive
+                          ✨ Incentive {o.discount ? `(${o.discount}%)` : ""}
                         </span>
                       ) : (
                         <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
@@ -913,8 +913,12 @@ function OrderUpdates() {
                     >
                       🚚 Mark Delivered
                     </button>
-                  ) : (
+                  ) : o.status === "Delivered" ? (
                     <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
+                  ) : o.status === "Pending" ? (
+                    <span style={{ fontSize: 11, color: "#d97706", fontWeight: 600 }}>⏳ Pending Approval</span>
+                  ) : (
+                    <span style={{ fontSize: 11, color: "#ef4444", fontWeight: 600 }}>❌ Rejected</span>
                   )}
                 </div>
               </div>

@@ -375,7 +375,7 @@ function OrdersMgmt() {
                       <span>{o.date}</span>
                       {isIncentiveOrder ? (
                         <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
-                          ✨ Incentive
+                          ✨ Incentive {o.discount ? `(${o.discount}%)` : ""}
                         </span>
                       ) : (
                         <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
