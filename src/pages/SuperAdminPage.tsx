@@ -4753,7 +4753,37 @@ export function SuperAdminIncentiveSection() {
   const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
 
+  // Incentive Assignment Form Modal States
+  const [showGiveIncentiveModal, setShowGiveIncentiveModal] = useState<boolean>(false);
+  const [selectedProductForIncentive, setSelectedProductForIncentive] = useState<(Product & { batches: Product[] }) | null>(null);
+  const [incentiveFormEmpId, setIncentiveFormEmpId] = useState<string>("");
+  const [incentiveFormAmount, setIncentiveFormAmount] = useState<number>(0);
+  const [incentiveFormNotes, setIncentiveFormNotes] = useState<string>("");
+
   const employees = useMemo(() => users.filter((u) => u.role === "employee"), [users]);
+
+  const handleAssignIncentiveSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProductForIncentive) return;
+
+    const batchIds = selectedProductForIncentive.batches.map((b) => b.id);
+    setState((s: any) => ({
+      ...s,
+      products: s.products.map((prod: any) =>
+        batchIds.includes(prod.id)
+          ? {
+              ...prod,
+              assignedEmployeeId: incentiveFormEmpId,
+              incentive: incentiveFormAmount >= 0 ? incentiveFormAmount : prod.incentive,
+            }
+          : prod
+      )
+    }));
+
+    setShowGiveIncentiveModal(false);
+    setSelectedProductForIncentive(null);
+    setIncentiveFormNotes("");
+  };
 
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -4947,8 +4977,8 @@ export function SuperAdminIncentiveSection() {
                         💰 ₹{p.incentive.toLocaleString()}
                       </span>
                     </td>
-                    <td style={{ padding: "12px 16px", minWidth: 190 }}>
-                      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                    <td style={{ padding: "12px 16px", minWidth: 230 }}>
+                      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "8px" }}>
                         <select
                           className="form-input"
                           value={assignedEmp}
@@ -4977,7 +5007,8 @@ export function SuperAdminIncentiveSection() {
                             cursor: "pointer",
                             boxShadow: isUnassigned ? "none" : "0 2px 6px rgba(0,0,0,0.04)",
                             outline: "none",
-                            transition: "all 0.2s ease"
+                            transition: "all 0.2s ease",
+                            flex: 1
                           }}
                         >
                           <option value="" style={{ background: "white", color: "#333" }}>-- Select Employee --</option>
@@ -4988,6 +5019,36 @@ export function SuperAdminIncentiveSection() {
                             </option>
                           ))}
                         </select>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedProductForIncentive(p);
+                            setIncentiveFormEmpId(assignedEmp || "");
+                            setIncentiveFormAmount(p.incentive || 0);
+                            setIncentiveFormNotes("");
+                            setShowGiveIncentiveModal(true);
+                          }}
+                          style={{
+                            width: "34px",
+                            height: "34px",
+                            borderRadius: "10px",
+                            border: "none",
+                            background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                            color: "#ffffff",
+                            fontWeight: 800,
+                            fontSize: "18px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
+                            flexShrink: 0,
+                            transition: "transform 0.15s ease"
+                          }}
+                          title="Open Incentive Form (इन्सेंटिव्ह फॉर्म उघडा)"
+                        >
+                          +
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -5081,11 +5142,223 @@ export function SuperAdminIncentiveSection() {
         </Modal>
       )}
 
-      {sellingProduct && (
-        <IncentiveSellOrderModal
-          product={sellingProduct}
-          onClose={() => setSellingProduct(null)}
-        />
+      {showGiveIncentiveModal && selectedProductForIncentive && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(43, 11, 19, 0.55)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: "20px"
+        }}>
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: "24px",
+            width: "100%",
+            maxWidth: "520px",
+            boxShadow: "0 20px 50px rgba(116, 26, 47, 0.25)",
+            border: "1px solid #F4D4C5",
+            overflow: "hidden",
+            animation: "scaleUp 0.2s ease"
+          }}>
+            {/* Header */}
+            <div style={{
+              background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+              padding: "20px 24px",
+              color: "#FFFFFF",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "22px" }}>💰</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#FFFFFF" }}>Assign Employee Incentive</h3>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#FFC6A8", opacity: 0.9 }}>इन्सेंटिव्ह कोणाला द्यायचा आहे ते निवडा</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGiveIncentiveModal(false)}
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  border: "none",
+                  color: "#FFFFFF",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  fontWeight: 700
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form Content */}
+            <form onSubmit={handleAssignIncentiveSubmit} style={{ padding: "24px" }}>
+              {/* Product Card Info */}
+              <div style={{
+                background: "#FFF0E8",
+                border: "1px solid #FFC6A8",
+                borderRadius: "16px",
+                padding: "14px 16px",
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px"
+              }}>
+                {selectedProductForIncentive.image ? (
+                  <img src={selectedProductForIncentive.image} alt={selectedProductForIncentive.name} style={{ width: 48, height: 48, borderRadius: 12, objectFit: "cover" }} />
+                ) : (
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: "#FFC6A8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>📦</div>
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: "15px", color: "#2B0B13" }}>{selectedProductForIncentive.name}</div>
+                  <div style={{ fontSize: "12px", color: "#6B4752", marginTop: 2 }}>
+                    SKU: <strong>{selectedProductForIncentive.sku || "—"}</strong> | Location: <strong>{selectedProductForIncentive.location || "Unassigned"}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 1. Employee Selector */}
+              <div style={{ marginBottom: "18px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
+                  👤 Select Employee / Manager (कोणाला इन्सेंटिव्ह द्यायचा आहे) <span style={{ color: "#D9534F" }}>*</span>
+                </label>
+                <select
+                  value={incentiveFormEmpId}
+                  onChange={(e) => setIncentiveFormEmpId(e.target.value)}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: "12px",
+                    border: "1px solid #F4D4C5",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#2B0B13",
+                    background: "#FAF4EF",
+                    outline: "none",
+                    cursor: "pointer"
+                  }}
+                >
+                  <option value="">-- Select Employee --</option>
+                  <option value="all" style={{ fontWeight: 700, color: "#741A2F" }}>👥 All Employees (सर्वांना)</option>
+                  {employees.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      👤 {u.name} ({u.email || u.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2. Incentive Amount per unit */}
+              <div style={{ marginBottom: "18px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
+                  💰 Incentive / Unit (₹ प्रति नग इन्सेंटिव्ह)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={incentiveFormAmount}
+                  onChange={(e) => setIncentiveFormAmount(parseFloat(e.target.value) || 0)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: "12px",
+                    border: "1px solid #F4D4C5",
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#741A2F",
+                    background: "#FAF4EF",
+                    outline: "none"
+                  }}
+                  placeholder="Enter incentive amount e.g. 500"
+                />
+              </div>
+
+              {/* Total Estimated Bonus Calculation */}
+              <div style={{
+                background: "#FAF4EF",
+                borderRadius: "12px",
+                padding: "10px 14px",
+                marginBottom: "18px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                border: "1px dashed #F4D4C5"
+              }}>
+                <span style={{ fontSize: "13px", color: "#6B4752", fontWeight: 600 }}>Total Calculated Incentive ({selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1} units):</span>
+                <span style={{ fontSize: "16px", fontWeight: 800, color: "#741A2F" }}>
+                  ₹{((selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1) * (incentiveFormAmount || 0)).toLocaleString()}
+                </span>
+              </div>
+
+              {/* 3. Remarks / Notes */}
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
+                  📝 Remarks / Note (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={incentiveFormNotes}
+                  onChange={(e) => setIncentiveFormNotes(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: "12px",
+                    border: "1px solid #F4D4C5",
+                    fontSize: "13px",
+                    color: "#2B0B13",
+                    background: "#FAF4EF",
+                    outline: "none"
+                  }}
+                  placeholder="e.g. Cleared >90 days stock incentive bonus"
+                />
+              </div>
+
+              {/* Form Actions */}
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowGiveIncentiveModal(false)}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "20px",
+                    border: "1px solid #F4D4C5",
+                    background: "transparent",
+                    color: "#741A2F",
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: "10px 24px",
+                    borderRadius: "20px",
+                    border: "none",
+                    background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                    color: "#FFFFFF",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 14px rgba(116, 26, 47, 0.25)"
+                  }}
+                >
+                  ✓ Assign Incentive
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </>
   );
