@@ -4977,11 +4977,17 @@ export function SuperAdminIncentiveSection() {
                         }}>
                           💰 ₹{p.incentive.toLocaleString()} / unit
                         </span>
-                        {p.cost > 0 && (
-                          <span style={{ fontSize: "11px", color: "#6B4752", fontWeight: 600, paddingLeft: 4 }}>
-                            (Price: ₹{p.cost.toLocaleString()})
-                          </span>
-                        )}
+                        {(() => {
+                          const qty = p.qty ?? p.stock ?? 1;
+                          const singlePrice = (qty > 1 && p.cost > 0 && (p.cost / qty) >= p.incentive)
+                            ? Math.round(p.cost / qty)
+                            : p.cost;
+                          return singlePrice > 0 ? (
+                            <span style={{ fontSize: "11px", color: "#6B4752", fontWeight: 600, paddingLeft: 4 }}>
+                              (Price: ₹{singlePrice.toLocaleString()})
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px", textAlign: "center" }}>
