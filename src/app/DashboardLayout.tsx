@@ -65,77 +65,295 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
     return 0;
   };
 
-  const initials = (currentUser?.name ?? "U").split(" ").map((s) => s[0]).slice(0, 2).join("");
+  const initials = (currentUser?.name ?? "Vaishnavi Bhosale").split(" ").map((s) => s[0]).slice(0, 2).join("");
 
   return (
     <div className="sham-app">
       <div className="dash">
         <div className={`sidebar-overlay ${open ? "open" : ""}`} onClick={() => setOpen(false)} />
-        <aside className={`sidebar ${open ? "open" : ""}`}>
-          <div className="sidebar-brand">
-            <span className="logo-sq">SH</span>
-            <span>Smart Home</span>
+        {/* LIGHT SIDEBAR (NO DARK BACKGROUND) */}
+        <aside className={`sidebar ${open ? "open" : ""}`} style={{ background: "linear-gradient(180deg, #FAF4EF 0%, #FFF0E8 100%)", borderRight: "1px solid #F4D4C5" }}>
+          {/* Brand Logo Header */}
+          <div className="sidebar-brand" style={{ borderBottom: "1px solid #F4D4C5" }}>
+            <span className="logo-sq" style={{ background: "linear-gradient(135deg, #741A2F, #9E2B45)", boxShadow: "0 4px 12px rgba(116, 26, 47, 0.3)" }}>🍷</span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: "16px", fontWeight: 800, color: "#2B0B13", letterSpacing: "-0.3px", lineHeight: 1.2 }}>Star Home</span>
+              <span style={{ fontSize: "12px", color: "#6B4752", fontWeight: 600 }}>Appliances</span>
+            </div>
           </div>
-          {nav.map((n) => {
-            const badgeCount = getBadgeCount(n.key);
-            return (
-              <button
-                key={n.key}
-                className={`nav-item ${active === n.key ? "active" : ""}`}
-                onClick={() => { onNav(n.key); setOpen(false); }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span>{n.icon}</span> {n.label}
+
+          {/* Navigation items */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {nav.map((n) => {
+              const badgeCount = getBadgeCount(n.key);
+              const isActive = active === n.key;
+              return (
+                <button
+                  key={n.key}
+                  className={`nav-item ${isActive ? "active" : ""}`}
+                  onClick={() => { onNav(n.key); setOpen(false); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    background: isActive ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "transparent",
+                    color: isActive ? "#FFFFFF" : "#6B4752"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: "16px", display: "inline-flex", alignItems: "center" }}>{n.icon}</span>
+                    <span style={{ fontWeight: isActive ? 700 : 600 }}>{n.label}</span>
+                  </div>
+                  {badgeCount > 0 && (
+                    <span style={{
+                      background: isActive ? "#C8A96B" : "#5B6E57",
+                      color: "#F7F4ED",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      padding: "2px 7px",
+                      borderRadius: "999px"
+                    }}>
+                      {badgeCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* User profile & Promo Section at Bottom */}
+          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "12px", paddingTop: "16px" }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "10px 12px",
+              background: "#FFF0E8",
+              border: "1px solid #FFC6A8",
+              borderRadius: "14px",
+              color: "#2B0B13"
+            }}>
+              <span style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+                fontSize: "14px",
+                color: "#FFFFFF",
+                boxShadow: "0 2px 6px rgba(116, 26, 47, 0.3)"
+              }}>{initials}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#2B0B13" }}>
+                  {currentUser?.name || "Vaishnavi B."}
                 </div>
-                {badgeCount > 0 && (
-                  <span style={{
-                    background: "var(--success)",
-                    color: "white",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: "999px",
-                    animation: "pulse 2s infinite"
-                  }}>
-                    {badgeCount}
-                  </span>
-                )}
+                <div style={{ fontSize: "11px", color: "#6B4752", fontWeight: 600 }}>Super Admin</div>
+              </div>
+              <button onClick={handleLogout} style={{ background: "transparent", border: "none", color: "#6B4752", cursor: "pointer", fontSize: "16px" }} title="Logout">
+                ↩
               </button>
-            );
-          })}
-          <button className="nav-item" style={{ marginTop: "auto" }} onClick={handleLogout}>
-            <span>↩</span> Logout
-          </button>
+            </div>
+
+            {/* Promo Card */}
+            <div style={{
+              background: "linear-gradient(135deg, #FFC6A8 0%, #FFF0E8 100%)",
+              border: "1px solid #FFC6A8",
+              borderRadius: "18px",
+              padding: "14px",
+              textAlign: "center",
+              color: "#2B0B13",
+              boxShadow: "0 4px 12px rgba(116,26,47,0.06)"
+            }}>
+              <div style={{ fontSize: "32px", marginBottom: "6px" }}>🍷✨</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, lineHeight: 1.3, marginBottom: "10px", color: "#2B0B13" }}>
+                Premium Living<br /><span style={{ fontWeight: 500, color: "#6B4752" }}>Smart Home Appliances</span>
+              </div>
+              {/* DARK ACCENT BUTTON */}
+              <button style={{
+                background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: "999px",
+                padding: "7px 16px",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 4px 10px rgba(116, 26, 47, 0.3)"
+              }}>
+                Explore Now →
+              </button>
+            </div>
+
+            <div style={{ fontSize: "10px", color: "#5F6C5E", opacity: 0.8, textAlign: "center" }}>
+              © 2025 Star Home Appliances.
+            </div>
+          </div>
         </aside>
 
         <div className="main">
+          {/* Topbar */}
           <div className="topbar">
             <div className="topbar-left">
               <button className="menu-btn" onClick={() => setOpen((o) => !o)} aria-label="Menu">☰</button>
-              <div className="topbar-search">
-                <span>🔍</span>
-                <input placeholder={`Search in ${title}...`} />
+              <div className="topbar-search" style={{ background: "#F7F4ED", border: "1px solid #E0D8C8" }}>
+                <span style={{ color: "#5F6C5E" }}>🔍</span>
+                <input placeholder="Search anything..." style={{ fontSize: "13px", color: "#2C352B" }} />
               </div>
             </div>
-            <div className="topbar-right">
-              <div className="profile-chip">
-                <span className="avatar">{initials}</span>
-                <div style={{ fontSize: 12, lineHeight: 1.2 }}>
-                  <div style={{ fontWeight: 700 }}>{currentUser?.name}</div>
-                  <div style={{ color: "var(--brown)" }}>{title}</div>
-                </div>
+            <div className="topbar-right" style={{ gap: "12px" }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 14px",
+                background: "#F7F4ED",
+                borderRadius: "999px",
+                border: "1px solid #E0D8C8",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#2C352B",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
+              }}>
+                <span>📅</span> Today, 27 July 2025 <span>⌄</span>
+              </div>
+
+              {/* DARK BUTTON TINT FOR TOPBAR CONTROLS */}
+              <div className="icon-btn" style={{ background: "#5B6E57", border: "1px solid #3D4C3A", color: "#F7F4ED" }}>
+                🔔
+                {unread > 0 && <span className="badge-dot" style={{ background: "#C8A96B" }} />}
+              </div>
+
+              <div className="icon-btn" style={{ background: "#5B6E57", border: "1px solid #3D4C3A", color: "#F7F4ED" }}>
+                💬
+              </div>
+
+              <div style={{
+                width: "38px",
+                height: "38px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #C8A96B, #A6894C)",
+                color: "#F7F4ED",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+                fontSize: "14px",
+                boxShadow: "0 4px 10px rgba(200, 169, 107, 0.3)",
+                border: "2px solid #E0D8C8"
+              }}>
+                {initials}
               </div>
             </div>
           </div>
-          <div className="content">{children}</div>
+
+          <div className="content" style={{ padding: "20px 28px" }}>{children}</div>
         </div>
       </div>
     </div>
   );
 }
 
-export function StatCard({ icon, label, value, onClick }: { icon: string; label: string; value: string | number; onClick?: () => void }) {
+export function StatCard({
+  icon,
+  label,
+  value,
+  onClick,
+  variant,
+  trend,
+  isNegative
+}: {
+  icon: string;
+  label: string;
+  value: string | number;
+  onClick?: () => void;
+  variant?: "pink" | "purple" | "orange" | "rose" | "coral" | "default";
+  trend?: string;
+  isNegative?: boolean;
+}) {
+  if (variant && variant !== "default") {
+    // Rich Dark Card Variants for High Impact
+    const gradients: Record<string, string> = {
+      pink: "linear-gradient(135deg, #741A2F 0%, #521221 100%)",
+      purple: "linear-gradient(135deg, #9E2B45 0%, #741A2F 100%)",
+      orange: "linear-gradient(135deg, #F7AD88 0%, #D97750 100%)",
+      rose: "linear-gradient(135deg, #B83A56 0%, #741A2F 100%)",
+      coral: "linear-gradient(135deg, #741A2F 0%, #3D0914 100%)",
+    };
+
+    const sparklines: Record<string, string> = {
+      pink: "M 0 30 Q 30 38 60 20 T 120 28 T 180 10 T 220 5",
+      purple: "M 0 35 Q 35 15 70 28 T 140 18 T 220 8",
+      orange: "M 0 28 Q 40 36 80 20 T 150 25 T 220 12",
+      rose: "M 0 32 Q 40 18 80 28 T 150 12 T 220 6",
+      coral: "M 0 8 Q 45 18 90 28 T 160 32 T 220 38",
+    };
+    const path = sparklines[variant] || sparklines.pink;
+    const bgGradient = gradients[variant] || gradients.pink;
+
+    return (
+      <div
+        className="stat-card-gradient"
+        onClick={onClick}
+        style={{
+          background: bgGradient,
+          cursor: onClick ? "pointer" : "default",
+          color: "#F7F4ED"
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", zIndex: 2 }}>
+          <div style={{
+            width: "42px",
+            height: "42px",
+            borderRadius: "50%",
+            background: "rgba(247, 244, 237, 0.25)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "20px",
+            boxShadow: "inset 0 0 0 1px rgba(247, 244, 237, 0.4)"
+          }}>
+            {icon}
+          </div>
+        </div>
+
+        <div style={{ zIndex: 2 }}>
+          <div style={{ fontSize: "12px", opacity: 0.9, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600, marginBottom: "4px" }}>
+            {label}
+          </div>
+          <div style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.1, marginBottom: "6px" }}>
+            {value}
+          </div>
+          {trend && (
+            <div style={{ fontSize: "11px", fontWeight: 600, opacity: 0.95, display: "flex", alignItems: "center", gap: "4px" }}>
+              <span>{isNegative ? "↘" : "↗"}</span> {trend}
+            </div>
+          )}
+        </div>
+
+        {/* Mini SVG Sparkline at Bottom */}
+        <svg
+          viewBox="0 0 220 40"
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            width: "100%",
+            height: "45px",
+            opacity: 0.6,
+            pointerEvents: "none"
+          }}
+        >
+          <path d={path} fill="none" stroke="#F7F4ED" strokeWidth="3" strokeLinecap="round" />
+          <path d={`${path} L 220 40 L 0 40 Z`} fill="rgba(247, 244, 237, 0.15)" />
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="stat-card" onClick={onClick} style={onClick ? { cursor: "pointer" } : undefined}>
       <div className="stat-icon">{icon}</div>
@@ -229,14 +447,14 @@ export function PieChart({ data }: { data: { label: string; value: number; color
               key={idx}
               d={slice.pathData}
               fill={slice.color}
-              stroke="#ffffff"
+              stroke="#E0D8C8"
               strokeWidth="2"
               style={{ transition: "all 0.3s ease", cursor: "pointer" }}
             >
               <title>{`${slice.label}: ${slice.value} (${slice.percentage}%)`}</title>
             </path>
           ))}
-          <circle cx="100" cy="100" r="40" fill="#ffffff" />
+          <circle cx="100" cy="100" r="40" fill="#F7F4ED" />
         </svg>
         <div style={{
           position: "absolute",
@@ -256,7 +474,7 @@ export function PieChart({ data }: { data: { label: string; value: number; color
           <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", fontSize: "13px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: slice.color, display: "inline-block" }} />
-              <span style={{ fontWeight: 600, color: "#334155" }}>{slice.label}</span>
+              <span style={{ fontWeight: 600, color: "#2C352B" }}>{slice.label}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontWeight: 700, color: "var(--brown-dark)" }}>{slice.value}</span>
@@ -283,8 +501,8 @@ export function Modal({ title, onClose, children, className }: { title: string; 
 
   return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
-      <div className={`modal ${className ?? ""}`} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
+      <div className={`modal ${className ?? ""}`} onClick={(e) => e.stopPropagation()} style={{ background: "#F7F4ED" }}>
+        <div className="modal-head" style={{ borderBottom: "1px dashed #E0D8C8" }}>
           <h3 className="modal-title">{title}</h3>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
         </div>

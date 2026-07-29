@@ -3260,9 +3260,9 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
             {!readOnly && (
               <button onClick={() => setShowAddEmployee(true)} style={{
                 padding: "8px 16px", borderRadius: "20px", border: "none",
-                background: "linear-gradient(135deg, #d97706, #b45309)", color: "#fff",
+                background: "linear-gradient(135deg, #741A2F, #9E2B45)", color: "#fff",
                 cursor: "pointer", fontSize: "12px", fontWeight: 600,
-                boxShadow: "0 2px 8px rgba(217, 119, 6, 0.2)",
+                boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
                 transition: "transform 0.2s ease",
               }}>+ Add Employee</button>
             )}
@@ -3473,17 +3473,17 @@ export function TaskAssignmentSection() {
       {isSuperAdmin ? (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
+            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #FFC6A8" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
             borderRadius: "40px",
-            background: activeTab === "employee" ? "#ffffff" : "#faf8f5",
-            color: activeTab === "employee" ? "#92400e" : "#a18265",
+            background: activeTab === "employee" ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "#FFF0E8",
+            color: activeTab === "employee" ? "#ffffff" : "#741A2F",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(116, 26, 47, 0.25)" : "none"
           }}>
-            <span>👤 Employees</span>
+            <span style={{ color: activeTab === "employee" ? "#ffffff" : "#741A2F" }}>👤 Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3492,23 +3492,23 @@ export function TaskAssignmentSection() {
               height: "24px",
               borderRadius: "50%",
               fontSize: "13px",
-              background: activeTab === "employee" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "employee" ? "#92400e" : "#7c6249",
+              background: activeTab === "employee" ? "#FFC6A8" : "#F4D4C5",
+              color: "#741A2F",
               fontWeight: 800,
             }}>{employeesWithTasks.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
+            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #FFC6A8" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
             borderRadius: "40px",
-            background: activeTab === "manager" ? "#ffffff" : "#faf8f5",
-            color: activeTab === "manager" ? "#92400e" : "#a18265",
+            background: activeTab === "manager" ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "#FFF0E8",
+            color: activeTab === "manager" ? "#ffffff" : "#741A2F",
             transition: "all 0.3s ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(116, 26, 47, 0.25)" : "none"
           }}>
-            <span>👔 Managers</span>
+            <span style={{ color: activeTab === "manager" ? "#ffffff" : "#741A2F" }}>👔 Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3517,8 +3517,8 @@ export function TaskAssignmentSection() {
               height: "24px",
               borderRadius: "50%",
               fontSize: "13px",
-              background: activeTab === "manager" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "manager" ? "#92400e" : "#7c6249",
+              background: activeTab === "manager" ? "#FFC6A8" : "#F4D4C5",
+              color: "#741A2F",
               fontWeight: 800,
             }}>{managersWithTasks.length}</span>
           </button>
@@ -5368,10 +5368,10 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
       const nextProducts = s.products.map((p) =>
         p.id === product.id
           ? {
-              ...p,
-              incentive: calculatedIncentive > 0 ? calculatedIncentive : p.incentive,
-              assignedEmployeeId: empId
-            }
+            ...p,
+            incentive: calculatedIncentive > 0 ? calculatedIncentive : p.incentive,
+            assignedEmployeeId: empId
+          }
           : p
       );
 

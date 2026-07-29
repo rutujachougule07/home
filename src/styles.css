@@ -62,39 +62,39 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.965 0.008 80); /* #F4F2EE */
-  --foreground: oklch(0.18 0 0);        /* #1A1A1A */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
-  --primary: oklch(0.63 0.20 38);       /* #F26B3A */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.32 0.03 165);    /* #2E3D39 */
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.94 0.008 80);
-  --muted-foreground: oklch(0.45 0.02 165);
-  --accent: oklch(0.88 0.10 82);        /* #FAD390 */
-  --accent-foreground: oklch(0.18 0 0);
-  --destructive: oklch(0.58 0.22 25);   /* #EC4913 */
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.90 0.008 80);       /* #E2DCD5 */
-  --input: oklch(0.90 0.008 80);
-  --ring: oklch(0.63 0.20 38);
-  --chart-1: oklch(0.63 0.20 38);       /* #F26B3A */
-  --chart-2: oklch(0.32 0.03 165);      /* #2E3D39 */
-  --chart-3: oklch(0.88 0.10 82);       /* #FAD390 */
-  --chart-4: oklch(0.48 0.15 38);       /* #B4350C */
-  --chart-5: oklch(0.75 0.12 60);       /* #B58229 */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.18 0 0);
-  --sidebar-primary: oklch(0.63 0.20 38);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.965 0.008 80);
-  --sidebar-accent-foreground: oklch(0.18 0 0);
-  --sidebar-border: oklch(0.90 0.008 80);
-  --sidebar-ring: oklch(0.63 0.20 38);
+  --radius: 0.875rem;
+  --background: #FAF4EF;   /* Soft Cream Background */
+  --foreground: #2B0B13;  /* Deep Wine Charcoal Text */
+  --card: #FFFFFF;        /* Warm Porcelain White Card */
+  --card-foreground: #2B0B13;
+  --popover: #FFFFFF;     /* Popover */
+  --popover-foreground: #2B0B13;
+  --primary: #741A2F;     /* Deep Burgundy Red for Buttons */
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFC6A8;   /* Soft Pale Peach */
+  --secondary-foreground: #741A2F;
+  --muted: #FFF0E8;        /* Soft Peach Tint */
+  --muted-foreground: #6B4752; /* Muted Wine Text */
+  --accent: #FFC6A8;       /* Warm Peach Accent */
+  --accent-foreground: #741A2F;
+  --destructive: #D9534F;
+  --destructive-foreground: #FFFFFF;
+  --border: #F4D4C5;      /* Soft Peach Tinted Border */
+  --input: #F4D4C5;
+  --ring: #741A2F;
+  --chart-1: #741A2F;       /* Burgundy Red */
+  --chart-2: #FFC6A8;        /* Peach */
+  --chart-3: #9E2B45;       /* Lighter Burgundy */
+  --chart-4: #F7AD88;       /* Coral Peach */
+  --chart-5: #521221;        /* Deep Wine */
+  --sidebar: #FAF4EF;       /* Light Warm Porcelain Sidebar */
+  --sidebar-foreground: #2B0B13;
+  --sidebar-primary: #741A2F;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FFF0E8;
+  --sidebar-accent-foreground: #741A2F;
+  --sidebar-border: #F4D4C5;
+  --sidebar-ring: #741A2F;
 }
 
 .dark {
