@@ -4977,79 +4977,36 @@ export function SuperAdminIncentiveSection() {
                         💰 ₹{p.incentive.toLocaleString()}
                       </span>
                     </td>
-                    <td style={{ padding: "12px 16px", minWidth: 230 }}>
-                      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <select
-                          className="form-input"
-                          value={assignedEmp}
-                          onChange={(e) => {
-                            const empId = e.target.value;
-                            const batchIds = p.batches.map(b => b.id);
-                            setState((s: any) => ({
-                              ...s,
-                              products: s.products.map((prod: any) =>
-                                batchIds.includes(prod.id)
-                                  ? { ...prod, assignedEmployeeId: empId }
-                                  : prod
-                              )
-                            }));
-                          }}
-                          style={{
-                            padding: "8px 12px",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            borderRadius: 10,
-                            border: selectBorder,
-                            background: selectBg,
-                            color: selectColor,
-                            appearance: "auto",
-                            width: "100%",
-                            cursor: "pointer",
-                            boxShadow: isUnassigned ? "none" : "0 2px 6px rgba(0,0,0,0.04)",
-                            outline: "none",
-                            transition: "all 0.2s ease",
-                            flex: 1
-                          }}
-                        >
-                          <option value="" style={{ background: "white", color: "#333" }}>-- Select Employee --</option>
-                          <option value="all" style={{ background: "white", color: "#1e40af", fontWeight: 700 }}>👥 All Employees</option>
-                          {employees.map((u) => (
-                            <option key={u.id} value={u.id} style={{ background: "white", color: "#333" }}>
-                              👤 {u.name}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedProductForIncentive(p);
-                            setIncentiveFormEmpId(assignedEmp || "");
-                            setIncentiveFormAmount(p.incentive || 0);
-                            setIncentiveFormNotes("");
-                            setShowGiveIncentiveModal(true);
-                          }}
-                          style={{
-                            width: "34px",
-                            height: "34px",
-                            borderRadius: "10px",
-                            border: "none",
-                            background: "linear-gradient(135deg, #741A2F, #9E2B45)",
-                            color: "#ffffff",
-                            fontWeight: 800,
-                            fontSize: "18px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
-                            flexShrink: 0,
-                            transition: "transform 0.15s ease"
-                          }}
-                          title="Open Incentive Form (इन्सेंटिव्ह फॉर्म उघडा)"
-                        >
-                          +
-                        </button>
-                      </div>
+                    <td style={{ padding: "12px 16px", textAlign: "center" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProductForIncentive(p);
+                          setIncentiveFormEmpId(assignedEmp || "");
+                          setIncentiveFormAmount(p.incentive || 0);
+                          setIncentiveFormNotes("");
+                          setShowGiveIncentiveModal(true);
+                        }}
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "10px",
+                          border: "none",
+                          background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                          color: "#ffffff",
+                          fontWeight: 800,
+                          fontSize: "20px",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
+                          transition: "transform 0.15s ease"
+                        }}
+                        title="Open Incentive Form (इन्सेंटिव्ह फॉर्म उघडा)"
+                      >
+                        +
+                      </button>
                     </td>
                   </tr>
                 );
