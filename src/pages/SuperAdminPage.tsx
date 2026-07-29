@@ -4962,25 +4962,20 @@ export function SuperAdminIncentiveSection() {
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-                        <span style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          background: "linear-gradient(135deg, #FFF0E8, #FFC6A8)",
-                          color: "#741A2F",
-                          border: "1px solid #FFC6A8",
-                          padding: "5px 12px",
-                          borderRadius: "20px",
-                          fontWeight: 700,
-                          fontSize: "13px"
-                        }}>
-                          🏷️ ₹{(p.cost || 0).toLocaleString()} / unit
-                        </span>
-                        <span style={{ fontSize: "11px", color: "#15803d", fontWeight: 700, paddingLeft: 4 }}>
-                          ✨ Incentive: ₹{(p.incentive || 0).toLocaleString()}
-                        </span>
-                      </div>
+                      <span style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        background: "linear-gradient(135deg, #FFF0E8, #FFC6A8)",
+                        color: "#741A2F",
+                        border: "1px solid #FFC6A8",
+                        padding: "5px 12px",
+                        borderRadius: "20px",
+                        fontWeight: 700,
+                        fontSize: "13px"
+                      }}>
+                        🏷️ ₹{(p.cost || 0).toLocaleString()} / unit
+                      </span>
                     </td>
                     <td style={{ padding: "12px 16px", textAlign: "center" }}>
                       <button
