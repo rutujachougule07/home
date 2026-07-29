@@ -4758,15 +4758,43 @@ export function SuperAdminIncentiveSection() {
   const [selectedProductForIncentive, setSelectedProductForIncentive] = useState<(Product & { batches: Product[] }) | null>(null);
   const [incentiveFormEmpId, setIncentiveFormEmpId] = useState<string>("");
   const [incentiveFormAmount, setIncentiveFormAmount] = useState<number>(0);
+  const [incentiveFormPercent, setIncentiveFormPercent] = useState<number | string>(10);
+  const [incentiveFormQty, setIncentiveFormQty] = useState<number>(1);
+  const [incentiveInputMode, setIncentiveInputMode] = useState<"percent" | "amount">("percent");
   const [incentiveFormNotes, setIncentiveFormNotes] = useState<string>("");
 
-  const employees = useMemo(() => users.filter((u) => u.role === "employee"), [users]);
+  const employees = useMemo(() => users.filter((u) => u.role === "employee" || u.role === "manager"), [users]);
 
   const handleAssignIncentiveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProductForIncentive) return;
 
-    const batchIds = selectedProductForIncentive.batches.map((b) => b.id);
+    const batchIds = selectedProductForIncentive.batches ? selectedProductForIncentive.batches.map((b) => b.id) : [selectedProductForIncentive.id];
+    const selectedUser = users.find((u) => u.id === incentiveFormEmpId);
+    const assignedEmpName = incentiveFormEmpId === "all"
+      ? "All Employees"
+      : (selectedUser?.name || "Employee");
+
+    const pctDisplay = incentiveFormPercent ? `${incentiveFormPercent}%` : "";
+
+    const newNotification = {
+      id: `n_${Date.now()}`,
+      to: incentiveFormEmpId === "all" ? "all" : (selectedUser?.role || "employee"),
+      from: "Super Admin",
+      message: `💰 Incentive Sell Request: Assigned to sell ${incentiveFormQty} unit(s) of ${selectedProductForIncentive.name} with ${pctDisplay ? `${pctDisplay} (` : ""}₹${incentiveFormAmount}/unit${pctDisplay ? ")" : ""} incentive!`,
+      date: new Date().toLocaleString(),
+      read: false
+    };
+
+    const newTask = {
+      id: `t_${Date.now()}`,
+      title: `💰 Sell Request: ${selectedProductForIncentive.name} (Qty: ${incentiveFormQty} units, Incentive: ${pctDisplay ? `${pctDisplay} / ` : ""}₹${incentiveFormAmount}/unit)`,
+      assignedTo: incentiveFormEmpId === "all" ? "all" : (selectedUser?.id || ""),
+      assignedToName: assignedEmpName,
+      status: "Pending",
+      date: new Date().toISOString().split("T")[0]
+    };
+
     setState((s: any) => ({
       ...s,
       products: s.products.map((prod: any) =>
@@ -4777,8 +4805,12 @@ export function SuperAdminIncentiveSection() {
               incentive: incentiveFormAmount >= 0 ? incentiveFormAmount : prod.incentive,
             }
           : prod
-      )
+      ),
+      notifications: [newNotification, ...(s.notifications || [])],
+      tasks: [newTask, ...(s.tasks || [])]
     }));
+
+    alert(`✅ Incentive (${pctDisplay}) & Sell Request for ${incentiveFormQty} unit(s) of "${selectedProductForIncentive.name}" successfully assigned to ${assignedEmpName}!`);
 
     setShowGiveIncentiveModal(false);
     setSelectedProductForIncentive(null);
@@ -4983,7 +5015,11 @@ export function SuperAdminIncentiveSection() {
                         onClick={() => {
                           setSelectedProductForIncentive(p);
                           setIncentiveFormEmpId(assignedEmp || "");
-                          setIncentiveFormAmount(p.incentive || 0);
+                          const base = p.price || p.cost || 0;
+                          const pct = base > 0 && p.incentive ? Math.round((p.incentive / base) * 100) : 10;
+                          setIncentiveFormPercent(pct || 10);
+                          setIncentiveFormAmount(p.incentive || (base > 0 ? Math.round((base * (pct || 10)) / 100) : 700));
+                          setIncentiveFormQty(p.qty ?? p.stock ?? 1);
                           setIncentiveFormNotes("");
                           setShowGiveIncentiveModal(true);
                         }}
@@ -5214,17 +5250,25 @@ export function SuperAdminIncentiveSection() {
                 </select>
               </div>
 
-              {/* 2. Incentive Amount per unit */}
+              {/* 2. Quantity to Sell */}
               <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
-                  💰 Incentive / Unit (₹ प्रति नग इन्सेंटिव्ह)
-                </label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "13px", fontWeight: 700, color: "#2B0B13" }}>
+                    📦 Quantity to Sell (किती नग विकायचे आहेत) <span style={{ color: "#D9534F" }}>*</span>
+                  </label>
+                  {selectedProductForIncentive && (
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#6B4752" }}>
+                      Max Stock: <strong>{selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1} units</strong>
+                    </span>
+                  )}
+                </div>
                 <input
                   type="number"
-                  min="0"
-                  step="any"
-                  value={incentiveFormAmount}
-                  onChange={(e) => setIncentiveFormAmount(parseFloat(e.target.value) || 0)}
+                  min="1"
+                  max={selectedProductForIncentive?.qty ?? selectedProductForIncentive?.stock ?? 9999}
+                  value={incentiveFormQty}
+                  onChange={(e) => setIncentiveFormQty(parseInt(e.target.value) || 1)}
+                  required
                   style={{
                     width: "100%",
                     padding: "12px 14px",
@@ -5232,53 +5276,54 @@ export function SuperAdminIncentiveSection() {
                     border: "1px solid #F4D4C5",
                     fontSize: "14px",
                     fontWeight: 700,
-                    color: "#741A2F",
-                    background: "#FAF4EF",
-                    outline: "none"
-                  }}
-                  placeholder="Enter incentive amount e.g. 500"
-                />
-              </div>
-
-              {/* Total Estimated Bonus Calculation */}
-              <div style={{
-                background: "#FAF4EF",
-                borderRadius: "12px",
-                padding: "10px 14px",
-                marginBottom: "18px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                border: "1px dashed #F4D4C5"
-              }}>
-                <span style={{ fontSize: "13px", color: "#6B4752", fontWeight: 600 }}>Total Calculated Incentive ({selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1} units):</span>
-                <span style={{ fontSize: "16px", fontWeight: 800, color: "#741A2F" }}>
-                  ₹{((selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1) * (incentiveFormAmount || 0)).toLocaleString()}
-                </span>
-              </div>
-
-              {/* 3. Remarks / Notes */}
-              <div style={{ marginBottom: "24px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
-                  📝 Remarks / Note (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={incentiveFormNotes}
-                  onChange={(e) => setIncentiveFormNotes(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "12px",
-                    border: "1px solid #F4D4C5",
-                    fontSize: "13px",
                     color: "#2B0B13",
                     background: "#FAF4EF",
                     outline: "none"
                   }}
-                  placeholder="e.g. Cleared >90 days stock incentive bonus"
+                  placeholder="Enter quantity to sell e.g. 5"
                 />
               </div>
+
+              {/* 3. Incentive Percentage (%) */}
+              <div style={{ marginBottom: "18px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
+                  💰 Incentive (%) (इन्सेंटिव्ह टक्केवारी) <span style={{ color: "#D9534F" }}>*</span>
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="any"
+                    value={incentiveFormPercent}
+                    onChange={(e) => {
+                      const valStr = e.target.value;
+                      setIncentiveFormPercent(valStr);
+                      const pctVal = parseFloat(valStr) || 0;
+                      const basePrice = selectedProductForIncentive?.price || selectedProductForIncentive?.cost || 0;
+                      if (basePrice > 0) {
+                        setIncentiveFormAmount(Math.round((basePrice * pctVal) / 100));
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 35px 12px 14px",
+                      borderRadius: "12px",
+                      border: "1px solid #F4D4C5",
+                      fontSize: "15px",
+                      fontWeight: 700,
+                      color: "#741A2F",
+                      background: "#FAF4EF",
+                      outline: "none"
+                    }}
+                    placeholder="e.g. 10"
+                  />
+                  <span style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", fontWeight: 800, fontSize: "16px", color: "#741A2F" }}>%</span>
+                </div>
+              </div>
+
+
+
 
               {/* Form Actions */}
               <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
