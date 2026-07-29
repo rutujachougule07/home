@@ -4962,7 +4962,7 @@ export function SuperAdminIncentiveSection() {
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
                         <span style={{
                           display: "inline-flex",
                           alignItems: "center",
@@ -4975,19 +4975,11 @@ export function SuperAdminIncentiveSection() {
                           fontWeight: 700,
                           fontSize: "13px"
                         }}>
-                          💰 ₹{p.incentive.toLocaleString()} / unit
+                          🏷️ ₹{(p.cost || 0).toLocaleString()} / unit
                         </span>
-                        {(() => {
-                          const qty = p.qty ?? p.stock ?? 1;
-                          const singlePrice = (qty > 1 && p.cost > 0 && (p.cost / qty) >= p.incentive)
-                            ? Math.round(p.cost / qty)
-                            : p.cost;
-                          return singlePrice > 0 ? (
-                            <span style={{ fontSize: "11px", color: "#6B4752", fontWeight: 600, paddingLeft: 4 }}>
-                              (Price: ₹{singlePrice.toLocaleString()})
-                            </span>
-                          ) : null;
-                        })()}
+                        <span style={{ fontSize: "11px", color: "#15803d", fontWeight: 700, paddingLeft: 4 }}>
+                          ✨ Incentive: ₹{(p.incentive || 0).toLocaleString()}
+                        </span>
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px", textAlign: "center" }}>
