@@ -75,27 +75,7 @@ function Overview({ onNav }: { onNav: (tab: string) => void }) {
         <StatCard icon="✅" label="Tasks Completed" value={tasks.filter((t) => t.status === "Completed").length} />
         <StatCard icon="💰" label="INCENTIVE (> 90 DAYS)" value={incentive90Days} onClick={() => onNav("incentive")} />
       </div>
-      <div className="row-2">
-        <div className="panel">
-          <div className="panel-head"><h3 className="panel-title">Order Pipeline</h3></div>
-          <BarChart data={[
-            { label: "Pending", value: orders.filter((o) => o.status === "Pending").length },
-            { label: "Approved", value: orders.filter((o) => o.status === "Approved").length },
-            { label: "Rejected", value: orders.filter((o) => o.status === "Rejected").length },
-          ]} />
-        </div>
-        <div className="panel">
-          <div className="panel-head"><h3 className="panel-title">Employee Tasks</h3></div>
-          <ul className="notif-list">
-            {tasks.slice(0, 6).map((t) => (
-              <li key={t.id}>
-                <span className="notif-from">{t.assignedToName}</span> — {t.title}
-                <span className="notif-date">{t.date} · {t.status}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+
     </>
   );
 }

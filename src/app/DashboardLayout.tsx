@@ -157,35 +157,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
               </button>
             </div>
 
-            {/* Promo Card */}
-            <div style={{
-              background: "linear-gradient(135deg, #FFC6A8 0%, #FFF0E8 100%)",
-              border: "1px solid #FFC6A8",
-              borderRadius: "18px",
-              padding: "14px",
-              textAlign: "center",
-              color: "#2B0B13",
-              boxShadow: "0 4px 12px rgba(116,26,47,0.06)"
-            }}>
-              <div style={{ fontSize: "32px", marginBottom: "6px" }}>🍷✨</div>
-              <div style={{ fontSize: "12px", fontWeight: 700, lineHeight: 1.3, marginBottom: "10px", color: "#2B0B13" }}>
-                Premium Living<br /><span style={{ fontWeight: 500, color: "#6B4752" }}>Smart Home Appliances</span>
-              </div>
-              {/* DARK ACCENT BUTTON */}
-              <button style={{
-                background: "linear-gradient(135deg, #741A2F, #9E2B45)",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: "999px",
-                padding: "7px 16px",
-                fontSize: "11px",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 4px 10px rgba(116, 26, 47, 0.3)"
-              }}>
-                Explore Now →
-              </button>
-            </div>
+
 
             <div style={{ fontSize: "10px", color: "#5F6C5E", opacity: 0.8, textAlign: "center" }}>
               © 2025 Star Home Appliances.
@@ -194,61 +166,6 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
         </aside>
 
         <div className="main">
-          {/* Topbar */}
-          <div className="topbar">
-            <div className="topbar-left">
-              <button className="menu-btn" onClick={() => setOpen((o) => !o)} aria-label="Menu">☰</button>
-              <div className="topbar-search" style={{ background: "#F7F4ED", border: "1px solid #E0D8C8" }}>
-                <span style={{ color: "#5F6C5E" }}>🔍</span>
-                <input placeholder="Search anything..." style={{ fontSize: "13px", color: "#2C352B" }} />
-              </div>
-            </div>
-            <div className="topbar-right" style={{ gap: "12px" }}>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "8px 14px",
-                background: "#F7F4ED",
-                borderRadius: "999px",
-                border: "1px solid #E0D8C8",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "#2C352B",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
-              }}>
-                <span>📅</span> Today, 27 July 2025 <span>⌄</span>
-              </div>
-
-              {/* DARK BUTTON TINT FOR TOPBAR CONTROLS */}
-              <div className="icon-btn" style={{ background: "#5B6E57", border: "1px solid #3D4C3A", color: "#F7F4ED" }}>
-                🔔
-                {unread > 0 && <span className="badge-dot" style={{ background: "#C8A96B" }} />}
-              </div>
-
-              <div className="icon-btn" style={{ background: "#5B6E57", border: "1px solid #3D4C3A", color: "#F7F4ED" }}>
-                💬
-              </div>
-
-              <div style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #C8A96B, #A6894C)",
-                color: "#F7F4ED",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-                fontSize: "14px",
-                boxShadow: "0 4px 10px rgba(200, 169, 107, 0.3)",
-                border: "2px solid #E0D8C8"
-              }}>
-                {initials}
-              </div>
-            </div>
-          </div>
-
           <div className="content" style={{ padding: "20px 28px" }}>{children}</div>
         </div>
       </div>

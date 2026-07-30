@@ -4876,6 +4876,14 @@ export function SuperAdminIncentiveSection() {
           >
             📥 Export CSV
           </button>
+        </div>
+      </div>
+
+      <div className="panel" style={{ marginTop: 24, borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.04)", border: "1px solid var(--border)", overflow: "hidden" }}>
+        <div className="panel-head" style={{ padding: "18px 24px", background: "linear-gradient(135deg, #fffbf0, #fff7ed)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 className="panel-title" style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+            <span>💰</span> Products Eligible for Incentive (&gt; 90 Days)
+          </h3>
           <button
             className="btn btn-primary"
             onClick={() => {
@@ -4886,14 +4894,6 @@ export function SuperAdminIncentiveSection() {
           >
             ➕ Add Incentive Product
           </button>
-        </div>
-      </div>
-
-      <div className="panel" style={{ marginTop: 24, borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.04)", border: "1px solid var(--border)", overflow: "hidden" }}>
-        <div className="panel-head" style={{ padding: "18px 24px", background: "linear-gradient(135deg, #fffbf0, #fff7ed)", borderBottom: "1px solid var(--border)" }}>
-          <h3 className="panel-title" style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
-            <span>💰</span> Products Eligible for Incentive (&gt; 90 Days)
-          </h3>
         </div>
         <div className="table-wrap">
           <table className="tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
