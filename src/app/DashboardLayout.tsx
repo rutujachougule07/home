@@ -72,13 +72,13 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
       <div className="dash">
         <div className={`sidebar-overlay ${open ? "open" : ""}`} onClick={() => setOpen(false)} />
         {/* LIGHT SIDEBAR (NO DARK BACKGROUND) */}
-        <aside className={`sidebar ${open ? "open" : ""}`} style={{ background: "linear-gradient(180deg, #FAF4EF 0%, #FFF0E8 100%)", borderRight: "1px solid #F4D4C5" }}>
+        <aside className={`sidebar ${open ? "open" : ""}`} style={{ background: "linear-gradient(180deg, #EAE6D2 0%, #DFDAC5 100%)", borderRight: "1px solid #D5CFB6" }}>
           {/* Brand Logo Header */}
-          <div className="sidebar-brand" style={{ borderBottom: "1px solid #F4D4C5" }}>
-            <span className="logo-sq" style={{ background: "linear-gradient(135deg, #741A2F, #9E2B45)", boxShadow: "0 4px 12px rgba(116, 26, 47, 0.3)" }}>🍷</span>
+          <div className="sidebar-brand" style={{ borderBottom: "1px solid #D5CFB6" }}>
+            <span className="logo-sq" style={{ background: "linear-gradient(135deg, #121A1B, #505039)", boxShadow: "0 4px 12px rgba(18, 26, 27, 0.3)", color: "#EAE6D2" }}>🍷</span>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: "16px", fontWeight: 800, color: "#2B0B13", letterSpacing: "-0.3px", lineHeight: 1.2 }}>Star Home</span>
-              <span style={{ fontSize: "12px", color: "#6B4752", fontWeight: 600 }}>Appliances</span>
+              <span style={{ fontSize: "16px", fontWeight: 800, color: "#121A1B", letterSpacing: "-0.3px", lineHeight: 1.2 }}>Star Home</span>
+              <span style={{ fontSize: "12px", color: "#505039", fontWeight: 600 }}>Appliances</span>
             </div>
           </div>
 
@@ -96,8 +96,8 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    background: isActive ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "transparent",
-                    color: isActive ? "#FFFFFF" : "#6B4752"
+                    background: isActive ? "linear-gradient(135deg, #121A1B, #505039)" : "transparent",
+                    color: isActive ? "#EAE6D2" : "#505039"
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -106,8 +106,8 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                   </div>
                   {badgeCount > 0 && (
                     <span style={{
-                      background: isActive ? "#C8A96B" : "#5B6E57",
-                      color: "#F7F4ED",
+                      background: isActive ? "#A7AA63" : "#505039",
+                      color: isActive ? "#121A1B" : "#EAE6D2",
                       fontSize: 10,
                       fontWeight: 800,
                       padding: "2px 7px",
@@ -128,38 +128,36 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
               alignItems: "center",
               gap: "10px",
               padding: "10px 12px",
-              background: "#FFF0E8",
-              border: "1px solid #FFC6A8",
+              background: "#F4F2E6",
+              border: "1px solid #D5CFB6",
               borderRadius: "14px",
-              color: "#2B0B13"
+              color: "#121A1B"
             }}>
               <span style={{
                 width: "36px",
                 height: "36px",
                 borderRadius: "50%",
-                background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                background: "linear-gradient(135deg, #121A1B, #505039)",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: 700,
                 fontSize: "14px",
-                color: "#FFFFFF",
-                boxShadow: "0 2px 6px rgba(116, 26, 47, 0.3)"
+                color: "#EAE6D2",
+                boxShadow: "0 2px 6px rgba(18, 26, 27, 0.3)"
               }}>{initials}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#2B0B13" }}>
+                <div style={{ fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#121A1B" }}>
                   {currentUser?.name || "Vaishnavi B."}
                 </div>
-                <div style={{ fontSize: "11px", color: "#6B4752", fontWeight: 600 }}>Super Admin</div>
+                <div style={{ fontSize: "11px", color: "#505039", fontWeight: 600 }}>Super Admin</div>
               </div>
-              <button onClick={handleLogout} style={{ background: "transparent", border: "none", color: "#6B4752", cursor: "pointer", fontSize: "16px" }} title="Logout">
+              <button onClick={handleLogout} style={{ background: "transparent", border: "none", color: "#505039", cursor: "pointer", fontSize: "16px" }} title="Logout">
                 ↩
               </button>
             </div>
 
-
-
-            <div style={{ fontSize: "10px", color: "#5F6C5E", opacity: 0.8, textAlign: "center" }}>
+            <div style={{ fontSize: "10px", color: "#505039", opacity: 0.8, textAlign: "center" }}>
               © 2025 Star Home Appliances.
             </div>
           </div>
@@ -193,11 +191,11 @@ export function StatCard({
   if (variant && variant !== "default") {
     // Rich Dark Card Variants for High Impact
     const gradients: Record<string, string> = {
-      pink: "linear-gradient(135deg, #741A2F 0%, #521221 100%)",
-      purple: "linear-gradient(135deg, #9E2B45 0%, #741A2F 100%)",
-      orange: "linear-gradient(135deg, #F7AD88 0%, #D97750 100%)",
-      rose: "linear-gradient(135deg, #B83A56 0%, #741A2F 100%)",
-      coral: "linear-gradient(135deg, #741A2F 0%, #3D0914 100%)",
+      pink: "linear-gradient(135deg, #121A1B 0%, #253335 100%)",
+      purple: "linear-gradient(135deg, #505039 0%, #383827 100%)",
+      orange: "linear-gradient(135deg, #A7AA63 0%, #76793B 100%)",
+      rose: "linear-gradient(135deg, #2D3A3C 0%, #121A1B 100%)",
+      coral: "linear-gradient(135deg, #505039 0%, #121A1B 100%)",
     };
 
     const sparklines: Record<string, string> = {

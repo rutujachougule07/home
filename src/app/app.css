@@ -1,39 +1,39 @@
 :root {
-  /* Updated Palette Design Tokens */
-  --primary: #2D4F36;          /* Primary: Dark Forest Green (#2D4F36) */
-  --primary-dark: #1E3725;     /* Deep Forest Green */
-  --primary-light: #E6EFE9;    /* Soft Forest Green Tint */
+  /* Updated Palette Design Tokens: #121A1B, #505039, #A7AA63, #EAE6D2 */
+  --primary: #121A1B;          /* Primary Dark (#121A1B) */
+  --primary-dark: #0B1112;     /* Deeper Dark Charcoal */
+  --primary-light: #EAE6D2;    /* Soft Cream Tint */
 
-  --secondary: #FFB347;        /* Secondary: Warm Amber Orange (#FFB347) */
-  --secondary-medium: #E5982A; /* Medium Amber */
-  --secondary-light: #FFF5E5;  /* Light Amber Tint */
+  --secondary: #505039;        /* Secondary: Deep Muted Olive (#505039) */
+  --secondary-medium: #3E3E2B; /* Darker Olive */
+  --secondary-light: #F4F2E6;  /* Light Tint */
 
-  --tertiary: #A3B18A;         /* Tertiary: Sage Green (#A3B18A) */
-  --tertiary-dark: #7B8B62;    /* Dark Sage */
-  --tertiary-light: #F0F4EC;   /* Soft Sage Tint */
+  --tertiary: #A7AA63;         /* Tertiary: Sage Gold (#A7AA63) */
+  --tertiary-dark: #888B4B;    /* Darker Sage Gold */
+  --tertiary-light: #F2F3E3;   /* Soft Sage Tint */
 
-  --neutral: #FDFCF0;          /* Neutral: Soft Warm Cream (#FDFCF0) */
-  --brown-dark: #1C2B20;       /* Primary Text (Deep Forest Charcoal) */
-  --brown: #46594B;            /* Secondary Muted Text */
-  --light-brown: #A3B18A;      /* Sage Green */
+  --neutral: #EAE6D2;          /* Neutral: Soft Warm Cream (#EAE6D2) */
+  --brown-dark: #121A1B;       /* Primary Text (Dark Charcoal) */
+  --brown: #505039;            /* Secondary Muted Text */
+  --light-brown: #A7AA63;      /* Sage Gold Accent */
 
-  --accent: #FFB347;           /* Warm Amber Accent */
-  --accent-dark: #E5982A;
-  --danger: #EC4913;
-  --success: #2D4F36;
-  --info: #3B82F6;
-  --warning: #FFB347;
+  --accent: #A7AA63;           /* Sage Gold Accent */
+  --accent-dark: #505039;
+  --danger: #C0392B;
+  --success: #121A1B;
+  --info: #3E505B;
+  --warning: #A7AA63;
 
-  --cream: #FDFCF0;            /* Warm Neutral Page Background (#FDFCF0) */
-  --biscuit-light: #F9F8EA;    /* Soft Surface Tint */
-  --biscuit: #EFECE0;          /* Soft Neutral Surface */
+  --cream: #EAE6D2;            /* Warm Neutral Page Background (#EAE6D2) */
+  --biscuit-light: #F4F2E6;    /* Soft Surface Tint */
+  --biscuit: #DFDAC5;          /* Neutral Surface */
   --warm-white: #FFFFFF;       /* Card Background */
-  --beige: #E6E3D5;
-  --border: #E5E2D3;           /* Soft Cream Border */
+  --beige: #D5CFB6;
+  --border: #D5CFB6;           /* Soft Cream Border */
 
-  --shadow-sm: 0 2px 6px rgba(45, 79, 54, 0.05);
-  --shadow-md: 0 8px 24px rgba(45, 79, 54, 0.08);
-  --shadow-lg: 0 16px 40px rgba(45, 79, 54, 0.12);
+  --shadow-sm: 0 2px 6px rgba(18, 26, 27, 0.06);
+  --shadow-md: 0 8px 24px rgba(18, 26, 27, 0.10);
+  --shadow-lg: 0 16px 40px rgba(18, 26, 27, 0.15);
   --radius: 14px;
   --radius-sm: 10px;
 }
