@@ -123,39 +123,39 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
 
           {/* User profile & Promo Section at Bottom */}
           <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "12px", paddingTop: "16px" }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "10px 12px",
-              background: "#FFF0E8",
-              border: "1px solid #FFC6A8",
-              borderRadius: "14px",
-              color: "#2B0B13"
-            }}>
-              <span style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #741A2F, #9E2B45)",
-                display: "inline-flex",
+            <button
+              type="button"
+              className="btn btn-logout"
+              onClick={handleLogout}
+              style={{
+                display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: "10px",
+                padding: "12px 16px",
+                width: "100%",
+                background: "#526A59",
+                border: "none",
+                borderRadius: "14px",
+                color: "#FFFFFF",
                 fontWeight: 700,
                 fontSize: "14px",
-                color: "#FFFFFF",
-                boxShadow: "0 2px 6px rgba(116, 26, 47, 0.3)"
-              }}>{initials}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: "13px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#2B0B13" }}>
-                  {currentUser?.name || "Vaishnavi B."}
-                </div>
-                <div style={{ fontSize: "11px", color: "#6B4752", fontWeight: 600 }}>Super Admin</div>
-              </div>
-              <button onClick={handleLogout} style={{ background: "transparent", border: "none", color: "#6B4752", cursor: "pointer", fontSize: "16px" }} title="Logout">
-                ↩
-              </button>
-            </div>
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "#3F5345";
+                e.currentTarget.style.color = "#FFFFFF";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "#526A59";
+                e.currentTarget.style.color = "#FFFFFF";
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>🚪</span>
+              <span>Logout</span>
+            </button>
 
 
 

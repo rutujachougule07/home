@@ -332,7 +332,7 @@ function OrdersMgmt() {
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">My Orders ({orders.length})</h3>
-          <button className="btn btn-primary btn-sm" onClick={() => setShow(true)}>+ Create Order</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setShow(true)} style={{ background: "#2D4F36", color: "#FFFFFF", fontWeight: 700, borderRadius: 12, padding: "8px 18px", fontSize: "14px", border: "none", boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)" }}>+ Create Order</button>
         </div>
         <div className={orders.length > 0 ? "card-grid" : ""}>
           {orders.map((o) => {

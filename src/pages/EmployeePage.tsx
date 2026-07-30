@@ -832,7 +832,7 @@ function OrderUpdates() {
         <button
           className="btn btn-primary"
           onClick={() => setShowAddOrder(true)}
-          style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))", fontWeight: 700, borderRadius: 10, padding: "8px 18px", fontSize: "14px" }}
+          style={{ background: "#2D4F36", color: "#FFFFFF", fontWeight: 700, borderRadius: 12, padding: "8px 18px", fontSize: "14px", border: "none", boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)" }}
         >
           ➕ Create Order
         </button>

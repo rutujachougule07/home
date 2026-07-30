@@ -318,13 +318,17 @@ h6,
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
-  box-shadow: var(--shadow-sm);
+  background: #2D4F36;
+  color: #ffffff;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(45, 79, 54, 0.25);
 }
 
 .btn-primary:hover {
-  box-shadow: var(--shadow-md);
+  background: #1E3725;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(45, 79, 54, 0.35);
 }
 
 .btn-secondary {

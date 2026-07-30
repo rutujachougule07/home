@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useStore } from "../app/store";
+import { Eye, EyeOff } from "lucide-react";
 
 export function LoginPage() {
   const { login } = useStore();
@@ -56,8 +57,8 @@ export function LoginPage() {
                 placeholder="Enter password"
                 autoComplete="new-password"
               />
-              <button type="button" className="password-toggle" onClick={() => setShow((s) => !s)}>
-                {show ? "🙈" : "👁"}
+              <button type="button" className="password-toggle" onClick={() => setShow((s) => !s)} aria-label="Toggle password visibility">
+                {show ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>

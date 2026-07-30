@@ -23,6 +23,127 @@ interface SuperAdminPageProps {
   tab?: string;
 }
 
+export function DownloadDropdown({
+  onPDF,
+  onCSV,
+  label = "Download"
+}: {
+  onPDF: () => void;
+  onCSV: () => void;
+  label?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <button
+        type="button"
+        className="btn btn-ghost"
+        onClick={() => setOpen((prev) => !prev)}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          border: "1px solid var(--border)",
+          background: "#ffffff",
+          borderRadius: "10px",
+          padding: "8px 16px",
+          fontSize: "13px",
+          fontWeight: 600,
+          color: "var(--brown-dark)",
+          cursor: "pointer",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+          transition: "all 0.2s ease"
+        }}
+      >
+        <span>📥</span>
+        <span>{label}</span>
+        <span style={{ fontSize: "10px", opacity: 0.7 }}>{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute",
+          top: "calc(100% + 6px)",
+          right: 0,
+          background: "#ffffff",
+          border: "1px solid var(--border)",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+          padding: "6px",
+          minWidth: "160px",
+          zIndex: 100,
+          display: "flex",
+          flexDirection: "column",
+          gap: "4px"
+        }}>
+          <button
+            type="button"
+            onClick={() => { setOpen(false); onPDF(); }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "9px 12px",
+              border: "none",
+              background: "transparent",
+              borderRadius: "8px",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "var(--brown-dark)",
+              cursor: "pointer",
+              textAlign: "left",
+              width: "100%",
+              transition: "background 0.15s ease"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "var(--biscuit-light)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+          >
+            <span>📄</span>
+            <span>Download PDF</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setOpen(false); onCSV(); }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "9px 12px",
+              border: "none",
+              background: "transparent",
+              borderRadius: "8px",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "var(--brown-dark)",
+              cursor: "pointer",
+              textAlign: "left",
+              width: "100%",
+              transition: "background 0.15s ease"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "var(--biscuit-light)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+          >
+            <span>📊</span>
+            <span>Export CSV</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
   const store = useStore();
   const active = tab || "live";
@@ -933,10 +1054,9 @@ function ProductsSection() {
           <h2 className="page-title">Product Management</h2>
           <p className="page-sub">Maintain catalog, stock, and status.</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            className="btn btn-ghost"
-            onClick={() => {
+        <div>
+          <DownloadDropdown
+            onPDF={() => {
               const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
               const rows = filteredProducts.map((p, index) => {
                 const qty = p.qty ?? p.stock ?? 0;
@@ -945,19 +1065,20 @@ function ProductsSection() {
                 const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
                 return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
               });
-              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`);
+              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`, "pdf");
             }}
-            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
-          >
-            📄 Download PDF
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => exportProductsReport(filteredProducts)}
-            style={{ border: "1px solid var(--border)", background: "white", borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600 }}
-          >
-            📥 Export CSV
-          </button>
+            onCSV={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
+              const rows = filteredProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitCost = p.cost || 0;
+                const totalCost = qty * unitCost;
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
+              });
+              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`, "csv");
+            }}
+          />
         </div>
       </div>
 
@@ -3258,11 +3379,11 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               <span>👤 All Employees</span>
             </h3>
             {!readOnly && (
-              <button onClick={() => setShowAddEmployee(true)} style={{
-                padding: "8px 16px", borderRadius: "20px", border: "none",
-                background: "linear-gradient(135deg, #741A2F, #9E2B45)", color: "#fff",
-                cursor: "pointer", fontSize: "12px", fontWeight: 600,
-                boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
+              <button onClick={() => setShowAddEmployee(true)} className="btn btn-primary btn-sm" style={{
+                padding: "8px 18px", borderRadius: "12px", border: "none",
+                background: "#2D4F36", color: "#FFFFFF",
+                cursor: "pointer", fontSize: "13px", fontWeight: 700,
+                boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)",
                 transition: "transform 0.2s ease",
               }}>+ Add Employee</button>
             )}
@@ -3310,11 +3431,11 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               <span>👔 All Managers</span>
             </h3>
             {!readOnly && (
-              <button onClick={() => setShowAddManager(true)} style={{
-                padding: "8px 16px", borderRadius: "20px", border: "none",
-                background: "linear-gradient(135deg, #d97706, #b45309)", color: "#fff",
-                cursor: "pointer", fontSize: "12px", fontWeight: 600,
-                boxShadow: "0 2px 8px rgba(217, 119, 6, 0.2)",
+              <button onClick={() => setShowAddManager(true)} className="btn btn-primary btn-sm" style={{
+                padding: "8px 18px", borderRadius: "12px", border: "none",
+                background: "#2D4F36", color: "#FFFFFF",
+                cursor: "pointer", fontSize: "13px", fontWeight: 700,
+                boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)",
                 transition: "transform 0.2s ease",
               }}>+ Add Manager</button>
             )}
@@ -4800,10 +4921,10 @@ export function SuperAdminIncentiveSection() {
       products: s.products.map((prod: any) =>
         batchIds.includes(prod.id)
           ? {
-              ...prod,
-              assignedEmployeeId: incentiveFormEmpId,
-              incentive: incentiveFormAmount >= 0 ? incentiveFormAmount : prod.incentive,
-            }
+            ...prod,
+            assignedEmployeeId: incentiveFormEmpId,
+            incentive: incentiveFormAmount >= 0 ? incentiveFormAmount : prod.incentive,
+          }
           : prod
       ),
       notifications: [newNotification, ...(s.notifications || [])],
@@ -4852,10 +4973,9 @@ export function SuperAdminIncentiveSection() {
           <h2 className="page-title">Incentive Management</h2>
           <p className="page-sub">Track and manage employee incentives and payouts.</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            className="btn btn-ghost"
-            onClick={() => {
+        <div>
+          <DownloadDropdown
+            onPDF={() => {
               const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
               const rows = groupedOldProducts.map((p, index) => {
                 const qty = p.qty ?? p.stock ?? 0;
@@ -4863,19 +4983,19 @@ export function SuperAdminIncentiveSection() {
                 const totalIncentive = qty * unitIncentive;
                 return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
               });
-              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`);
+              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "pdf");
             }}
-            style={{ border: "1px solid var(--border)", background: "white", borderRadius: "8px", padding: "8px 14px", fontWeight: 600 }}
-          >
-            📄 Download PDF
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => exportIncentiveReport(products)}
-            style={{ border: "1px solid var(--border)", background: "white", borderRadius: "8px", padding: "8px 14px", fontWeight: 600 }}
-          >
-            📥 Export CSV
-          </button>
+            onCSV={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+              const rows = groupedOldProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitIncentive = p.incentive || 0;
+                const totalIncentive = qty * unitIncentive;
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+              });
+              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "csv");
+            }}
+          />
         </div>
       </div>
 
@@ -5447,28 +5567,24 @@ export function SuperAdminGodownSection() {
           <h2 className="page-title">Godown Management & Stock Reports</h2>
           <p className="page-sub">Manage stock and generate detailed reports for Godown 1 and Godown 2.</p>
         </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button
-            className="btn btn-ghost"
-            onClick={() => handlePDFExport(activeTab)}
-            style={{ border: "1px solid var(--border)", padding: "8px 14px", borderRadius: 10, fontWeight: 600, background: "#ffffff" }}
-          >
-            📄 {activeTab} PDF Report
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => exportGodownReport(products, activeTab)}
-            style={{ padding: "8px 14px", borderRadius: 10, fontWeight: 600 }}
-          >
-            📥 {activeTab} CSV
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => exportGodownReport(products, "All Godowns")}
-            style={{ border: "1px solid var(--border)", padding: "8px 14px", borderRadius: 10, fontWeight: 600, background: "var(--cream)" }}
-          >
-            📊 Both Godowns CSV
-          </button>
+        <div>
+          <DownloadDropdown
+            label={`${activeTab} Download`}
+            onPDF={() => {
+              const list = activeTab === "Godown 1" ? godown1Products : godown2Products;
+              const totalValuation = list.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || 0)), 0);
+              const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+              const rows = list.map((p, index) => [index + 1, p.name, p.sku || "—", p.category || "—", p.qty ?? p.stock ?? 0, p.cost || 0, (p.qty ?? p.stock ?? 0) * (p.cost || 0)]);
+              openPDFPreview(`${activeTab} Stock Inventory Report`, headers, rows, `Total Items: ${list.length} | Valuation: ₹${totalValuation.toLocaleString()}`, "pdf");
+            }}
+            onCSV={() => {
+              const list = activeTab === "Godown 1" ? godown1Products : godown2Products;
+              const totalValuation = list.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.cost || 0)), 0);
+              const headers = ["Sr. No.", "Product Name", "SKU", "Category", "Qty", "Unit Cost (₹)", "Total Cost (₹)"];
+              const rows = list.map((p, index) => [index + 1, p.name, p.sku || "—", p.category || "—", p.qty ?? p.stock ?? 0, p.cost || 0, (p.qty ?? p.stock ?? 0) * (p.cost || 0)]);
+              openPDFPreview(`${activeTab} Stock Inventory Report`, headers, rows, `Total Items: ${list.length} | Valuation: ₹${totalValuation.toLocaleString()}`, "csv");
+            }}
+          />
         </div>
       </div>
 
@@ -5845,9 +5961,15 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
 // SECTION PDF DOWNLOAD & CSV REPORT UTILITIES FOR ALL SECTIONS
 // ========================================================
 
-export function openPDFPreview(sectionTitle: string, tableHeaders: string[], rows: (string | number)[][], summaryText?: string) {
+export function openPDFPreview(
+  sectionTitle: string,
+  tableHeaders: string[],
+  rows: (string | number)[][],
+  summaryText?: string,
+  exportType: "pdf" | "csv" | "both" = "pdf"
+) {
   const event = new CustomEvent("open-pdf-preview", {
-    detail: { sectionTitle, tableHeaders, rows, summaryText }
+    detail: { sectionTitle, tableHeaders, rows, summaryText, exportType }
   });
   window.dispatchEvent(event);
 }
@@ -5858,6 +5980,7 @@ export function PDFPreviewContainer() {
     tableHeaders: string[];
     rows: (string | number)[][];
     summaryText?: string;
+    exportType?: "pdf" | "csv" | "both";
   } | null>(null);
 
   useEffect(() => {
@@ -5873,10 +5996,18 @@ export function PDFPreviewContainer() {
 
   if (!data) return null;
 
+  const mode = data.exportType || "pdf";
   const today = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
-  const handleConfirmDownload = () => {
+  const handleConfirmPDF = () => {
     downloadSectionPDF(data.sectionTitle, data.tableHeaders, data.rows, data.summaryText);
+    setData(null);
+  };
+
+  const handleConfirmCSV = () => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const fileName = `${data.sectionTitle.replace(/[^a-zA-Z0-9]/g, "_")}_${todayStr}.csv`;
+    exportToCSV(fileName, data.tableHeaders, data.rows);
     setData(null);
   };
 
@@ -5901,7 +6032,7 @@ export function PDFPreviewContainer() {
               </div>
             </div>
             <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", background: "#eff6ff", color: "#1d4ed8", borderRadius: 6, border: "1px solid #bfdbfe" }}>
-              PDF PREVIEW MODE
+              {mode === "csv" ? "CSV / EXCEL PREVIEW MODE" : "PDF PREVIEW MODE"}
             </span>
           </div>
 
@@ -5953,33 +6084,62 @@ export function PDFPreviewContainer() {
           </div>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 20, paddingTop: 12, borderTop: "1px solid #e2e8f0" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 20, paddingTop: 12, borderTop: "1px solid #e2e8f0" }}>
           <button
             className="btn btn-ghost"
             onClick={() => setData(null)}
             style={{ padding: "9px 18px", borderRadius: 8, border: "1px solid var(--border)", fontWeight: 600 }}
           >
-            ✕ Cancel
+            ✕ Close
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={handleConfirmDownload}
-            style={{
-              padding: "10px 24px",
-              borderRadius: 8,
-              background: "#2563eb",
-              color: "#ffffff",
-              fontWeight: 700,
-              fontSize: 14,
-              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              cursor: "pointer"
-            }}
-          >
-            📥 Confirm & Download PDF
-          </button>
+          
+          {mode === "csv" ? (
+            <button
+              className="btn btn-primary"
+              onClick={handleConfirmCSV}
+              style={{
+                padding: "10px 24px",
+                borderRadius: 8,
+                background: "#2563eb",
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: 14,
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: "pointer"
+              }}
+            >
+              📊 Download CSV
+            </button>
+          ) : mode === "pdf" ? (
+            <button
+              className="btn btn-primary"
+              onClick={handleConfirmPDF}
+              style={{
+                padding: "10px 24px",
+                borderRadius: 8,
+                background: "#2563eb",
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: 14,
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: "pointer"
+              }}
+            >
+              📄 Download PDF
+            </button>
+          ) : (
+            <DownloadDropdown
+              label="Download Report"
+              onPDF={handleConfirmPDF}
+              onCSV={handleConfirmCSV}
+            />
+          )}
         </div>
       </div>
     </Modal>
@@ -6142,7 +6302,6 @@ export function exportIncentiveReport(products: Product[]) {
 }
 
 export function exportLeadsReport(leads: Lead[], users: User[] = []) {
-  const today = new Date().toISOString().slice(0, 10);
   const headers = ["Lead ID", "Customer Name", "Phone", "Email", "Status", "Source", "Interested Product", "Assigned Employee", "Date Created"];
   const rows = leads.map(l => [
     l.id,
@@ -6155,11 +6314,10 @@ export function exportLeadsReport(leads: Lead[], users: User[] = []) {
     users.find(u => u.id === l.assignedTo)?.name || l.assignedTo || "",
     l.date || ""
   ]);
-  exportToCSV(`Leads_Pipeline_Report_${today}.csv`, headers, rows);
+  openPDFPreview("Lead Generation Pipeline Report", headers, rows, `Total Leads: ${leads.length}`, "pdf");
 }
 
 export function exportTasksReport(tasks: Task[]) {
-  const today = new Date().toISOString().slice(0, 10);
   const headers = ["Task ID", "Task Title", "Assigned Employee", "Status", "Assigned Date"];
   const rows = tasks.map(t => [
     t.id,
@@ -6168,11 +6326,10 @@ export function exportTasksReport(tasks: Task[]) {
     t.status,
     t.date || ""
   ]);
-  exportToCSV(`Employee_Tasks_Report_${today}.csv`, headers, rows);
+  openPDFPreview("Employee Task Assignment Report", headers, rows, `Total Tasks: ${tasks.length}`, "pdf");
 }
 
 export function exportEmployeesReport(employees: User[]) {
-  const today = new Date().toISOString().slice(0, 10);
   const headers = ["Sr. No.", "Employee ID", "Full Name", "Job Role", "Phone", "Email", "Status"];
   const rows = employees.map((e, index) => [
     index + 1,
@@ -6183,11 +6340,10 @@ export function exportEmployeesReport(employees: User[]) {
     e.email || e.username || "—",
     e.status || "Verified"
   ]);
-  exportToCSV(`Employees_Roster_Report_${today}.csv`, headers, rows);
+  openPDFPreview("Employees Roster Report", headers, rows, `Total Employees: ${employees.length}`, "pdf");
 }
 
 export function exportManagersReport(managers: User[]) {
-  const today = new Date().toISOString().slice(0, 10);
   const headers = ["Sr. No.", "Manager ID", "Full Name", "Phone", "Email"];
   const rows = managers.map((m, index) => [
     index + 1,
@@ -6196,7 +6352,7 @@ export function exportManagersReport(managers: User[]) {
     m.phone || "—",
     m.email || "—"
   ]);
-  exportToCSV(`Managers_Directory_Report_${today}.csv`, headers, rows);
+  openPDFPreview("Managers Directory Report", headers, rows, `Total Managers: ${managers.length}`, "pdf");
 }
 
 export function SuperAdminReportsSection() {
