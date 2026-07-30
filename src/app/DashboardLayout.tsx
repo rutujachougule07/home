@@ -71,58 +71,98 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
     <div className="sham-app">
       <div className="dash">
         <div className={`sidebar-overlay ${open ? "open" : ""}`} onClick={() => setOpen(false)} />
-        {/* LIGHT SIDEBAR (NO DARK BACKGROUND) */}
-        <aside className={`sidebar ${open ? "open" : ""}`} style={{ background: "linear-gradient(180deg, #FAF4EF 0%, #FFF0E8 100%)", borderRight: "1px solid #F4D4C5" }}>
-          {/* Brand Logo Header */}
-          <div className="sidebar-brand" style={{ borderBottom: "1px solid #F4D4C5" }}>
-            <span className="logo-sq" style={{ background: "linear-gradient(135deg, #741A2F, #9E2B45)", boxShadow: "0 4px 12px rgba(116, 26, 47, 0.3)" }}>🍷</span>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: "16px", fontWeight: 800, color: "#2B0B13", letterSpacing: "-0.3px", lineHeight: 1.2 }}>Star Home</span>
-              <span style={{ fontSize: "12px", color: "#6B4752", fontWeight: 600 }}>Appliances</span>
+        {/* FULL HEIGHT REFERENCE MATCHING SOFT LAVENDER SIDEBAR */}
+        <aside className={`sidebar ${open ? "open" : ""}`} style={{
+          background: "#EAE8F7",
+          borderRight: "1px solid #DFDBF2",
+          position: "fixed",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: "260px",
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "20px 14px",
+          boxShadow: "2px 0 15px rgba(0, 0, 0, 0.03)"
+        }}>
+          {/* Top Section: Brand + Navigation Links */}
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+            {/* Brand Logo Header */}
+            <div className="sidebar-brand" style={{ borderBottom: "1px solid #DFDBF2", paddingBottom: "16px", marginBottom: "14px" }}>
+              <span className="logo-sq" style={{
+                background: "#4A43C4",
+                boxShadow: "0 6px 16px rgba(74, 67, 196, 0.3)",
+                borderRadius: "14px",
+                width: "42px",
+                height: "42px",
+                fontSize: "20px",
+                color: "#FFFFFF"
+              }}>⚡</span>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "18px", fontWeight: 800, color: "#1F2937", letterSpacing: "-0.4px", lineHeight: 1.1 }}>ElectroHub</span>
+                <span style={{ fontSize: "12px", color: "#65637D", fontWeight: 600 }}>Electric Shop</span>
+              </div>
+            </div>
+
+            {/* Navigation items (Smooth scroll, hidden scrollbar) */}
+            <div className="sidebar-nav-container" style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+              flex: 1,
+              overflowY: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              paddingRight: "2px"
+            }}>
+              {nav.map((n) => {
+                const badgeCount = getBadgeCount(n.key);
+                const isActive = active === n.key;
+                return (
+                  <button
+                    key={n.key}
+                    className={`nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => { onNav(n.key); setOpen(false); }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      background: isActive ? "#4A43C4" : "transparent",
+                      color: isActive ? "#FFFFFF" : "#5E5B78",
+                      borderRadius: "16px",
+                      padding: "12px 16px",
+                      fontSize: "14px",
+                      fontWeight: isActive ? 700 : 600,
+                      boxShadow: isActive ? "0 8px 22px rgba(74, 67, 196, 0.35)" : "none",
+                      transition: "all 300ms ease"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: "17px", display: "inline-flex", alignItems: "center", color: isActive ? "#FFFFFF" : "#5E5B78" }}>{n.icon}</span>
+                      <span style={{ color: isActive ? "#FFFFFF" : "#5E5B78" }}>{n.label}</span>
+                    </div>
+                    {badgeCount > 0 && (
+                      <span style={{
+                        background: isActive ? "rgba(255, 255, 255, 0.25)" : "#DFDBF2",
+                        color: isActive ? "#FFFFFF" : "#4A43C4",
+                        fontSize: 11,
+                        fontWeight: 800,
+                        padding: "2px 8px",
+                        borderRadius: "999px"
+                      }}>
+                        {badgeCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Navigation items */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {nav.map((n) => {
-              const badgeCount = getBadgeCount(n.key);
-              const isActive = active === n.key;
-              return (
-                <button
-                  key={n.key}
-                  className={`nav-item ${isActive ? "active" : ""}`}
-                  onClick={() => { onNav(n.key); setOpen(false); }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    background: isActive ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "transparent",
-                    color: isActive ? "#FFFFFF" : "#6B4752"
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: "16px", display: "inline-flex", alignItems: "center" }}>{n.icon}</span>
-                    <span style={{ fontWeight: isActive ? 700 : 600 }}>{n.label}</span>
-                  </div>
-                  {badgeCount > 0 && (
-                    <span style={{
-                      background: isActive ? "#C8A96B" : "#5B6E57",
-                      color: "#F7F4ED",
-                      fontSize: 10,
-                      fontWeight: 800,
-                      padding: "2px 7px",
-                      borderRadius: "999px"
-                    }}>
-                      {badgeCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* User profile & Promo Section at Bottom */}
-          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "12px", paddingTop: "16px" }}>
+          {/* Bottom Section: Pinned Logout Button */}
+          <div style={{ paddingTop: "14px", borderTop: "1px solid #DFDBF2", marginTop: "10px" }}>
             <button
               type="button"
               className="btn btn-logout"
@@ -134,39 +174,27 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                 gap: "10px",
                 padding: "12px 16px",
                 width: "100%",
-                background: "#526A59",
+                background: "#4A43C4",
                 border: "none",
-                borderRadius: "14px",
+                borderRadius: "16px",
                 color: "#FFFFFF",
                 fontWeight: 700,
                 fontSize: "14px",
                 cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)",
-                transition: "all 0.2s ease"
+                boxShadow: "0 8px 22px rgba(74, 67, 196, 0.35)",
+                transition: "all 300ms ease"
               }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = "#3F5345";
-                e.currentTarget.style.color = "#FFFFFF";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = "#526A59";
-                e.currentTarget.style.color = "#FFFFFF";
-              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = "#3B34AF"; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = "#4A43C4"; }}
             >
-              <span style={{ fontSize: "16px" }}>🚪</span>
-              <span>Logout</span>
+              <span style={{ fontSize: "16px", color: "#FFFFFF" }}>🚪</span>
+              <span style={{ color: "#FFFFFF", fontWeight: 700 }}>Logout</span>
             </button>
-
-
-
-            <div style={{ fontSize: "10px", color: "#5F6C5E", opacity: 0.8, textAlign: "center" }}>
-              © 2025 Star Home Appliances.
-            </div>
           </div>
         </aside>
 
-        <div className="main">
-          <div className="content" style={{ padding: "20px 28px" }}>{children}</div>
+        <div className="main" style={{ marginLeft: "260px" }}>
+          <div className="content" style={{ padding: "24px 32px" }}>{children}</div>
         </div>
       </div>
     </div>
@@ -190,94 +218,87 @@ export function StatCard({
   trend?: string;
   isNegative?: boolean;
 }) {
-  if (variant && variant !== "default") {
-    // Rich Dark Card Variants for High Impact
-    const gradients: Record<string, string> = {
-      pink: "linear-gradient(135deg, #741A2F 0%, #521221 100%)",
-      purple: "linear-gradient(135deg, #9E2B45 0%, #741A2F 100%)",
-      orange: "linear-gradient(135deg, #F7AD88 0%, #D97750 100%)",
-      rose: "linear-gradient(135deg, #B83A56 0%, #741A2F 100%)",
-      coral: "linear-gradient(135deg, #741A2F 0%, #3D0914 100%)",
-    };
+  const iconBgs: Record<string, { bg: string; color: string }> = {
+    pink: { bg: "#FCE8EC", color: "#E11D48" },
+    purple: { bg: "#FFE7CC", color: "#F4B266" },
+    orange: { bg: "#FFE7CC", color: "#F4B266" },
+    rose: { bg: "#FCE8EC", color: "#E11D48" },
+    coral: { bg: "#FFE7CC", color: "#F4B266" },
+    default: { bg: "#DCEFD7", color: "#123A22" }
+  };
 
-    const sparklines: Record<string, string> = {
-      pink: "M 0 30 Q 30 38 60 20 T 120 28 T 180 10 T 220 5",
-      purple: "M 0 35 Q 35 15 70 28 T 140 18 T 220 8",
-      orange: "M 0 28 Q 40 36 80 20 T 150 25 T 220 12",
-      rose: "M 0 32 Q 40 18 80 28 T 150 12 T 220 6",
-      coral: "M 0 8 Q 45 18 90 28 T 160 32 T 220 38",
-    };
-    const path = sparklines[variant] || sparklines.pink;
-    const bgGradient = gradients[variant] || gradients.pink;
+  const currentIconTheme = iconBgs[variant || "default"] || iconBgs.default;
 
-    return (
-      <div
-        className="stat-card-gradient"
-        onClick={onClick}
-        style={{
-          background: bgGradient,
-          cursor: onClick ? "pointer" : "default",
-          color: "#F7F4ED"
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px", zIndex: 2 }}>
-          <div style={{
-            width: "42px",
-            height: "42px",
-            borderRadius: "50%",
-            background: "rgba(247, 244, 237, 0.25)",
-            backdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "20px",
-            boxShadow: "inset 0 0 0 1px rgba(247, 244, 237, 0.4)"
-          }}>
-            {icon}
-          </div>
+  const gradId = `sparklineGrad-${label.replace(/[^a-zA-Z0-9]/g, "")}`;
+
+  return (
+    <div
+      className="floating-card"
+      onClick={onClick}
+      style={{
+        background: "rgba(255, 255, 255, 0.72)",
+        backdropFilter: "blur(22px)",
+        WebkitBackdropFilter: "blur(22px)",
+        border: "1px solid rgba(255, 255, 255, 0.5)",
+        borderRadius: "24px",
+        padding: "22px",
+        cursor: onClick ? "pointer" : "default",
+        boxShadow: "0 15px 40px rgba(0, 0, 0, 0.06)",
+        position: "relative",
+        overflow: "hidden"
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "14px" }}>
+        {/* 52px Soft Circular Container */}
+        <div style={{
+          width: "52px",
+          height: "52px",
+          borderRadius: "50%",
+          background: currentIconTheme.bg,
+          color: currentIconTheme.color,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "22px",
+          flexShrink: 0
+        }}>
+          {icon}
         </div>
-
-        <div style={{ zIndex: 2 }}>
-          <div style={{ fontSize: "12px", opacity: 0.9, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600, marginBottom: "4px" }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "11px", color: "#6F6F6F", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 700, marginBottom: "4px" }}>
             {label}
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.1, marginBottom: "6px" }}>
+          <div style={{ fontSize: "24px", fontWeight: 800, color: "#1F1F1F", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
             {value}
           </div>
           {trend && (
-            <div style={{ fontSize: "11px", fontWeight: 600, opacity: 0.95, display: "flex", alignItems: "center", gap: "4px" }}>
-              <span>{isNegative ? "↘" : "↗"}</span> {trend}
+            <div style={{ fontSize: "11px", fontWeight: 700, color: isNegative ? "#EF4444" : "#123A22", display: "flex", alignItems: "center", gap: "4px", marginTop: "6px" }}>
+              <span>{isNegative ? "↓" : "↑"}</span> {trend}
             </div>
           )}
         </div>
-
-        {/* Mini SVG Sparkline at Bottom */}
-        <svg
-          viewBox="0 0 220 40"
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            width: "100%",
-            height: "45px",
-            opacity: 0.6,
-            pointerEvents: "none"
-          }}
-        >
-          <path d={path} fill="none" stroke="#F7F4ED" strokeWidth="3" strokeLinecap="round" />
-          <path d={`${path} L 220 40 L 0 40 Z`} fill="rgba(247, 244, 237, 0.15)" />
-        </svg>
       </div>
-    );
-  }
 
-  return (
-    <div className="stat-card" onClick={onClick} style={onClick ? { cursor: "pointer" } : undefined}>
-      <div className="stat-icon">{icon}</div>
-      <div>
-        <p className="stat-label">{label}</p>
-        <p className="stat-value">{value}</p>
-      </div>
+      {/* Mini SVG Sparkline at Bottom with Primary Green Soft Gradient Area Fill */}
+      <svg
+        viewBox="0 0 220 40"
+        style={{
+          width: "100%",
+          height: "36px",
+          opacity: 0.85,
+          pointerEvents: "none",
+          marginTop: "4px"
+        }}
+      >
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#123A22" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#123A22" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d="M 0 30 Q 35 15 70 25 T 140 18 T 220 8" fill="none" stroke="#123A22" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M 0 30 Q 35 15 70 25 T 140 18 T 220 8 L 220 40 L 0 40 Z" fill={`url(#${gradId})`} />
+      </svg>
     </div>
   );
 }
@@ -300,11 +321,23 @@ export function Pill({ status }: { status: string }) {
 export function BarChart({ data }: { data: { label: string; value: number }[] }) {
   const max = Math.max(...data.map((d) => d.value), 1);
   return (
-    <div className="bar-chart">
+    <div className="bar-chart" style={{ display: "flex", alignItems: "flex-end", gap: "12px", height: "160px", paddingTop: "20px" }}>
       {data.map((d) => (
-        <div className="bar-col" key={d.label}>
-          <div className="bar" style={{ height: `${(d.value / max) * 100}%` }} />
-          <div className="bar-label">{d.label}</div>
+        <div className="bar-col" key={d.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
+          <div style={{ flex: 1, width: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+            <div
+              className="bar"
+              style={{
+                height: `${(d.value / max) * 100}%`,
+                width: "100%",
+                maxWidth: "32px",
+                background: "linear-gradient(180deg, #123A22 0%, #2F6F46 100%)",
+                borderRadius: "8px 8px 0 0",
+                transition: "height 300ms ease"
+              }}
+            />
+          </div>
+          <div className="bar-label" style={{ fontSize: "11px", color: "#6F6F6F", fontWeight: 700, marginTop: "8px" }}>{d.label}</div>
         </div>
       ))}
     </div>
@@ -417,13 +450,15 @@ export function Modal({ title, onClose, children, className }: { title: string; 
   }, []);
 
   return createPortal(
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className={`modal ${className ?? ""}`} onClick={(e) => e.stopPropagation()} style={{ background: "#F7F4ED" }}>
-        <div className="modal-head" style={{ borderBottom: "1px dashed #E0D8C8" }}>
-          <h3 className="modal-title">{title}</h3>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
+    <div className="modal-backdrop" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      <div className={`modal ${className ?? ""}`} onClick={(e) => e.stopPropagation()} style={{ background: "#FAF8F2", color: "#1F2937", borderRadius: "24px", padding: "28px", maxWidth: "680px", width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 25px 60px rgba(0,0,0,0.35)", border: "1px solid #E2EBE0", zIndex: 100000, position: "relative" }}>
+        <div className="modal-head" style={{ borderBottom: "1px solid #E2EBE0", paddingBottom: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 className="modal-title" style={{ fontSize: "20px", fontWeight: 800, color: "#1F2937", margin: 0 }}>{title}</h3>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} style={{ background: "#EEF4EC", border: "1px solid #E2EBE0", borderRadius: "50%", width: "32px", height: "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", color: "#1F2937", fontWeight: 700 }}>✕</button>
         </div>
-        {children}
+        <div style={{ color: "#1F2937" }}>
+          {children}
+        </div>
       </div>
     </div>,
     document.body

@@ -1165,20 +1165,18 @@ function ProductsSection() {
                     <td>{formattedDate}</td>
                     <td><span style={{ fontWeight: 600 }}>{p.status}</span></td>
                     <td className="text-right">
-                      {p.batches.length > 0 ? (
-                        <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                          <button
-                            className="btn btn-circle"
-                            onClick={() => setViewingBatches(p)}
-                            title="View Batch Details"
-                            style={{ background: "#fdf8f2", border: "1px solid #f5e3cc", color: "var(--accent)" }}
-                          >
-                            ℹ️
-                          </button>
-                        </div>
-                      ) : (
-                        "—"
-                      )}
+                      <button
+                        type="button"
+                        className="btn btn-circle"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingBatches(p);
+                        }}
+                        title="View Product & Batch Details"
+                        style={{ background: "#F5F3E8", border: "1px solid #ECE7DA", color: "#193828", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}
+                      >
+                        ℹ️
+                      </button>
                     </td>
                   </tr>
                 );
@@ -1206,141 +1204,97 @@ function ProductsSection() {
       )}
       {editing && <ProductForm title="Edit Product" initial={editing} onClose={() => setEditing(null)} onSave={(d) => { setState((s) => ({ ...s, products: s.products.map((p) => p.id === editing.id ? { ...p, ...d } : p) })); setEditing(null); }} />}
 
-      {viewingBatches && (
-        <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)", alignItems: "flex-start" }}>
-            {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white", flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: "100px", height: "100px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
-            )}
-            <div style={{ flex: 1, minWidth: "200px" }}>
-              <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "var(--text)", textTransform: "capitalize" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
+      {viewingBatches && (() => {
+        const batchList = (viewingBatches.batches && viewingBatches.batches.length > 0) ? viewingBatches.batches : [viewingBatches];
+        return (
+          <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "#EEF4EC", padding: "16px", borderRadius: "16px", border: "1px solid #E2EBE0", alignItems: "flex-start" }}>
+              {viewingBatches.image ? (
+                <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "12px", border: "1px solid #E2EBE0", background: "#FFFFFF", flexShrink: 0 }} />
+              ) : (
+                <div style={{ width: "100px", height: "100px", borderRadius: "12px", background: "#FFFFFF", border: "1px solid #E2EBE0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
+              )}
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "#1F2937", textTransform: "capitalize", fontWeight: 800 }}>{viewingBatches.name}</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.sku || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.brand || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.category || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.warranty || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.location || "Unassigned"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "#193828", fontWeight: 800 }}>{viewingBatches.qty ?? viewingBatches.stock ?? 0}</strong></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <h4 style={{ borderBottom: "2px solid var(--biscuit)", paddingBottom: "10px", marginBottom: "16px", color: "var(--text)" }}>Batch History</h4>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date Added</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                  <th>Supplier</th>
-                  <th>Status</th>
-                  <th>Incentive</th>
-                  <th className="text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingBatches.batches.map((b, idx) => (
-                  <tr key={b.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                      {idx === viewingBatches.batches.length - 1 && <div style={{ fontSize: "10px", color: "var(--accent)", marginTop: "2px" }}>Latest Batch</div>}
-                    </td>
-                    <td style={{ fontWeight: 600, fontSize: "15px" }}>{b.qty ?? b.stock}</td>
-                    <td>₹{b.cost.toLocaleString()}</td>
-                    <td>{b.supplier || "—"}</td>
-                    <td>
-                      <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
-                    <td className="text-right">
-                      <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                        <button
-                          className="btn btn-circle"
-                          title="Edit Batch"
-                          onClick={() => {
-                            setEditing(b);
-                            setViewingBatches(null);
-                          }}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="btn btn-circle btn-circle-danger"
-                          title="Delete Batch"
-                          onClick={() => {
-                            if (confirm("Delete this batch?")) {
-                              setState((s: any) => ({ ...s, products: s.products.filter((p: any) => p.id !== b.id) }));
-                              setViewingBatches((prev: any) => {
-                                const remaining = prev.batches.filter((batch: any) => batch.id !== b.id);
-                                if (remaining.length === 0) return null;
-                                return { ...prev, batches: remaining };
-                              });
-                            }
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </td>
+            <h4 style={{ borderBottom: "2px solid #E2EBE0", paddingBottom: "10px", marginBottom: "16px", color: "#1F2937", fontWeight: 800 }}>Batch History</h4>
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr style={{ background: "#EEF4EC" }}>
+                    <th style={{ color: "#1F2937" }}>Date Added</th>
+                    <th style={{ color: "#1F2937" }}>Quantity</th>
+                    <th style={{ color: "#1F2937" }}>Unit Cost</th>
+                    <th style={{ color: "#1F2937" }}>Supplier</th>
+                    <th style={{ color: "#1F2937" }}>Status</th>
+                    <th style={{ color: "#1F2937" }}>Incentive</th>
+                    <th className="text-right" style={{ color: "#1F2937" }}>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-              {viewingBatches.batches.length >= 2 && (() => {
-                const maxCost = Math.max(...viewingBatches.batches.map((b: any) => b.cost));
-                const minCost = Math.min(...viewingBatches.batches.map((b: any) => b.cost));
-                const diff = maxCost - minCost;
-                const isDown = viewingBatches.batches[viewingBatches.batches.length - 1].cost < viewingBatches.batches[0].cost;
-                return (
-                  <tfoot>
-                    <tr>
-                      <td colSpan={7} style={{ padding: 0 }}>
-                        <div style={{
-                          background: isDown ? "linear-gradient(135deg, #fef2f2, #fee2e2)" : "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-                          border: isDown ? "1.5px solid #fca5a5" : "1.5px solid #86efac",
-                          borderRadius: 12,
-                          padding: "12px 20px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          marginTop: 8
-                        }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <span style={{ fontSize: 22 }}>{isDown ? "📉" : "📈"}</span>
-                            <div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: isDown ? "#991b1b" : "#166534", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                                Price {isDown ? "Decreased" : "Increased"}
-                              </div>
-                              <div style={{ fontSize: 10, color: isDown ? "#b91c1c" : "#15803d", marginTop: 1 }}>
-                                ₹{minCost.toLocaleString()} → ₹{maxCost.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <div style={{ fontSize: 10, fontWeight: 600, color: isDown ? "#b91c1c" : "#15803d", textTransform: "uppercase", marginBottom: 2 }}>Difference</div>
-                            <div style={{ fontSize: 26, fontWeight: 900, color: isDown ? "#dc2626" : "#16a34a" }}>
-                              {isDown ? "−" : "+"}₹{diff.toLocaleString()}
-                            </div>
-                          </div>
+                </thead>
+                <tbody>
+                  {batchList.map((b, idx) => (
+                    <tr key={b.id || idx}>
+                      <td>
+                        <div style={{ fontWeight: 600, color: "#1F2937" }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
+                        {idx === batchList.length - 1 && <div style={{ fontSize: "10px", color: "#193828", marginTop: "2px", fontWeight: 700 }}>Latest Batch</div>}
+                      </td>
+                      <td style={{ fontWeight: 700, fontSize: "15px", color: "#1F2937" }}>{b.qty ?? b.stock ?? 0}</td>
+                      <td style={{ color: "#1F2937" }}>₹{(b.cost || 0).toLocaleString()}</td>
+                      <td style={{ color: "#1F2937" }}>{b.supplier || "—"}</td>
+                      <td>
+                        <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
+                          {b.status || "In Stock"}
+                        </span>
+                      </td>
+                      <td style={{ color: "#193828", fontWeight: 700 }}>₹{(b.incentive || 0).toLocaleString()}</td>
+                      <td className="text-right">
+                        <div className="actions-row" style={{ justifyContent: "flex-end" }}>
+                          <button
+                            className="btn btn-circle"
+                            title="Edit Batch"
+                            onClick={() => {
+                              setEditing(b);
+                              setViewingBatches(null);
+                            }}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="btn btn-circle btn-circle-danger"
+                            title="Delete Batch"
+                            onClick={() => {
+                              if (confirm("Delete this batch?")) {
+                                setState((s: any) => ({ ...s, products: s.products.filter((p: any) => p.id !== b.id) }));
+                                setViewingBatches(null);
+                              }
+                            }}
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </td>
                     </tr>
-                  </tfoot>
-                );
-              })()}
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-
-          <div className="modal-actions" style={{ marginTop: "24px" }}>
-            <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-          </div>
-        </Modal>
-      )}
+            <div className="modal-actions" style={{ marginTop: "24px" }}>
+              <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
+            </div>
+          </Modal>
+        );
+      })()}
     </>
   );
 }
@@ -3170,14 +3124,14 @@ export function UpcomingFollowUps() {
   upcoming.sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime());
 
   return (
-    <div className="panel" style={{ padding: "24px", background: "#fffdf7", borderColor: "#f2e6d0" }}>
+    <div className="panel" style={{ padding: "24px", background: "rgba(255, 255, 255, 0.72)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderRadius: "24px", border: "1px solid rgba(255, 255, 255, 0.5)", boxShadow: "0 15px 40px rgba(0, 0, 0, 0.06)" }}>
       <div className="panel-head" style={{ marginBottom: upcoming.length ? "16px" : "0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "20px", color: "#d97706" }}>🔔</span>
-          <h3 className="panel-title" style={{ fontSize: "22px", color: "#5c4115", fontWeight: 700 }}>Upcoming Follow-ups</h3>
+          <span style={{ fontSize: "20px", color: "#123A22" }}>🔔</span>
+          <h3 className="panel-title" style={{ fontSize: "22px", color: "#1F1F1F", fontWeight: 700 }}>Upcoming Follow-ups</h3>
         </div>
         {currentUser?.role !== "superadmin" && (
-          <button className="btn btn-ghost" style={{ color: "#8a6632", fontWeight: 600, border: "1px solid #e1ceab" }} onClick={handleViewAll}>View All Inquiries</button>
+          <button className="btn btn-secondary btn-sm" style={{ padding: "8px 16px" }} onClick={handleViewAll}>View All Inquiries</button>
         )}
       </div>
 
@@ -3320,52 +3274,52 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
       {!isManager && (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "employee" ? "#ffffff" : "#faf8f5",
-            color: activeTab === "employee" ? "#92400e" : "#a18265",
-            transition: "all 0.3s ease",
+            padding: "12px 24px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "15px",
+            borderRadius: "20px",
+            background: activeTab === "employee" ? "#4845D2" : "#FFFFFF",
+            color: activeTab === "employee" ? "#FFFFFF" : "#3E3A56",
+            transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            boxShadow: activeTab === "employee" ? "0 8px 25px rgba(72, 69, 210, 0.3)" : "0 2px 8px rgba(0,0,0,0.04)"
           }}>
-            <span>👤 Employees</span>
+            <span style={{ color: activeTab === "employee" ? "#FFFFFF" : "#3E3A56" }}>👤 Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "22px",
+              height: "22px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "employee" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "employee" ? "#92400e" : "#7c6249",
+              fontSize: "12px",
+              background: activeTab === "employee" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
+              color: activeTab === "employee" ? "#FFFFFF" : "#4845D2",
               fontWeight: 800,
             }}>{employees.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #fcd34d" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "manager" ? "#ffffff" : "#faf8f5",
-            color: activeTab === "manager" ? "#92400e" : "#a18265",
-            transition: "all 0.3s ease",
+            padding: "12px 24px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "15px",
+            borderRadius: "20px",
+            background: activeTab === "manager" ? "#4845D2" : "#FFFFFF",
+            color: activeTab === "manager" ? "#FFFFFF" : "#3E3A56",
+            transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(146, 64, 14, 0.1)" : "none"
+            boxShadow: activeTab === "manager" ? "0 8px 25px rgba(72, 69, 210, 0.3)" : "0 2px 8px rgba(0,0,0,0.04)"
           }}>
-            <span>👔 Managers</span>
+            <span style={{ color: activeTab === "manager" ? "#FFFFFF" : "#3E3A56" }}>👔 Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "22px",
+              height: "22px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "manager" ? "#fef3c7" : "#e2dcd5",
-              color: activeTab === "manager" ? "#92400e" : "#7c6249",
+              fontSize: "12px",
+              background: activeTab === "manager" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
+              color: activeTab === "manager" ? "#FFFFFF" : "#4845D2",
               fontWeight: 800,
             }}>{managers.length}</span>
           </button>
@@ -3385,11 +3339,11 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
             </h3>
             {!readOnly && (
               <button onClick={() => setShowAddEmployee(true)} className="btn btn-primary btn-sm" style={{
-                padding: "8px 18px", borderRadius: "12px", border: "none",
-                background: "#2D4F36", color: "#FFFFFF",
+                padding: "10px 22px", borderRadius: "999px", border: "none",
+                background: "#4845D2", color: "#FFFFFF",
                 cursor: "pointer", fontSize: "13px", fontWeight: 700,
-                boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)",
-                transition: "transform 0.2s ease",
+                boxShadow: "0 8px 20px rgba(72, 69, 210, 0.3)",
+                transition: "all 300ms ease",
               }}>+ Add Employee</button>
             )}
           </div>
@@ -3437,11 +3391,11 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
             </h3>
             {!readOnly && (
               <button onClick={() => setShowAddManager(true)} className="btn btn-primary btn-sm" style={{
-                padding: "8px 18px", borderRadius: "12px", border: "none",
-                background: "#2D4F36", color: "#FFFFFF",
+                padding: "10px 22px", borderRadius: "999px", border: "none",
+                background: "#4845D2", color: "#FFFFFF",
                 cursor: "pointer", fontSize: "13px", fontWeight: 700,
-                boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)",
-                transition: "transform 0.2s ease",
+                boxShadow: "0 8px 20px rgba(72, 69, 210, 0.3)",
+                transition: "all 300ms ease",
               }}>+ Add Manager</button>
             )}
           </div>
@@ -3610,52 +3564,52 @@ export function TaskAssignmentSection() {
       {isSuperAdmin ? (
         <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "20px" }}>
           <button onClick={() => setActiveTab("employee")} style={{
-            padding: "10px 32px", border: activeTab === "employee" ? "2px solid #FFC6A8" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "employee" ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "#FFF0E8",
-            color: activeTab === "employee" ? "#ffffff" : "#741A2F",
-            transition: "all 0.3s ease",
+            padding: "12px 24px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "15px",
+            borderRadius: "20px",
+            background: activeTab === "employee" ? "#193828" : "#FFFFFF",
+            color: activeTab === "employee" ? "#FFFFFF" : "#2E3A31",
+            transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 4px 14px rgba(116, 26, 47, 0.25)" : "none"
+            boxShadow: activeTab === "employee" ? "0 8px 25px rgba(25, 56, 40, 0.25)" : "0 2px 8px rgba(0,0,0,0.04)"
           }}>
-            <span style={{ color: activeTab === "employee" ? "#ffffff" : "#741A2F" }}>👤 Employees</span>
+            <span style={{ color: activeTab === "employee" ? "#FFFFFF" : "#2E3A31" }}>👤 Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "22px",
+              height: "22px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "employee" ? "#FFC6A8" : "#F4D4C5",
-              color: "#741A2F",
+              fontSize: "12px",
+              background: activeTab === "employee" ? "rgba(255, 255, 255, 0.2)" : "#F2F2F2",
+              color: activeTab === "employee" ? "#FFFFFF" : "#2E3A31",
               fontWeight: 800,
             }}>{employeesWithTasks.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
-            padding: "10px 32px", border: activeTab === "manager" ? "2px solid #FFC6A8" : "2px solid transparent", cursor: "pointer", fontWeight: 700, fontSize: "16px",
-            borderRadius: "40px",
-            background: activeTab === "manager" ? "linear-gradient(135deg, #741A2F, #9E2B45)" : "#FFF0E8",
-            color: activeTab === "manager" ? "#ffffff" : "#741A2F",
-            transition: "all 0.3s ease",
+            padding: "12px 24px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "15px",
+            borderRadius: "20px",
+            background: activeTab === "manager" ? "#193828" : "#FFFFFF",
+            color: activeTab === "manager" ? "#FFFFFF" : "#2E3A31",
+            transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 4px 14px rgba(116, 26, 47, 0.25)" : "none"
+            boxShadow: activeTab === "manager" ? "0 8px 25px rgba(25, 56, 40, 0.25)" : "0 2px 8px rgba(0,0,0,0.04)"
           }}>
-            <span style={{ color: activeTab === "manager" ? "#ffffff" : "#741A2F" }}>👔 Managers</span>
+            <span style={{ color: activeTab === "manager" ? "#FFFFFF" : "#2E3A31" }}>👔 Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "24px",
-              height: "24px",
+              width: "22px",
+              height: "22px",
               borderRadius: "50%",
-              fontSize: "13px",
-              background: activeTab === "manager" ? "#FFC6A8" : "#F4D4C5",
-              color: "#741A2F",
+              fontSize: "12px",
+              background: activeTab === "manager" ? "rgba(255, 255, 255, 0.2)" : "#F2F2F2",
+              color: activeTab === "manager" ? "#FFFFFF" : "#2E3A31",
               fontWeight: 800,
             }}>{managersWithTasks.length}</span>
           </button>
@@ -4404,26 +4358,26 @@ export function DashboardLeadPipelineOverview({
   const getCount = (status: Lead["status"]) => userLeads.filter(l => l.status === status).length;
 
   const cards: { key: Lead["status"] | "All"; label: string; count: number; color: string; bg: string; border: string; icon: any }[] = [
-    { key: "All", label: "All Leads", count: userLeads.length, color: "#8b5cf6", bg: "#f5f3ff", border: "#ede9fe", icon: MessageSquare },
-    { key: "New", label: "New Leads", count: getCount("New"), color: "#3b82f6", bg: "#eff6ff", border: "#dbeafe", icon: AlertCircle },
-    { key: "Cold", label: "Cold", count: getCount("Cold"), color: "#6b7280", bg: "#f3f4f6", border: "#e5e7eb", icon: Snowflake },
-    { key: "Warm", label: "Warm", count: getCount("Warm"), color: "#d97706", bg: "#fffbeb", border: "#fef3c7", icon: Clock },
-    { key: "Hot", label: "Hot", count: getCount("Hot"), color: "#ef4444", bg: "#fdf2f2", border: "#fee2e2", icon: Flame },
-    { key: "Enrolled", label: "Enrolled", count: getCount("Enrolled"), color: "#10b981", bg: "#ecfdf5", border: "#d1fae5", icon: CheckCircle2 },
-    { key: "Cancelled", label: "Cancelled", count: getCount("Cancelled"), color: "#db2777", bg: "#fdf2f8", border: "#fce7f3", icon: XCircle }
+    { key: "All", label: "All Leads", count: userLeads.length, color: "#123A22", bg: "#DCEFD7", border: "#c5e6bc", icon: MessageSquare },
+    { key: "New", label: "New Leads", count: getCount("New"), color: "#123A22", bg: "#DCEFD7", border: "#c5e6bc", icon: AlertCircle },
+    { key: "Cold", label: "Cold", count: getCount("Cold"), color: "#6F6F6F", bg: "#F2F2F2", border: "#E7E2D5", icon: Snowflake },
+    { key: "Warm", label: "Warm", count: getCount("Warm"), color: "#F4B266", bg: "#FFE7CC", border: "#fcdcb4", icon: Clock },
+    { key: "Hot", label: "Hot", count: getCount("Hot"), color: "#EF4444", bg: "#FCE8EC", border: "#fbcfe8", icon: Flame },
+    { key: "Enrolled", label: "Enrolled", count: getCount("Enrolled"), color: "#123A22", bg: "#DCEFD7", border: "#c5e6bc", icon: CheckCircle2 },
+    { key: "Cancelled", label: "Cancelled", count: getCount("Cancelled"), color: "#E11D48", bg: "#FCE8EC", border: "#fbcfe8", icon: XCircle }
   ];
 
   return (
-    <div className="panel" style={{ padding: "20px", background: "#fff", borderRadius: "16px", border: "1px solid #f2e6d0", boxShadow: "0 4px 15px rgba(122, 90, 50, 0.02)", marginBottom: "24px" }}>
+    <div className="panel" style={{ padding: "22px", background: "rgba(255, 255, 255, 0.72)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderRadius: "24px", border: "1px solid rgba(255, 255, 255, 0.5)", boxShadow: "0 15px 40px rgba(0, 0, 0, 0.06)", marginBottom: "24px" }}>
       {showTitle && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <MessageSquare className="size-5" style={{ color: "#d97706" }} />
-            <h3 style={{ fontSize: "18px", color: "#5c4115", fontWeight: 700, margin: 0 }}>Lead Pipeline Overview</h3>
+            <MessageSquare className="size-5" style={{ color: "#123A22" }} />
+            <h3 style={{ fontSize: "18px", color: "#1F1F1F", fontWeight: 700, margin: 0 }}>Lead Pipeline Overview</h3>
           </div>
           <button
             onClick={handleViewAll}
-            style={{ color: "#d97706", background: "none", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px", outline: "none" }}
+            style={{ color: "#123A22", background: "none", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "13px", outline: "none" }}
           >
             View All Inquiries →
           </button>
@@ -5143,29 +5097,29 @@ export function SuperAdminIncentiveSection() {
                     <td style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span style={{ fontWeight: 700, fontSize: 14 }}>{p.qty ?? p.stock}</span>
-                        {p.batches.length > 0 && (
-                          <div
-                            style={{ cursor: "pointer", position: "relative" }}
-                            onClick={() => {
-                              setViewingBatches(p);
-                              const unseenBatches = p.batches.filter(b => !b.incentiveSeen);
-                              if (unseenBatches.length > 0) {
-                                setState((s: any) => ({
-                                  ...s,
-                                  products: s.products.map((prod: any) =>
-                                    unseenBatches.some(ub => ub.id === prod.id)
-                                      ? { ...prod, incentiveSeen: true }
-                                      : prod
-                                  )
-                                }));
-                              }
-                            }}
-                            title="Click to view full batch details"
-                          >
-                            <span style={{ fontSize: "16px", color: "var(--accent)" }}>ℹ️</span>
-                            {hasUnseen && <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
-                          </div>
-                        )}
+                        <button
+                          type="button"
+                          style={{ background: "#F5F3E8", border: "1px solid #ECE7DA", color: "#193828", width: "28px", height: "28px", borderRadius: "50%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "14px", position: "relative" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setViewingBatches(p);
+                            const unseenBatches = (p.batches || []).filter(b => !b.incentiveSeen);
+                            if (unseenBatches.length > 0) {
+                              setState((s: any) => ({
+                                ...s,
+                                products: s.products.map((prod: any) =>
+                                  unseenBatches.some(ub => ub.id === prod.id)
+                                    ? { ...prod, incentiveSeen: true }
+                                    : prod
+                                )
+                              }));
+                            }
+                          }}
+                          title="Click to view product & batch details"
+                        >
+                          ℹ️
+                          {hasUnseen && <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
+                        </button>
                       </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
@@ -5247,67 +5201,70 @@ export function SuperAdminIncentiveSection() {
         />
       )}
 
-      {viewingBatches && (
-        <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "var(--cream)", padding: "16px", borderRadius: "12px", border: "1px solid var(--border)", alignItems: "flex-start" }}>
-            {viewingBatches.image ? (
-              <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid var(--border)", background: "white", flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: "100px", height: "100px", borderRadius: "8px", background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
-            )}
-            <div style={{ flex: 1, minWidth: "200px" }}>
-              <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "var(--text)", textTransform: "capitalize" }}>{viewingBatches.name}</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right" }}>{viewingBatches.sku || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right" }}>{viewingBatches.brand || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right" }}>{viewingBatches.category || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right" }}>{viewingBatches.warranty || "—"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "var(--brown)", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "var(--accent)" }}>{viewingBatches.qty ?? viewingBatches.stock}</strong></div>
+      {viewingBatches && (() => {
+        const batchList = (viewingBatches.batches && viewingBatches.batches.length > 0) ? viewingBatches.batches : [viewingBatches];
+        return (
+          <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "#EEF4EC", padding: "16px", borderRadius: "16px", border: "1px solid #E2EBE0", alignItems: "flex-start" }}>
+              {viewingBatches.image ? (
+                <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "12px", border: "1px solid #E2EBE0", background: "#FFFFFF", flexShrink: 0 }} />
+              ) : (
+                <div style={{ width: "100px", height: "100px", borderRadius: "12px", background: "#FFFFFF", border: "1px solid #E2EBE0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
+              )}
+              <div style={{ flex: 1, minWidth: "200px" }}>
+                <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "#1F2937", textTransform: "capitalize", fontWeight: 800 }}>{viewingBatches.name}</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.sku || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.brand || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.category || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.warranty || "—"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.location || "Unassigned"}</strong></div>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "#193828", fontWeight: 800 }}>{viewingBatches.qty ?? viewingBatches.stock ?? 0}</strong></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <h4 style={{ borderBottom: "2px solid var(--biscuit)", paddingBottom: "10px", marginBottom: "16px", color: "var(--text)" }}>Batch History</h4>
-          <div className="table-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Date Added</th>
-                  <th>Quantity</th>
-                  <th>Unit Cost</th>
-                  <th>Supplier</th>
-                  <th>Status</th>
-                  <th>Incentive</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingBatches.batches.map((b, idx) => (
-                  <tr key={b.id}>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                      {idx === viewingBatches.batches.length - 1 && <div style={{ fontSize: "10px", color: "var(--accent)", marginTop: "2px" }}>Latest Batch</div>}
-                    </td>
-                    <td style={{ fontWeight: 600, fontSize: "15px" }}>{b.qty ?? b.stock}</td>
-                    <td>₹{b.cost.toLocaleString()}</td>
-                    <td>{b.supplier || "—"}</td>
-                    <td>
-                      <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td style={{ color: "var(--green)", fontWeight: 600 }}>₹{b.incentive.toLocaleString()}</td>
+            <h4 style={{ borderBottom: "2px solid #E2EBE0", paddingBottom: "10px", marginBottom: "16px", color: "#1F2937", fontWeight: 800 }}>Batch History</h4>
+            <div className="table-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr style={{ background: "#EEF4EC" }}>
+                    <th style={{ color: "#1F2937" }}>Date Added</th>
+                    <th style={{ color: "#1F2937" }}>Quantity</th>
+                    <th style={{ color: "#1F2937" }}>Unit Cost</th>
+                    <th style={{ color: "#1F2937" }}>Supplier</th>
+                    <th style={{ color: "#1F2937" }}>Status</th>
+                    <th style={{ color: "#1F2937" }}>Incentive</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {batchList.map((b, idx) => (
+                    <tr key={b.id || idx}>
+                      <td>
+                        <div style={{ fontWeight: 600, color: "#1F2937" }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
+                        {idx === batchList.length - 1 && <div style={{ fontSize: "10px", color: "#193828", marginTop: "2px", fontWeight: 700 }}>Latest Batch</div>}
+                      </td>
+                      <td style={{ fontWeight: 700, fontSize: "15px", color: "#1F2937" }}>{b.qty ?? b.stock ?? 0}</td>
+                      <td style={{ color: "#1F2937" }}>₹{(b.cost || 0).toLocaleString()}</td>
+                      <td style={{ color: "#1F2937" }}>{b.supplier || "—"}</td>
+                      <td>
+                        <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
+                          {b.status || "In Stock"}
+                        </span>
+                      </td>
+                      <td style={{ color: "#193828", fontWeight: 700 }}>₹{(b.incentive || 0).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-          <div className="modal-actions" style={{ marginTop: "24px" }}>
-            <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-          </div>
-        </Modal>
-      )}
+            <div className="modal-actions" style={{ marginTop: "24px" }}>
+              <button className="btn btn-primary" style={{ background: "#193828", color: "#FFFFFF", borderRadius: "999px", padding: "10px 24px" }} onClick={() => setViewingBatches(null)}>Close</button>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {showGiveIncentiveModal && selectedProductForIncentive && (
         <div style={{
@@ -5599,11 +5556,11 @@ export function SuperAdminGodownSection() {
               <tr key={p.id}>
                 <td>
                   {p.image ? (
-                    <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", border: "1px solid #DFDBF2", background: "#EFF1FD" }}>
                       <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   ) : (
-                    <div style={{ width: 40, height: 40, borderRadius: 8, background: "var(--biscuit)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "#EFF1FD", border: "1px solid #DFDBF2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
                       📦
                     </div>
                   )}
@@ -5655,39 +5612,43 @@ export function SuperAdminGodownSection() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "var(--cream)", padding: "12px", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "0 4px 15px rgba(139, 107, 74, 0.05)" }}>
+      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "#F0EEF9", padding: "12px", borderRadius: "24px", border: "1px solid #E4E0F4" }}>
         <button
           onClick={() => setActiveTab("Godown 1")}
           style={{
             flex: "1 1 140px",
             maxWidth: "250px",
-            padding: "10px 18px",
-            borderRadius: "12px",
-            border: activeTab === "Godown 1" ? "2px solid var(--primary)" : "2px solid transparent",
-            background: activeTab === "Godown 1" ? "var(--primary)" : "#ffffff",
-            color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)",
+            padding: "12px 24px",
+            borderRadius: "18px",
+            border: activeTab === "Godown 1" ? "none" : "1px solid #ECE7F6",
+            background: activeTab === "Godown 1" ? "#4A43C4" : "#FFFFFF",
+            color: activeTab === "Godown 1" ? "#FFFFFF" : "#3E3A56",
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
-            transition: "all 0.3s ease",
+            transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: activeTab === "Godown 1" ? "0 8px 20px rgba(17, 34, 51, 0.25)" : "0 2px 8px rgba(0,0,0,0.05)"
+            boxShadow: activeTab === "Godown 1" ? "0 6px 18px rgba(74, 67, 196, 0.35)" : "0 2px 8px rgba(0,0,0,0.03)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "none"; }}
         >
-          <span style={{ fontSize: "18px" }}>🏭</span>
-          <span style={{ color: activeTab === "Godown 1" ? "#ffffff" : "var(--brown)" }}>Godown 1</span>
+          <span style={{ fontSize: "18px" }}>🏫</span>
+          <span style={{ color: activeTab === "Godown 1" ? "#FFFFFF" : "#3E3A56" }}>Godown 1</span>
           <span style={{
-            background: activeTab === "Godown 1" ? "#ffffff" : "var(--biscuit)",
-            color: activeTab === "Godown 1" ? "var(--primary)" : "var(--brown-dark)",
-            padding: "2px 8px",
-            borderRadius: "12px",
+            background: activeTab === "Godown 1" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
+            color: activeTab === "Godown 1" ? "#FFFFFF" : "#4A43C4",
+            width: "22px",
+            height: "22px",
+            borderRadius: "50%",
             fontSize: "12px",
-            fontWeight: 800
+            fontWeight: 800,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}>
             {godown1Products.length}
           </span>
@@ -5698,33 +5659,37 @@ export function SuperAdminGodownSection() {
           style={{
             flex: "1 1 140px",
             maxWidth: "250px",
-            padding: "10px 18px",
-            borderRadius: "12px",
-            border: activeTab === "Godown 2" ? "2px solid var(--primary)" : "2px solid transparent",
-            background: activeTab === "Godown 2" ? "var(--primary)" : "#ffffff",
-            color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)",
+            padding: "12px 24px",
+            borderRadius: "18px",
+            border: activeTab === "Godown 2" ? "none" : "1px solid #ECE7F6",
+            background: activeTab === "Godown 2" ? "#4A43C4" : "#FFFFFF",
+            color: activeTab === "Godown 2" ? "#FFFFFF" : "#3E3A56",
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
-            transition: "all 0.3s ease",
+            transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: activeTab === "Godown 2" ? "0 8px 20px rgba(17, 34, 51, 0.25)" : "0 2px 8px rgba(0,0,0,0.05)"
+            boxShadow: activeTab === "Godown 2" ? "0 6px 18px rgba(74, 67, 196, 0.35)" : "0 2px 8px rgba(0,0,0,0.03)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "none"; }}
         >
-          <span style={{ fontSize: "18px" }}>🏭</span>
-          <span style={{ color: activeTab === "Godown 2" ? "#ffffff" : "var(--brown)" }}>Godown 2</span>
+          <span style={{ fontSize: "18px" }}>🏫</span>
+          <span style={{ color: activeTab === "Godown 2" ? "#FFFFFF" : "#3E3A56" }}>Godown 2</span>
           <span style={{
-            background: activeTab === "Godown 2" ? "#ffffff" : "var(--biscuit)",
-            color: activeTab === "Godown 2" ? "var(--primary)" : "var(--brown-dark)",
-            padding: "2px 8px",
-            borderRadius: "12px",
+            background: activeTab === "Godown 2" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
+            color: activeTab === "Godown 2" ? "#FFFFFF" : "#4A43C4",
+            width: "22px",
+            height: "22px",
+            borderRadius: "50%",
             fontSize: "12px",
-            fontWeight: 800
+            fontWeight: 800,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}>
             {godown2Products.length}
           </span>
@@ -5736,15 +5701,15 @@ export function SuperAdminGodownSection() {
           <div>
             <h3 className="panel-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span>🏭 {activeTab} Inventory</span>
-              <span style={{ fontSize: 12, background: "var(--biscuit)", padding: "2px 10px", borderRadius: 8, fontWeight: 600 }}>
+              <span style={{ fontSize: 13, background: "#E0DCF8", color: "#4A43C4", padding: "4px 14px", borderRadius: 12, fontWeight: 700 }}>
                 {activeProducts.length} Products | Total Qty: {activeTotalQty} | Value: ₹{activeTotalCost.toLocaleString()}
               </span>
             </h3>
           </div>
           <div className="actions-row" style={{ alignItems: "center", gap: 10 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
+            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #DFDBF2", borderRadius: "12px", padding: "8px 16px", fontWeight: 600, color: "#3E3A56", boxShadow: "0 2px 6px rgba(0,0,0,0.03)" }} onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
+            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #DFDBF2", borderRadius: "12px", padding: "8px 16px", fontWeight: 600, color: "#3E3A56", boxShadow: "0 2px 6px rgba(0,0,0,0.03)" }} onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
+            <button className="btn btn-primary btn-sm" style={{ background: "#4A43C4", color: "#FFFFFF", borderRadius: "14px", padding: "10px 22px", fontWeight: 700, border: "none", boxShadow: "0 6px 18px rgba(74, 67, 196, 0.35)" }} onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>
         </div>
         {renderTable(activeProducts)}

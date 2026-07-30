@@ -1,8 +1,8 @@
 
 import { Navigate, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useStore, Customer, Product, Order, Task } from "../app/store";
-import { DashboardLayout, StatCard, Pill, NavItem, Modal, BarChart, PieChart } from "../app/DashboardLayout";
+import { DashboardLayout, StatCard, Pill, NavItem, Modal, BarChart } from "../app/DashboardLayout";
 import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, ProductForm } from "./SuperAdminPage";
 
 const NAV: NavItem[] = [
@@ -39,526 +39,122 @@ export function EmployeePage({ tab = "overview" }: EmployeePageProps) {
       {active === "orders" && <OrderUpdates />}
       {active === "products" && <ProductsSection />}
       {active === "incentive" && <EmployeeIncentiveSection />}
+      {active === "profile" && <ProfileSection />}
     </DashboardLayout>
   );
 }
 
-function AttractiveBarGraph({
-  data,
-}: {
-  data: { label: string; value: number; gradient: string }[];
-}) {
-  const max = Math.max(...data.map((d) => d.value), 1);
-
-  return (
-    <div style={{ padding: "16px 10px 10px 10px", width: "100%", boxSizing: "border-box" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: "12px",
-          height: "170px",
-          width: "100%",
-          paddingBottom: "8px",
-          borderBottom: "1px solid #f1f5f9",
-        }}
-      >
-        {data.map((item, idx) => {
-          const heightPct = item.value === 0 ? 8 : Math.max(16, (item.value / max) * 100);
-          return (
-            <div
-              key={idx}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                height: "100%",
-                justifyContent: "flex-end",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 800,
-                  color: item.value > 0 ? "#1e293b" : "#94a3b8",
-                  marginBottom: "6px",
-                  background: item.value > 0 ? "#f8fafc" : "transparent",
-                  padding: "2px 6px",
-                  borderRadius: "6px",
-                  border: item.value > 0 ? "1px solid #e2e8f0" : "none",
-                }}
-              >
-                {item.value}
-              </div>
-
-              <div
-                style={{
-                  width: "100%",
-                  maxWidth: "44px",
-                  height: "130px",
-                  background: "#f8fafc",
-                  borderRadius: "10px",
-                  display: "flex",
-                  alignItems: "flex-end",
-                  overflow: "hidden",
-                  padding: "3px",
-                  boxSizing: "border-box",
-                  border: "1px solid #f1f5f9",
-                }}
-              >
-                <div
-                  style={{
-                    width: "100%",
-                    height: `${heightPct}%`,
-                    background: item.gradient,
-                    borderRadius: "7px",
-                    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                    boxShadow: item.value > 0 ? "0 4px 12px rgba(0,0,0,0.12)" : "none",
-                    opacity: item.value === 0 ? 0.35 : 1,
-                  }}
-                  title={`${item.label}: ${item.value}`}
-                />
-              </div>
-
-              <div
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  color: "#475569",
-                  marginTop: "10px",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  width: "100%",
-                }}
-              >
-                {item.label}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function AttractivePieChart({
-  data,
-}: {
-  data: { label: string; value: number; color: string }[];
-}) {
-  const total = data.reduce((acc, d) => acc + d.value, 0);
-
-  if (total === 0) {
-    return (
-      <div style={{ textAlign: "center", padding: "45px 10px", color: "#94a3b8", fontSize: "13px", fontWeight: 600 }}>
-        📊 No work activity data recorded yet.
-      </div>
-    );
-  }
-
-  let accumulatedAngle = 0;
-  const radius = 68;
-  const cx = 100;
-  const cy = 100;
-
-  const slices = data.map((d) => {
-    const percentage = d.value / total;
-    const angle = percentage * 360;
-    const startAngle = accumulatedAngle;
-    const endAngle = accumulatedAngle + angle;
-    accumulatedAngle += angle;
-
-    const startRad = ((startAngle - 90) * Math.PI) / 180;
-    const endRad = ((endAngle - 90) * Math.PI) / 180;
-
-    const x1 = cx + radius * Math.cos(startRad);
-    const y1 = cy + radius * Math.sin(startRad);
-    const x2 = cx + radius * Math.cos(endRad);
-    const y2 = cy + radius * Math.sin(endRad);
-
-    const largeArcFlag = angle > 180 ? 1 : 0;
-
-    const pathData =
-      angle >= 359.9
-        ? `M ${cx - radius},${cy} A ${radius},${radius} 0 1,0 ${cx + radius},${cy} A ${radius},${radius} 0 1,0 ${cx - radius},${cy}`
-        : `M ${cx},${cy} L ${x1},${y1} A ${radius},${radius} 0 ${largeArcFlag},1 ${x2},${y2} Z`;
-
-    return {
-      ...d,
-      percentage: Math.round(percentage * 100),
-      pathData,
-    };
-  });
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-evenly",
-        flexWrap: "wrap",
-        gap: "16px",
-        padding: "10px 0",
-        width: "100%",
-      }}
-    >
-      <div style={{ position: "relative", width: "160px", height: "160px" }}>
-        <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%", filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.08))" }}>
-          {slices.map((slice, idx) => (
-            <path
-              key={idx}
-              d={slice.pathData}
-              fill={slice.color}
-              stroke="#ffffff"
-              strokeWidth="2.5"
-              style={{ transition: "all 0.3s ease", cursor: "pointer" }}
-            >
-              <title>{`${slice.label}: ${slice.value} (${slice.percentage}%)`}</title>
-            </path>
-          ))}
-          <circle cx="100" cy="100" r="42" fill="#ffffff" />
-        </svg>
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            textAlign: "center",
-            pointerEvents: "none",
-          }}
-        >
-          <div style={{ fontSize: "22px", fontWeight: 800, color: "#0f172a", lineHeight: 1 }}>{total}</div>
-          <div style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginTop: "3px" }}>Total Work</div>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "150px" }}>
-        {slices.map((slice, idx) => (
-          <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", fontSize: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: slice.color, display: "inline-block", flexShrink: 0 }} />
-              <span style={{ fontWeight: 600, color: "#334155" }}>{slice.label}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <span style={{ fontWeight: 800, color: "#0f172a" }}>{slice.value}</span>
-              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>({slice.percentage}%)</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function EmployeeWorkPerformanceChart({
-  mine,
-  myApprovedOrders
-}: {
-  mine: Task[];
-  myApprovedOrders: Order[];
-}) {
-  const { products } = useStore();
-
-  const completedTasksCount = mine.filter(t => t.status === "Completed").length;
-
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-  const incentiveOrdersCount = myApprovedOrders.filter(o => {
-    const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-    return o.isIncentive ?? !!(product && (product.incentive ?? 0) > 0 && product.date && new Date(product.date) < ninetyDaysAgo);
-  }).length;
-
-  const totalOrdersCount = myApprovedOrders.length;
-  const punchInCount = 1;
-
-  const totalTasks = Math.max(1, mine.length);
-  const totalOrders = Math.max(1, myApprovedOrders.length);
-
-  const data = [
-    {
-      label: "Task Complete",
-      value: completedTasksCount,
-      topLabel: `${completedTasksCount}`,
-      percentage: mine.length > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 100
-    },
-    {
-      label: "Incentive",
-      value: incentiveOrdersCount,
-      topLabel: `${incentiveOrdersCount}`,
-      percentage: totalOrders > 0 ? Math.round((incentiveOrdersCount / totalOrders) * 100) : 50
-    },
-    {
-      label: "Order",
-      value: totalOrdersCount,
-      topLabel: `${totalOrdersCount}`,
-      percentage: totalOrders > 0 ? 100 : 0
-    },
-    {
-      label: "Punch In",
-      value: punchInCount,
-      topLabel: "1",
-      percentage: 100
-    },
-  ];
-
-  const rawMax = Math.max(...data.map(d => d.value), 4);
-  const yStepVal = Math.max(1, Math.ceil(rawMax / 4));
-  const maxVal = yStepVal * 4;
-  const maxPct = 100;
-
-  const maxValIndex = data.reduce((maxIdx, d, idx, arr) => d.value > arr[maxIdx].value ? idx : maxIdx, 0);
-
-  return (
-    <div style={{
-      background: "#ffffff",
-      borderRadius: "24px",
-      padding: "28px 24px 24px 24px",
-      boxShadow: "0 12px 36px rgba(77, 59, 37, 0.08)",
-      border: "1px solid #f3ece4",
-      width: "100%",
-      boxSizing: "border-box",
-      margin: 0
-    }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
-        <div>
-          <h3 style={{
-            margin: 0,
-            fontSize: "22px",
-            fontWeight: 800,
-            color: "#4a3b22",
-            lineHeight: 1.25
-          }}>
-            Personal Work Analytics
-          </h3>
-          <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#8c7c6c", fontWeight: 600 }}>
-            Live performance metrics for Task Complete, Incentive, Order & Punch In
-          </p>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 700, color: "#4a3b22" }}>
-            <span style={{ width: "10px", height: "10px", background: "#4d3b25", borderRadius: "2px" }} />
-            <span>Work Count</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 700, color: "#4a3b22" }}>
-            <span style={{ width: "8px", height: "8px", background: "#4d3b25", borderRadius: "50%" }} />
-            <span>% Completion</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Top Values Row */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${data.length}, 1fr)`,
-        textAlign: "center",
-        paddingLeft: "36px",
-        paddingRight: "36px",
-        marginBottom: "12px"
-      }}>
-        {data.map((item, idx) => (
-          <div key={idx} style={{ fontSize: "14px", fontWeight: 800, color: "#4a3b22" }}>
-            {item.topLabel}
-          </div>
-        ))}
-      </div>
-
-      {/* Chart Canvas Area */}
-      <div style={{ position: "relative", height: "230px", margin: "0 10px" }}>
-        {/* Horizontal Gridlines */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", pointerEvents: "none" }}>
-          {[0, 1, 2, 3, 4].map((_, i) => (
-            <div key={i} style={{ borderBottom: "1px solid #ebdcd0", width: "100%" }} />
-          ))}
-        </div>
-
-        {/* Y Axis Labels (Left & Right) */}
-        <div style={{ position: "absolute", left: "-8px", top: "-6px", bottom: "-6px", display: "flex", flexDirection: "column", justifyContent: "space-between", fontSize: "10px", color: "#9c8c7c", fontWeight: 600 }}>
-          <span>{yStepVal * 4}</span>
-          <span>{yStepVal * 3}</span>
-          <span>{yStepVal * 2}</span>
-          <span>{yStepVal * 1}</span>
-          <span>0</span>
-        </div>
-        <div style={{ position: "absolute", right: "-8px", top: "-6px", bottom: "-6px", display: "flex", flexDirection: "column", justifyContent: "space-between", fontSize: "10px", color: "#9c8c7c", fontWeight: 600, textAlign: "right" }}>
-          <span>100%</span>
-          <span>75%</span>
-          <span>50%</span>
-          <span>25%</span>
-          <span>0%</span>
-        </div>
-
-        {/* Bars and Dots Container */}
-        <div style={{
-          position: "absolute",
-          left: "32px",
-          right: "32px",
-          top: 0,
-          bottom: 0,
-          display: "grid",
-          gridTemplateColumns: `repeat(${data.length}, 1fr)`,
-          gap: "16px",
-          alignItems: "flex-end"
-        }}>
-          {data.map((item, idx) => {
-            const barHeightPct = item.value === 0 ? 8 : Math.max(12, (item.value / maxVal) * 92);
-            const dotBottomPct = Math.min(92, Math.max(20, (item.percentage / maxPct) * 95));
-            const isHighest = idx === maxValIndex && item.value > 0;
-
-            return (
-              <div key={idx} style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center" }}>
-
-                {/* Percentage Text above dot */}
-                <div style={{
-                  position: "absolute",
-                  bottom: `calc(${dotBottomPct}% + 8px)`,
-                  fontSize: "11px",
-                  fontWeight: 800,
-                  color: "#4a3b22"
-                }}>
-                  {item.percentage}%
-                </div>
-
-                {/* Trend Dot */}
-                <div style={{
-                  position: "absolute",
-                  bottom: `${dotBottomPct}%`,
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#4d3b25",
-                  boxShadow: "0 0 0 2px #ffffff"
-                }} />
-
-                {/* Bar */}
-                <div style={{
-                  width: "100%",
-                  height: `${barHeightPct}%`,
-                  background: "#4d3b25",
-                  borderRadius: "12px 12px 0 0",
-                  position: "relative",
-                  display: "flex",
-                  justifyContent: "center",
-                  paddingTop: "8px",
-                  boxSizing: "border-box",
-                  transition: "height 0.4s ease",
-                  opacity: item.value === 0 ? 0.4 : 1
-                }}>
-                  {/* Inner white ring icon 'O' for highest bar */}
-                  {isHighest && (
-                    <div style={{
-                      width: "14px",
-                      height: "14px",
-                      borderRadius: "50%",
-                      border: "2.5px solid #ffffff",
-                      boxSizing: "border-box"
-                    }} />
-                  )}
-                </div>
-
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* X-Axis Category Labels */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${data.length}, 1fr)`,
-        textAlign: "center",
-        paddingLeft: "32px",
-        paddingRight: "32px",
-        marginTop: "12px",
-        gap: "16px"
-      }}>
-        {data.map((item, idx) => (
-          <div key={idx} style={{ fontSize: "12px", fontWeight: 800, color: "#4a3b22" }}>
-            {item.label}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Overview() {
-  const { currentUser, tasks, orders, products } = useStore();
+  const { currentUser, tasks, orders } = useStore();
   const navigate = useNavigate();
-
-  const mine = useMemo(() => {
-    return tasks.filter((t) => t.assignedTo === currentUser?.id || (t.assignedToName && t.assignedToName === currentUser?.name));
-  }, [tasks, currentUser]);
-
+  const mine = tasks.filter((t) => t.assignedTo === currentUser!.id);
   const goTo = (tab: string) => navigate({ to: "/employee", search: { tab } });
 
-  const myApprovedOrders = useMemo(() => {
-    return orders.filter(o =>
-      (o.assignedTo === currentUser?.id || (o.assignedToName && o.assignedToName === currentUser?.name) || (o.createdBy && (o.createdBy === currentUser?.id || o.createdBy === currentUser?.name))) &&
-      (o.status === "Approved" || o.status === "Delivered")
-    );
-  }, [orders, currentUser]);
+  const pendingCount = mine.filter((t) => t.status === "Pending").length;
+  const inProgressCount = mine.filter((t) => t.status === "In Progress").length;
+  const completedCount = mine.filter((t) => t.status === "Completed").length;
+  const totalTasks = mine.length || 1;
 
-  const ninetyDaysAgo = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 90);
-    return d;
-  }, []);
+  const chartData = [
+    { label: "Total", val: mine.length },
+    { label: "Pending", val: pendingCount },
+    { label: "In Prog", val: inProgressCount },
+    { label: "Done", val: completedCount },
+  ];
 
-  const myIncentiveOrdersCount = useMemo(() => {
-    return myApprovedOrders.filter(o => {
-      const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-      return o.isIncentive ?? !!(product && (product.incentive ?? 0) > 0 && product.date && new Date(product.date) < ninetyDaysAgo);
-    }).length;
-  }, [myApprovedOrders, products, ninetyDaysAgo]);
-
-  const completedTasksCount = mine.filter((t) => t.status === "Completed").length;
+  // Pie Chart calculations
+  const pendingPct = Math.round((pendingCount / totalTasks) * 100);
+  const inProgressPct = Math.round((inProgressCount / totalTasks) * 100);
+  const completedPct = Math.round((completedCount / totalTasks) * 100);
 
   return (
     <>
       <h2 className="page-title">Welcome, {currentUser?.name?.split(" ")[0]}</h2>
-      <p className="page-sub">Here's your personal work overview for today.</p>
+      <p className="page-sub">Here's your work overview for today.</p>
       <DashboardLeadPipelineOverview />
       <UpcomingFollowUps />
       <div className="stat-grid">
         <StatCard icon="📝" label="Total Tasks" value={mine.length} onClick={() => goTo("tasks")} />
-        <StatCard icon="⏳" label="Pending Tasks" value={mine.filter((t) => t.status === "Pending").length} onClick={() => goTo("tasks")} />
-        <StatCard icon="⚙" label="In Progress" value={mine.filter((t) => t.status === "In Progress").length} onClick={() => goTo("tasks")} />
-        <StatCard icon="✅" label="Completed Tasks" value={completedTasksCount} onClick={() => goTo("tasks")} />
-        <StatCard icon="🧾" label="My Approved Orders" value={myApprovedOrders.length} onClick={() => goTo("orders")} />
+        <StatCard icon="⏳" label="Pending" value={pendingCount} onClick={() => goTo("tasks")} />
+        <StatCard icon="⚙" label="In Progress" value={inProgressCount} onClick={() => goTo("tasks")} />
+        <StatCard icon="✅" label="Completed" value={completedCount} onClick={() => goTo("tasks")} />
+        <StatCard icon="🧾" label="Active Orders" value={orders.filter((o) => o.status === "Approved").length} onClick={() => goTo("orders")} />
       </div>
 
-      {/* Side-by-Side: Left - Personal Work Combo Chart, Right - Personal Work Breakdown Pie Chart */}
-      <div className="row-2" style={{ margin: "24px 0", gap: "20px", alignItems: "stretch" }}>
-        <div style={{ flex: 1.2, minWidth: "300px", display: "flex" }}>
-          <EmployeeWorkPerformanceChart mine={mine} myApprovedOrders={myApprovedOrders} />
+      {/* Bar Chart & Pie Chart Row */}
+      <div className="row-2" style={{ marginBottom: "24px" }}>
+        <div className="panel" style={{ background: "rgba(255, 255, 255, 0.72)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderRadius: "24px", border: "1px solid rgba(255, 255, 255, 0.5)", padding: "22px", boxShadow: "0 15px 40px rgba(0, 0, 0, 0.06)" }}>
+          <div className="panel-head" style={{ marginBottom: "16px" }}>
+            <h3 className="panel-title" style={{ fontSize: "16px", fontWeight: 800, color: "#1F1F1F", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>📊 Task Performance Bar Chart</span>
+            </h3>
+          </div>
+          <BarChart data={chartData} />
         </div>
-        <div style={{
-          flex: 0.8,
-          minWidth: "280px",
-          borderRadius: "24px",
-          padding: "24px 20px",
-          boxShadow: "0 12px 36px rgba(77, 59, 37, 0.08)",
-          border: "1px solid #f3ece4",
-          background: "#ffffff",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          boxSizing: "border-box"
-        }}>
-          <AttractivePieChart data={[
-            { label: "Task Complete", value: completedTasksCount, color: "#10b981" },
-            { label: "Incentive", value: myIncentiveOrdersCount, color: "#f59e0b" },
-            { label: "Order", value: myApprovedOrders.length, color: "#3b82f6" },
-            { label: "Punch In", value: 1, color: "#8b5cf6" },
-          ]} />
+
+        {/* Task Status Breakdown Pie Chart */}
+        <div className="panel" style={{ background: "rgba(255, 255, 255, 0.72)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", borderRadius: "24px", border: "1px solid rgba(255, 255, 255, 0.5)", padding: "22px", boxShadow: "0 15px 40px rgba(0, 0, 0, 0.06)" }}>
+          <div className="panel-head" style={{ marginBottom: "16px" }}>
+            <h3 className="panel-title" style={{ fontSize: "16px", fontWeight: 800, color: "#1F1F1F", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>🥧 Task Status Pie Chart</span>
+            </h3>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", flexWrap: "wrap", gap: "16px", padding: "10px 0" }}>
+            {/* SVG Donut / Pie Chart */}
+            <div style={{ position: "relative", width: "130px", height: "130px" }}>
+              <svg viewBox="0 0 36 36" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
+                {/* Background Ring */}
+                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E8E3D5" strokeWidth="4" />
+                {/* Completed Slice (Primary Green #123A22) */}
+                <circle
+                  cx="18" cy="18" r="15.915" fill="none"
+                  stroke="#123A22" strokeWidth="4.5"
+                  strokeDasharray={`${completedPct} ${100 - completedPct}`}
+                  strokeDashoffset="0"
+                />
+                {/* In Progress Slice (Soft Orange #F4B266) */}
+                <circle
+                  cx="18" cy="18" r="15.915" fill="none"
+                  stroke="#F4B266" strokeWidth="4.5"
+                  strokeDasharray={`${inProgressPct} ${100 - inProgressPct}`}
+                  strokeDashoffset={`-${completedPct}`}
+                />
+                {/* Pending Slice (Accent Gold #C59D5F) */}
+                <circle
+                  cx="18" cy="18" r="15.915" fill="none"
+                  stroke="#C59D5F" strokeWidth="4.5"
+                  strokeDasharray={`${pendingPct} ${100 - pendingPct}`}
+                  strokeDashoffset={`-${completedPct + inProgressPct}`}
+                />
+              </svg>
+              <div style={{
+                position: "absolute", inset: 0,
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
+              }}>
+                <span style={{ fontSize: "20px", fontWeight: 800, color: "#1F1F1F" }}>{mine.length}</span>
+                <span style={{ fontSize: "10px", color: "#6F6F6F", fontWeight: 700, textTransform: "uppercase" }}>Tasks</span>
+              </div>
+            </div>
+
+            {/* Pie Chart Legend */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+                <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#123A22", display: "inline-block" }} />
+                <span style={{ color: "#6F6F6F", fontWeight: 600 }}>Completed:</span>
+                <span style={{ fontWeight: 800, color: "#1F1F1F" }}>{completedCount} ({completedPct}%)</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+                <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#F4B266", display: "inline-block" }} />
+                <span style={{ color: "#6F6F6F", fontWeight: 600 }}>In Progress:</span>
+                <span style={{ fontWeight: 800, color: "#1F1F1F" }}>{inProgressCount} ({inProgressPct}%)</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
+                <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#C59D5F", display: "inline-block" }} />
+                <span style={{ color: "#6F6F6F", fontWeight: 600 }}>Pending:</span>
+                <span style={{ fontWeight: 800, color: "#1F1F1F" }}>{pendingCount} ({pendingPct}%)</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -585,19 +181,7 @@ function Overview() {
 
 function TasksSection() {
   const { currentUser, tasks, setState } = useStore();
-
-  useEffect(() => {
-    if (tasks.some((t) => t.title.includes("Sell Request"))) {
-      setState((s: any) => ({
-        ...s,
-        tasks: s.tasks.filter((t: any) => !t.title.includes("Sell Request"))
-      }));
-    }
-  }, [tasks, setState]);
-
-  const mine = tasks.filter(
-    (t) => (t.assignedTo === currentUser!.id || t.assignedTo === "all") && !t.title.includes("Sell Request")
-  );
+  const mine = tasks.filter((t) => t.assignedTo === currentUser!.id);
   const [proofTask, setProofTask] = useState<Task | null>(null);
   const [proofNote, setProofNote] = useState("");
   const [proofUrl, setProofUrl] = useState("");
@@ -825,22 +409,12 @@ function CustomerComm() {
 }
 
 function OrderUpdates() {
-  const { orders, products, customers, leads, currentUser, setState, uid } = useStore();
+  const { orders, products, currentUser, setState, uid } = useStore();
   const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
   const [showAddOrder, setShowAddOrder] = useState(false);
 
-  const myOrders = orders.filter((o) => {
-    if (o.status !== "Approved" && o.status !== "Delivered" && o.status !== "Pending") {
-      return false;
-    }
-    if (o.assignedTo && o.assignedTo !== "all") {
-      return o.assignedTo === currentUser?.id || o.assignedToName === currentUser?.name;
-    }
-    if (o.assignedTo === "all") {
-      return true;
-    }
-    return o.createdBy === currentUser?.id || o.createdBy === currentUser?.name;
-  });
+  const myOrders = orders.filter((o) => o.assignedTo === currentUser?.id && o.sentToEmployee && (o.status === "Approved" || o.status === "Delivered"));
+  const otherOrders = orders.filter((o) => o.assignedTo !== currentUser?.id && o.sentToEmployee && (o.status === "Approved" || o.status === "Delivered"));
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
@@ -851,9 +425,9 @@ function OrderUpdates() {
         <button
           className="btn btn-primary"
           onClick={() => setShowAddOrder(true)}
-          style={{ background: "#2D4F36", color: "#FFFFFF", fontWeight: 700, borderRadius: 12, padding: "8px 18px", fontSize: "14px", border: "none", boxShadow: "0 4px 12px rgba(45, 79, 54, 0.25)" }}
+          style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-dark))", fontWeight: 700, borderRadius: 10, padding: "8px 18px", fontSize: "14px" }}
         >
-          ➕ Create Order
+          ➕ Add Order
         </button>
       </div>
 
@@ -868,18 +442,8 @@ function OrderUpdates() {
         <div className={myOrders.length > 0 ? "card-grid" : ""}>
           {myOrders.map((o) => {
             const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
-            const customer = customers.find(c => c.id === o.customerId || c.name.toLowerCase() === o.customerName.toLowerCase());
-            const lead = leads.find(l => l.name.toLowerCase() === o.customerName.toLowerCase());
-            const custPhone = customer?.phone || lead?.phone || "";
-            const custAddress = customer?.address || lead?.address || lead?.city || "";
-            const custEmail = customer?.email || lead?.email || "";
-
             const brandStr = product?.brand ? ` (${product.brand})` : "";
-            const ninetyDaysAgo = new Date();
-            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-            const isProdIncentive = !!(product && (product.incentive ?? 0) > 0 && product.date && new Date(product.date) < ninetyDaysAgo);
-            const isIncentiveOrder = o.isIncentive ?? isProdIncentive ?? (o.customerId === "c_incentive" || o.customerName === "Incentive Sell Request");
-            const effectiveStatus = (isIncentiveOrder && o.status === "Pending") ? "Approved" : o.status;
+            const isIncentiveOrder = product && (product.incentive ?? 0) > 0;
             const orderBasePrice = Math.round(o.total / (1 - ((o.discount || 0) / 100)));
             const orderUnitPrice = Math.round(orderBasePrice / o.qty);
 
@@ -892,7 +456,7 @@ function OrderUpdates() {
                       <span>{o.customerName}</span>
                       {isIncentiveOrder ? (
                         <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
-                          ✨ Incentive {o.discount ? `(${o.discount}%)` : ""}
+                          ✨ Incentive
                         </span>
                       ) : (
                         <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
@@ -913,57 +477,23 @@ function OrderUpdates() {
                       )}
                     </span>
                   </div>
-                  <div><Pill status={effectiveStatus} /></div>
+                  <div><Pill status={o.status} /></div>
                 </div>
                 <div className="data-card-body">
-                  <div className="data-row">
-                    <span className="data-label">Customer</span>
-                    <span className="data-value" style={{ fontWeight: 700 }}>{o.customerName}</span>
-                  </div>
-                  {custPhone && (
-                    <div className="data-row">
-                      <span className="data-label">Phone</span>
-                      <span className="data-value">
-                        <a href={`tel:${custPhone}`} style={{ color: "#2563eb", fontWeight: 700, textDecoration: "none" }}>
-                          📞 {custPhone}
-                        </a>
-                      </span>
-                    </div>
-                  )}
-                  {custAddress && (
-                    <div className="data-row">
-                      <span className="data-label">Address</span>
-                      <span className="data-value" style={{ fontSize: "12px", color: "#374151" }}>📍 {custAddress}</span>
-                    </div>
-                  )}
-                  {custEmail && (
-                    <div className="data-row">
-                      <span className="data-label">Email</span>
-                      <span className="data-value" style={{ fontSize: "12px", color: "#374151" }}>✉️ {custEmail}</span>
-                    </div>
-                  )}
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
                   <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{orderUnitPrice.toLocaleString()}</span></div>
                   <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
-                  {isIncentiveOrder && !!o.discount && (
-                    <div className="data-row">
-                      <span className="data-label" style={{ color: "#d97706" }}>Your Incentive</span>
-                      <span className="data-value" style={{ color: "#15803d", fontWeight: 800 }}>
-                        {o.discount}% (₹{(Math.round((o.discount / 100) * orderUnitPrice) * o.qty).toLocaleString()})
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <div className="data-card-footer" style={{ justifyContent: "flex-end", gap: "8px" }}>
                   <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 Bill</button>
                   <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 Order Copy</button>
 
-                  {effectiveStatus === "Approved" ? (
+                  {o.status === "Approved" ? (
                     <button
                       className="btn btn-success btn-sm"
-                      style={{ padding: "6px 12px", fontSize: 11, fontWeight: 700 }}
+                      style={{ padding: "4px 8px", fontSize: 11 }}
                       onClick={() => {
-                        if (confirm("Mark this order as sold / delivered?")) {
+                        if (confirm("Mark this order as delivered?")) {
                           setState((s) => ({
                             ...s,
                             orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order)
@@ -971,20 +501,79 @@ function OrderUpdates() {
                         }
                       }}
                     >
-                      🛍️ Mark Sold / Delivered
+                      🚚 Mark Delivered
                     </button>
-                  ) : effectiveStatus === "Delivered" ? (
-                    <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 700 }}>✅ Sold / Completed</span>
-                  ) : effectiveStatus === "Pending" ? (
-                    <span style={{ fontSize: 11, color: "#d97706", fontWeight: 600 }}>⏳ Pending Approval</span>
                   ) : (
-                    <span style={{ fontSize: 11, color: "#ef4444", fontWeight: 600 }}>❌ Rejected</span>
+                    <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
                   )}
                 </div>
               </div>
             );
           })}
           {myOrders.length === 0 && <div className="empty">No orders currently assigned to you.</div>}
+        </div>
+      </div>
+
+      {/* All Other Orders */}
+      <div className="panel">
+        <div className="panel-head">
+          <h3 className="panel-title">All Other Orders</h3>
+        </div>
+        <div className={otherOrders.length > 0 ? "card-grid" : ""}>
+          {otherOrders.map((o) => {
+            const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+            const brandStr = product?.brand ? ` (${product.brand})` : "";
+            const isIncentiveOrder = product && (product.incentive ?? 0) > 0;
+
+            const orderBasePrice = Math.round(o.total / (1 - ((o.discount || 0) / 100)));
+            const orderUnitPrice = Math.round(orderBasePrice / o.qty);
+
+            return (
+              <div key={o.id} className="data-card">
+                <div className="data-card-header">
+                  <div>
+                    <h4 className="data-card-title">Order #{o.id}</h4>
+                    <span className="data-card-subtitle" style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                      <span>{o.customerName}</span>
+                      {isIncentiveOrder ? (
+                        <span className="pill" style={{ background: "#fef3c7", color: "#d97706", border: "1px solid #fde047", fontSize: "10px", padding: "2px 6px" }}>
+                          ✨ Incentive
+                        </span>
+                      ) : (
+                        <span className="pill" style={{ background: "#f3f4f6", color: "#4b5563", border: "1px solid #e5e7eb", fontSize: "10px", padding: "2px 6px" }}>
+                          Regular
+                        </span>
+                      )}
+                      {o.docType && (
+                        <span className="pill" style={{
+                          background: o.docType === "Bill" ? "#e0f2fe" : "#f3e8ff",
+                          color: o.docType === "Bill" ? "#0369a1" : "#6b21a8",
+                          border: o.docType === "Bill" ? "1px solid #bae6fd" : "1px solid #e9d5ff",
+                          fontSize: "10px",
+                          padding: "2px 6px",
+                          fontWeight: 600
+                        }}>
+                          {o.docType === "Bill" ? "🧾 Bill" : "📄 Order Copy"}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div><Pill status={o.status} /></div>
+                </div>
+                <div className="data-card-body">
+                  <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
+                  <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{orderUnitPrice.toLocaleString()}</span></div>
+                  <div className="data-row"><span className="data-label">Assigned</span><span className="data-value">{o.assignedToName ?? "—"}</span></div>
+                  <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
+                </div>
+                <div className="data-card-footer" style={{ justifyContent: "flex-end", gap: "8px", borderTop: "1px solid var(--border)", padding: "12px 16px", display: "flex" }}>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 Bill</button>
+                  <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 Order Copy</button>
+                </div>
+              </div>
+            );
+          })}
+          {otherOrders.length === 0 && <div className="empty">No other orders.</div>}
         </div>
       </div>
 
@@ -1136,10 +725,9 @@ function ProductsSection() {
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchCat = categoryFilter === "All" || p.category === categoryFilter;
-      const isAssignedToOther = p.assignedEmployeeId && p.assignedEmployeeId !== "all" && p.assignedEmployeeId !== currentUser?.id;
-      return matchCat && !isAssignedToOther;
+      return matchCat;
     });
-  }, [products, categoryFilter, currentUser]);
+  }, [products, categoryFilter]);
 
   return (
     <>
@@ -1432,7 +1020,7 @@ function ProductsSection() {
                 min={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setBookingExpiryDate(e.target.value)}
               />
-
+              
               <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
                 💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
               </span>
@@ -1519,8 +1107,6 @@ export function EmployeeIncentiveSection() {
   const [customerAddress, setCustomerAddress] = useState("");
   const [docType, setDocType] = useState<"Bill" | "Order Copy">("Bill");
   const [bookingExpiryDate, setBookingExpiryDate] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
-  const [sellQty, setSellQty] = useState(1);
-  const [discountPct, setDiscountPct] = useState<number | "">("");
 
   const [incSellError, setIncSellError] = useState("");
   const [incSellSuccess, setIncSellSuccess] = useState("");
@@ -1536,60 +1122,53 @@ export function EmployeeIncentiveSection() {
 
   const unitPrice = useMemo(() => {
     if (!sellingProduct) return 0;
-    return sellingProduct.price || sellingProduct.cost || 0;
+    const qty = sellingProduct.qty ?? sellingProduct.stock ?? 1;
+    return qty > 0 ? Math.round(sellingProduct.price / qty) : sellingProduct.price;
   }, [sellingProduct]);
-
-  const baseTotal = unitPrice * sellQty;
-  const discountVal = discountPct ? Math.round(((Number(discountPct) || 0) / 100) * baseTotal) : 0;
-  const finalTotal = Math.max(0, baseTotal - discountVal);
 
   const handleSell = () => {
     setIncSellError("");
     setIncSellSuccess("");
     if (!sellingProduct) return;
-    const availStock = sellingProduct.qty ?? sellingProduct.stock ?? 0;
-    if (availStock <= 0) {
+    const qty = sellingProduct.qty ?? sellingProduct.stock ?? 0;
+    if (qty <= 0) {
       setIncSellError("Out of stock!");
+      return;
+    }
+    if (!customerName.trim() || !customerPhone.trim()) {
+      setIncSellError("Please fill in customer name and phone number.");
       return;
     }
 
     const orderId = uid("o");
     const today = new Date().toISOString().slice(0, 10);
-    const finalCustName = customerName.trim() || "Incentive Direct Sale";
 
     setState((s: any) => {
-      let customerId = "c_inc_direct";
+      // 1. Check if customer already exists, otherwise create a new customer
+      let customerId = s.customers.find((c: any) => c.phone.trim() === customerPhone.trim())?.id;
       let nextCustomers = s.customers;
-      if (customerName.trim()) {
-        let existingCust = s.customers.find(
-          (c: any) => c.name.trim().toLowerCase() === customerName.trim().toLowerCase()
-        );
-        if (existingCust) {
-          customerId = existingCust.id;
-        } else {
-          customerId = uid("c");
-          const newCust = {
-            id: customerId,
-            name: customerName.trim(),
-            phone: customerPhone.trim(),
-            address: customerAddress.trim(),
-            email: "",
-            status: "Active"
-          };
-          nextCustomers = [...s.customers, newCust];
-        }
+      if (!customerId) {
+        customerId = uid("c");
+        const newCust = {
+          id: customerId,
+          name: customerName.trim(),
+          phone: customerPhone.trim(),
+          address: customerAddress.trim(),
+          email: "",
+          status: "Active"
+        };
+        nextCustomers = [...s.customers, newCust];
       }
 
       // 2. Create a new pending order assigned to this employee for Admin approval
       const newOrder = {
         id: orderId,
         customerId,
-        customerName: finalCustName,
+        customerName: customerName.trim(),
         productId: sellingProduct.id,
         productName: sellingProduct.name,
-        qty: sellQty,
-        total: finalTotal,
-        discount: Number(discountPct) || 0,
+        qty: 1,
+        total: unitPrice,
         createdBy: currentUser?.name || "employee",
         status: "Pending" as const,
         date: today,
@@ -1597,8 +1176,7 @@ export function EmployeeIncentiveSection() {
         assignedToName: currentUser?.name,
         sentToEmployee: true,
         docType,
-        bookingExpiryDate: docType === "Order Copy" ? bookingExpiryDate : undefined,
-        isIncentive: true
+        bookingExpiryDate: docType === "Order Copy" ? bookingExpiryDate : undefined
       };
 
       const notifId = uid("n");
@@ -1765,41 +1343,162 @@ export function EmployeeIncentiveSection() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
-                Quantity *
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "14px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
+              Customer Name *
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              style={{ height: "40px", padding: "8px 12px", fontSize: "14px", borderRadius: "10px", border: "1px solid var(--border)", width: "100%", boxSizing: "border-box" }}
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Enter customer name"
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "14px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
+              Phone Number *
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              style={{ height: "40px", padding: "8px 12px", fontSize: "14px", borderRadius: "10px", border: "1px solid var(--border)", width: "100%", boxSizing: "border-box" }}
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "16px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
+              Address
+            </label>
+            <input
+              type="text"
+              className="form-input"
+              style={{ height: "40px", padding: "8px 12px", fontSize: "14px", borderRadius: "10px", border: "1px solid var(--border)", width: "100%", boxSizing: "border-box" }}
+              value={customerAddress}
+              onChange={(e) => setCustomerAddress(e.target.value)}
+              placeholder="Enter address (optional)"
+            />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px", marginBottom: "16px" }}>
+            <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
+              Document Type *
+            </label>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <label style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 14px",
+                borderRadius: "10px",
+                border: docType === "Bill" ? "2px solid #0284c7" : "1px solid var(--border)",
+                background: docType === "Bill" ? "#f0f9ff" : "#fff",
+                cursor: "pointer",
+                fontWeight: 600,
+                fontSize: "13px",
+                color: docType === "Bill" ? "#0369a1" : "inherit"
+              }}>
+                <input
+                  type="radio"
+                  name="docTypeSelectInc"
+                  value="Bill"
+                  checked={docType === "Bill"}
+                  onChange={() => setDocType("Bill")}
+                />
+                🧾 Bill
               </label>
+              <label style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 14px",
+                borderRadius: "10px",
+                border: docType === "Order Copy" ? "2px solid #9333ea" : "1px solid var(--border)",
+                background: docType === "Order Copy" ? "#faf5ff" : "#fff",
+                cursor: "pointer",
+                fontWeight: 600,
+                fontSize: "13px",
+                color: docType === "Order Copy" ? "#6b21a8" : "inherit"
+              }}>
+                <input
+                  type="radio"
+                  name="docTypeSelectInc"
+                  value="Order Copy"
+                  checked={docType === "Order Copy"}
+                  onChange={() => setDocType("Order Copy")}
+                />
+                📄 Order Copy
+              </label>
+            </div>
+          </div>
+
+          {docType === "Order Copy" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px", background: "#faf5ff", padding: "14px", borderRadius: "12px", border: "1px solid #e9d5ff" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "#6b21a8", letterSpacing: "0.5px" }}>
+                  ⏳ Booking Expiry Date *
+                </label>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#7e22ce" }}>
+                  📅 {bookingExpiryDate ? new Date(bookingExpiryDate + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Select Date"}
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", margin: "2px 0" }}>
+                <span style={{ fontSize: "11px", fontWeight: 600, color: "#6b21a8", alignSelf: "center" }}>Quick Set:</span>
+                {[
+                  { label: "+7 Days", days: 7 },
+                  { label: "+15 Days", days: 15 },
+                  { label: "+30 Days (1 Month)", days: 30 },
+                  { label: "+60 Days (2 Months)", days: 60 },
+                ].map((preset) => {
+                  const targetDate = new Date();
+                  targetDate.setDate(targetDate.getDate() + preset.days);
+                  const iso = targetDate.toISOString().slice(0, 10);
+                  const isSelected = bookingExpiryDate === iso;
+
+                  return (
+                    <button
+                      key={preset.days}
+                      type="button"
+                      onClick={() => setBookingExpiryDate(iso)}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "6px",
+                        border: isSelected ? "1.5px solid #7e22ce" : "1px solid #d8b4fe",
+                        background: isSelected ? "#7e22ce" : "#fff",
+                        color: isSelected ? "#fff" : "#6b21a8",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        cursor: "pointer"
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
               <input
-                type="number"
+                type="date"
                 className="form-input"
-                min={1}
-                max={sellingProduct.qty ?? sellingProduct.stock ?? 999}
-                value={sellQty}
-                onChange={(e) => setSellQty(Math.max(1, Number(e.target.value)))}
-                style={{ fontWeight: 700, fontSize: "15px" }}
+                style={{ height: "42px", padding: "8px 12px", fontSize: "14px", borderRadius: "8px", border: "1px solid #d8b4fe", width: "100%", boxSizing: "border-box", background: "#fff" }}
+                value={bookingExpiryDate}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setBookingExpiryDate(e.target.value)}
               />
+              
               <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
                 💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
               </span>
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)", letterSpacing: "0.5px" }}>
-                Discount (%)
-              </label>
-              <input
-                type="number"
-                className="form-input"
-                min={0}
-                max={100}
-                value={discountPct}
-                onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
-                placeholder="Enter discount % (e.g. 10)"
-                style={{ fontWeight: 700, fontSize: "15px" }}
-              />
-            </div>
-          </div>
+          )}
 
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "16px" }}>
             <button
@@ -2091,19 +1790,11 @@ export function OrderDocumentModal({
 
 export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
   const { customers, products, setState, uid, currentUser } = useStore();
-  const activeProducts = products.filter((p) => {
-    if (p.status === "Inactive") return false;
-    if (p.assignedEmployeeId && p.assignedEmployeeId !== "all") {
-      return p.assignedEmployeeId === currentUser?.id;
-    }
-    return true;
-  });
-  const activeProductsList = activeProducts.length > 0 ? activeProducts : products;
-
+  const activeProducts = products.filter(p => p.status === "Active" || p.status === "Verified");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [productId, setProductId] = useState(activeProductsList[0]?.id || "");
+  const [productId, setProductId] = useState(activeProducts[0]?.id || "");
   const [qty, setQty] = useState(1);
   const [discountPct, setDiscountPct] = useState<number | "">("");
   const [docType, setDocType] = useState<"Bill" | "Order Copy">("Bill");
@@ -2112,8 +1803,8 @@ export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const selectedProduct = activeProductsList.find(p => p.id === productId);
-  const unitPrice = selectedProduct ? (selectedProduct.price || selectedProduct.cost || 0) : 0;
+  const selectedProduct = activeProducts.find(p => p.id === productId);
+  const unitPrice = selectedProduct ? selectedProduct.price : 0;
   const baseTotal = unitPrice * qty;
   const discountVal = discountPct ? Math.round(((Number(discountPct) || 0) / 100) * baseTotal) : 0;
   const finalTotal = Math.max(0, baseTotal - discountVal);
@@ -2260,9 +1951,9 @@ export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
             Select Product *
           </label>
           <select className="form-select" value={productId} onChange={(e) => setProductId(e.target.value)}>
-            {activeProductsList.map((p) => (
+            {activeProducts.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name}{p.brand ? ` (${p.brand})` : ""}
+                {p.name} {p.brand ? `(${p.brand})` : ""} - ₹{p.price.toLocaleString()} (Stock: {p.qty ?? p.stock ?? 0})
               </option>
             ))}
           </select>
@@ -2284,37 +1975,18 @@ export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-              Total Price (₹) *
+              Discount (%)
             </label>
             <input
-              type="text"
+              type="number"
               className="form-input"
-              readOnly
-              value={`₹${finalTotal.toLocaleString()}`}
-              style={{
-                background: "#f0fdf4",
-                color: "#15803d",
-                fontWeight: 800,
-                fontSize: "15px",
-                border: "1px solid #bbf7d0"
-              }}
+              min={0}
+              max={100}
+              value={discountPct}
+              onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
+              placeholder="0%"
             />
           </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Discount (%) (Optional)
-          </label>
-          <input
-            type="number"
-            className="form-input"
-            min={0}
-            max={100}
-            value={discountPct}
-            onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
-            placeholder="0%"
-          />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
@@ -2425,7 +2097,7 @@ export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
               min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setBookingExpiryDate(e.target.value)}
             />
-
+            
             <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
               💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
             </span>
