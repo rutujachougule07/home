@@ -1,6 +1,6 @@
 
 import { Navigate, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStore, Customer, Product, Order, Task } from "../app/store";
 import { DashboardLayout, StatCard, Pill, NavItem, Modal, BarChart, PieChart } from "../app/DashboardLayout";
 import { NotificationsSection, ProfileSection, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, ProductForm } from "./SuperAdminPage";
@@ -585,7 +585,19 @@ function Overview() {
 
 function TasksSection() {
   const { currentUser, tasks, setState } = useStore();
-  const mine = tasks.filter((t) => t.assignedTo === currentUser!.id);
+
+  useEffect(() => {
+    if (tasks.some((t) => t.title.includes("Sell Request"))) {
+      setState((s: any) => ({
+        ...s,
+        tasks: s.tasks.filter((t: any) => !t.title.includes("Sell Request"))
+      }));
+    }
+  }, [tasks, setState]);
+
+  const mine = tasks.filter(
+    (t) => (t.assignedTo === currentUser!.id || t.assignedTo === "all") && !t.title.includes("Sell Request")
+  );
   const [proofTask, setProofTask] = useState<Task | null>(null);
   const [proofNote, setProofNote] = useState("");
   const [proofUrl, setProofUrl] = useState("");
@@ -813,15 +825,22 @@ function CustomerComm() {
 }
 
 function OrderUpdates() {
-  const { orders, products, currentUser, setState, uid } = useStore();
+  const { orders, products, customers, leads, currentUser, setState, uid } = useStore();
   const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
   const [showAddOrder, setShowAddOrder] = useState(false);
 
-  const myOrders = orders.filter(
-    (o) =>
-      (o.assignedTo === currentUser?.id || o.assignedToName === currentUser?.name || o.createdBy === currentUser?.id || o.createdBy === currentUser?.name) &&
-      (o.status === "Approved" || o.status === "Delivered" || o.status === "Pending")
-  );
+  const myOrders = orders.filter((o) => {
+    if (o.status !== "Approved" && o.status !== "Delivered" && o.status !== "Pending") {
+      return false;
+    }
+    if (o.assignedTo && o.assignedTo !== "all") {
+      return o.assignedTo === currentUser?.id || o.assignedToName === currentUser?.name;
+    }
+    if (o.assignedTo === "all") {
+      return true;
+    }
+    return o.createdBy === currentUser?.id || o.createdBy === currentUser?.name;
+  });
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
@@ -849,11 +868,18 @@ function OrderUpdates() {
         <div className={myOrders.length > 0 ? "card-grid" : ""}>
           {myOrders.map((o) => {
             const product = products.find(p => p.id === o.productId || p.name.toLowerCase() === o.productName.toLowerCase());
+            const customer = customers.find(c => c.id === o.customerId || c.name.toLowerCase() === o.customerName.toLowerCase());
+            const lead = leads.find(l => l.name.toLowerCase() === o.customerName.toLowerCase());
+            const custPhone = customer?.phone || lead?.phone || "";
+            const custAddress = customer?.address || lead?.address || lead?.city || "";
+            const custEmail = customer?.email || lead?.email || "";
+
             const brandStr = product?.brand ? ` (${product.brand})` : "";
             const ninetyDaysAgo = new Date();
             ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
             const isProdIncentive = !!(product && (product.incentive ?? 0) > 0 && product.date && new Date(product.date) < ninetyDaysAgo);
-            const isIncentiveOrder = o.isIncentive ?? isProdIncentive;
+            const isIncentiveOrder = o.isIncentive ?? isProdIncentive ?? (o.customerId === "c_incentive" || o.customerName === "Incentive Sell Request");
+            const effectiveStatus = (isIncentiveOrder && o.status === "Pending") ? "Approved" : o.status;
             const orderBasePrice = Math.round(o.total / (1 - ((o.discount || 0) / 100)));
             const orderUnitPrice = Math.round(orderBasePrice / o.qty);
 
@@ -887,9 +913,35 @@ function OrderUpdates() {
                       )}
                     </span>
                   </div>
-                  <div><Pill status={o.status} /></div>
+                  <div><Pill status={effectiveStatus} /></div>
                 </div>
                 <div className="data-card-body">
+                  <div className="data-row">
+                    <span className="data-label">Customer</span>
+                    <span className="data-value" style={{ fontWeight: 700 }}>{o.customerName}</span>
+                  </div>
+                  {custPhone && (
+                    <div className="data-row">
+                      <span className="data-label">Phone</span>
+                      <span className="data-value">
+                        <a href={`tel:${custPhone}`} style={{ color: "#2563eb", fontWeight: 700, textDecoration: "none" }}>
+                          📞 {custPhone}
+                        </a>
+                      </span>
+                    </div>
+                  )}
+                  {custAddress && (
+                    <div className="data-row">
+                      <span className="data-label">Address</span>
+                      <span className="data-value" style={{ fontSize: "12px", color: "#374151" }}>📍 {custAddress}</span>
+                    </div>
+                  )}
+                  {custEmail && (
+                    <div className="data-row">
+                      <span className="data-label">Email</span>
+                      <span className="data-value" style={{ fontSize: "12px", color: "#374151" }}>✉️ {custEmail}</span>
+                    </div>
+                  )}
                   <div className="data-row"><span className="data-label">Product</span><span className="data-value">{o.productName}{brandStr} (x{o.qty})</span></div>
                   <div className="data-row"><span className="data-label">Unit Price</span><span className="data-value">₹{orderUnitPrice.toLocaleString()}</span></div>
                   <div className="data-row"><span className="data-label">Total</span><span className="data-value" style={{ fontWeight: 700 }}>₹{o.total.toLocaleString()}</span></div>
@@ -906,12 +958,12 @@ function OrderUpdates() {
                   <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Bill" })}>🧾 Bill</button>
                   <button className="btn btn-ghost btn-sm" style={{ padding: "4px 8px", fontSize: 11, border: "1px solid #e2e8f0" }} onClick={() => setActiveDoc({ order: o, type: "Order Copy" })}>📄 Order Copy</button>
 
-                  {o.status === "Approved" ? (
+                  {effectiveStatus === "Approved" ? (
                     <button
                       className="btn btn-success btn-sm"
-                      style={{ padding: "4px 8px", fontSize: 11 }}
+                      style={{ padding: "6px 12px", fontSize: 11, fontWeight: 700 }}
                       onClick={() => {
-                        if (confirm("Mark this order as delivered?")) {
+                        if (confirm("Mark this order as sold / delivered?")) {
                           setState((s) => ({
                             ...s,
                             orders: s.orders.map((order) => order.id === o.id ? { ...order, status: "Delivered" } : order)
@@ -919,11 +971,11 @@ function OrderUpdates() {
                         }
                       }}
                     >
-                      🚚 Mark Delivered
+                      🛍️ Mark Sold / Delivered
                     </button>
-                  ) : o.status === "Delivered" ? (
-                    <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 600 }}>Completed</span>
-                  ) : o.status === "Pending" ? (
+                  ) : effectiveStatus === "Delivered" ? (
+                    <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 700 }}>✅ Sold / Completed</span>
+                  ) : effectiveStatus === "Pending" ? (
                     <span style={{ fontSize: 11, color: "#d97706", fontWeight: 600 }}>⏳ Pending Approval</span>
                   ) : (
                     <span style={{ fontSize: 11, color: "#ef4444", fontWeight: 600 }}>❌ Rejected</span>
@@ -1084,9 +1136,10 @@ function ProductsSection() {
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchCat = categoryFilter === "All" || p.category === categoryFilter;
-      return matchCat;
+      const isAssignedToOther = p.assignedEmployeeId && p.assignedEmployeeId !== "all" && p.assignedEmployeeId !== currentUser?.id;
+      return matchCat && !isAssignedToOther;
     });
-  }, [products, categoryFilter]);
+  }, [products, categoryFilter, currentUser]);
 
   return (
     <>
@@ -2038,7 +2091,13 @@ export function OrderDocumentModal({
 
 export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
   const { customers, products, setState, uid, currentUser } = useStore();
-  const activeProducts = products.filter(p => p.status !== "Inactive");
+  const activeProducts = products.filter((p) => {
+    if (p.status === "Inactive") return false;
+    if (p.assignedEmployeeId && p.assignedEmployeeId !== "all") {
+      return p.assignedEmployeeId === currentUser?.id;
+    }
+    return true;
+  });
   const activeProductsList = activeProducts.length > 0 ? activeProducts : products;
 
   const [customerName, setCustomerName] = useState("");
@@ -2225,18 +2284,37 @@ export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
             <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-              Discount (%)
+              Total Price (₹) *
             </label>
             <input
-              type="number"
+              type="text"
               className="form-input"
-              min={0}
-              max={100}
-              value={discountPct}
-              onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
-              placeholder="0%"
+              readOnly
+              value={`₹${finalTotal.toLocaleString()}`}
+              style={{
+                background: "#f0fdf4",
+                color: "#15803d",
+                fontWeight: 800,
+                fontSize: "15px",
+                border: "1px solid #bbf7d0"
+              }}
             />
           </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
+            Discount (%) (Optional)
+          </label>
+          <input
+            type="number"
+            className="form-input"
+            min={0}
+            max={100}
+            value={discountPct}
+            onChange={(e) => setDiscountPct(e.target.value === "" ? "" : Number(e.target.value))}
+            placeholder="0%"
+          />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>

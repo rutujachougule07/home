@@ -35,7 +35,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
         const hasPending = orders.some(o => o.customerName.toLowerCase() === customerName && o.status === "Pending");
         if (!hasPending) return false;
       } else if (msg.includes("pending for approval")) {
-        const hasPending = orders.some(o => o.status === "Pending");
+        const hasPending = orders.some(o => o.status === "Pending" && !o.isIncentive && o.customerId !== "c_incentive" && o.customerName !== "Incentive Sell Request");
         if (!hasPending) return false;
       }
     }
@@ -54,7 +54,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
       return unread;
     }
     if (role === "superadmin" && key === "orders") {
-      return orders.filter((o) => o.status === "Pending").length;
+      return orders.filter((o) => o.status === "Pending" && !o.isIncentive && o.customerId !== "c_incentive" && o.customerName !== "Incentive Sell Request").length;
     }
     if (role === "employee" && key === "tasks" && currentUser) {
       return tasks.filter((t) => t.assignedTo === currentUser.id && t.status !== "Completed").length;

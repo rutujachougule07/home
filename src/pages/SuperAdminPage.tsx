@@ -150,7 +150,7 @@ export function SuperAdminPage({ tab = "live" }: SuperAdminPageProps) {
   const navigate = useNavigate();
   const [showNotification, setShowNotification] = useState(true);
 
-  const pendingApprovals = store.orders.filter(o => o.status === "Pending").length;
+  const pendingApprovals = store.orders.filter(o => o.status === "Pending" && !o.isIncentive && o.customerId !== "c_incentive" && o.customerName !== "Incentive Sell Request").length;
 
   const setActive = (tab: string) => {
     navigate({ to: "/super-admin", search: { tab } });
@@ -2357,7 +2357,12 @@ export function OrdersTable() {
 function OrderApprovalSection() {
   const { orders, products, users, setState, uid } = useStore();
   const [filter, setFilter] = useState<"all" | "Pending" | "Approved" | "Rejected">("all");
-  const list = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+
+  const approvalOrders = useMemo(() => {
+    return orders.filter((o) => !o.isIncentive && o.customerId !== "c_incentive" && o.customerName !== "Incentive Sell Request");
+  }, [orders]);
+
+  const list = filter === "all" ? approvalOrders : approvalOrders.filter((o) => o.status === filter);
   const [editDiscounts, setEditDiscounts] = useState<Record<string, number>>({});
   const [activeDoc, setActiveDoc] = useState<{ order: Order; type: "Bill" | "Order Copy" } | null>(null);
 
@@ -3498,6 +3503,15 @@ export function TaskAssignmentSection() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  useEffect(() => {
+    if (tasks.some((t) => t.title.includes("Sell Request"))) {
+      setState((s: any) => ({
+        ...s,
+        tasks: s.tasks.filter((t: any) => !t.title.includes("Sell Request"))
+      }));
+    }
+  }, [tasks, setState]);
+
   const handleEditTaskSave = (taskId: string, newTitle: string, newAssigneeId: string) => {
     const assignee = users.find(u => u.id === newAssigneeId);
     if (!assignee) return;
@@ -3514,9 +3528,11 @@ export function TaskAssignmentSection() {
   const managers = users.filter(u => u.role === "manager");
   const employees = users.filter(u => u.role === "employee");
 
+  const regularTasks = useMemo(() => tasks.filter((t) => !t.title.includes("Sell Request")), [tasks]);
+
   // Only show employees/managers who currently have at least one task assigned
-  const employeesWithTasks = employees.filter(e => tasks.some(t => t.assignedTo === e.id));
-  const managersWithTasks = managers.filter(m => tasks.some(t => t.assignedTo === m.id));
+  const employeesWithTasks = employees.filter(e => regularTasks.some(t => t.assignedTo === e.id));
+  const managersWithTasks = managers.filter(m => regularTasks.some(t => t.assignedTo === m.id));
 
   const [activeTab, setActiveTab] = useState<"employee" | "manager">("employee");
 
@@ -3659,11 +3675,11 @@ export function TaskAssignmentSection() {
               <UnifiedEmployeeCard
                 key={e.id}
                 employee={e}
-                userTasks={tasks.filter(t => t.assignedTo === e.id)}
+                userTasks={regularTasks.filter(t => t.assignedTo === e.id)}
                 actions={
                   <>
                     <button onClick={() => {
-                      const userTasks = tasks.filter(t => t.assignedTo === e.id);
+                      const userTasks = regularTasks.filter(t => t.assignedTo === e.id);
                       if (userTasks.length > 0) {
                         setEditingTask(userTasks[0]);
                       }
@@ -3673,7 +3689,7 @@ export function TaskAssignmentSection() {
                       alignItems: "center", justifyContent: "center", fontSize: "14px", transition: "all 0.2s"
                     }}>✏️</button>
                     <button onClick={() => {
-                      const userTasks = tasks.filter(t => t.assignedTo === e.id);
+                      const userTasks = regularTasks.filter(t => t.assignedTo === e.id);
                       if (userTasks.length > 0) {
                         handleDeleteTask(userTasks[0].id);
                       }
@@ -3691,7 +3707,7 @@ export function TaskAssignmentSection() {
                 <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
                   <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {tasks.filter(t => t.assignedTo === e.id).map(t => {
+                    {regularTasks.filter(t => t.assignedTo === e.id).map(t => {
                       const styles = t.status === "Completed"
                         ? { bg: "#f0fdf4", color: "#16a34a", border: "#dcfce7", bar: "#10b981" }
                         : t.status === "In Progress"
@@ -3827,7 +3843,7 @@ export function TaskAssignmentSection() {
                   <div style={{ marginTop: "12px", borderTop: "1px solid #f5ede2", paddingTop: "10px" }}>
                     <div style={{ fontWeight: 700, fontSize: "12px", color: "#78350f", marginBottom: "6px" }}>📋 Tasks:</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {tasks.filter(t => t.assignedTo === m.id).map(t => (
+                      {regularTasks.filter(t => t.assignedTo === m.id).map(t => (
                         <div key={t.id} style={{ display: "flex", flexDirection: "column", gap: "6px", background: "#fdfbfa", border: "1px solid #efe8df", padding: "8px 10px", borderRadius: "8px", fontSize: "11px" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <span style={{ color: "#5c3a21", fontWeight: 600 }}>{t.title}</span>
@@ -4868,7 +4884,7 @@ export function LeadsSection() {
 
 
 export function SuperAdminIncentiveSection() {
-  const { products, setState, users } = useStore();
+  const { products, setState, users, currentUser } = useStore();
   const [editing, setEditing] = useState<Product | null>(null);
   const [incentiveMode, setIncentiveMode] = useState<boolean>(false);
   const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
@@ -4879,63 +4895,106 @@ export function SuperAdminIncentiveSection() {
   const [selectedProductForIncentive, setSelectedProductForIncentive] = useState<(Product & { batches: Product[] }) | null>(null);
   const [incentiveFormEmpId, setIncentiveFormEmpId] = useState<string>("");
   const [incentiveFormAmount, setIncentiveFormAmount] = useState<number>(0);
-  const [incentiveFormPercent, setIncentiveFormPercent] = useState<number | string>(10);
-  const [incentiveFormQty, setIncentiveFormQty] = useState<number>(1);
+  const [incentiveFormPercent, setIncentiveFormPercent] = useState<number | string>("");
+  const [incentiveFormQty, setIncentiveFormQty] = useState<number | string>("");
   const [incentiveInputMode, setIncentiveInputMode] = useState<"percent" | "amount">("percent");
   const [incentiveFormNotes, setIncentiveFormNotes] = useState<string>("");
+  const [incentiveFormError, setIncentiveFormError] = useState<string>("");
+  const [incentiveSuccessMsg, setIncentiveSuccessMsg] = useState<string>("");
 
   const employees = useMemo(() => users.filter((u) => u.role === "employee" || u.role === "manager"), [users]);
 
-  const handleAssignIncentiveSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAssignIncentiveSubmit = (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     if (!selectedProductForIncentive) return;
 
-    const batchIds = selectedProductForIncentive.batches ? selectedProductForIncentive.batches.map((b) => b.id) : [selectedProductForIncentive.id];
-    const selectedUser = users.find((u) => u.id === incentiveFormEmpId);
-    const assignedEmpName = incentiveFormEmpId === "all"
+    if (!incentiveFormEmpId) {
+      setIncentiveFormError("Please select an employee or manager");
+      return;
+    }
+
+    const qtyVal = Number(incentiveFormQty);
+    if (!incentiveFormQty || isNaN(qtyVal) || qtyVal < 1) {
+      setIncentiveFormError("Please enter a valid quantity (at least 1)");
+      return;
+    }
+
+    const maxAvailable = selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1;
+    if (qtyVal > maxAvailable) {
+      setIncentiveFormError(`Quantity cannot exceed available stock (${maxAvailable} units)`);
+      return;
+    }
+
+    const discountVal = typeof incentiveFormPercent === "number" ? incentiveFormPercent : (parseFloat(incentiveFormPercent as string) || 0);
+    if (discountVal <= 0) {
+      setIncentiveFormError("Please enter a valid incentive percentage (> 0%)");
+      return;
+    }
+
+    const targetEmpId = incentiveFormEmpId;
+    const selectedUser = users.find((u) => u.id === targetEmpId);
+    const assignedEmpName = targetEmpId === "all"
       ? "All Employees"
       : (selectedUser?.name || "Employee");
 
-    const pctDisplay = incentiveFormPercent ? `${incentiveFormPercent}%` : "";
+    const pctDisplay = `${discountVal}%`;
+    const unitPrice = selectedProductForIncentive.cost || selectedProductForIncentive.price || 0;
+    const today = new Date().toISOString().split("T")[0];
+    const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+
+    const batchIds = selectedProductForIncentive.batches ? selectedProductForIncentive.batches.map((b) => b.id) : [selectedProductForIncentive.id];
 
     const newNotification = {
       id: `n_${Date.now()}`,
-      to: incentiveFormEmpId === "all" ? "all" : (selectedUser?.role || "employee"),
-      from: "Super Admin",
-      message: `💰 Incentive Sell Request: Assigned to sell ${incentiveFormQty} unit(s) of ${selectedProductForIncentive.name} with ${pctDisplay ? `${pctDisplay} (` : ""}₹${incentiveFormAmount}/unit${pctDisplay ? ")" : ""} incentive!`,
+      to: targetEmpId === "all" ? "all" : (selectedUser?.role || "employee"),
+      from: currentUser?.name || "Super Admin",
+      message: `💰 Incentive Sell Request: Assigned to sell ${qtyVal} unit(s) of ${selectedProductForIncentive.name} with ${pctDisplay ? `${pctDisplay} (` : ""}₹${incentiveFormAmount}/unit${pctDisplay ? ")" : ""} incentive!`,
       date: new Date().toLocaleString(),
       read: false
     };
 
-    const newTask = {
-      id: `t_${Date.now()}`,
-      title: `💰 Sell Request: ${selectedProductForIncentive.name} (Qty: ${incentiveFormQty} units, Incentive: ${pctDisplay ? `${pctDisplay} / ` : ""}₹${incentiveFormAmount}/unit)`,
-      assignedTo: incentiveFormEmpId === "all" ? "all" : (selectedUser?.id || ""),
+    const newOrder: Order = {
+      id: orderId,
+      customerId: "c_incentive",
+      customerName: "Incentive Sell Request",
+      productId: selectedProductForIncentive.id,
+      productName: selectedProductForIncentive.name,
+      qty: qtyVal,
+      total: unitPrice * qtyVal,
+      discount: discountVal,
+      createdBy: currentUser?.name || "Super Admin",
+      status: "Approved",
+      date: today,
+      assignedTo: targetEmpId === "all" ? "all" : (selectedUser?.id || targetEmpId),
       assignedToName: assignedEmpName,
-      status: "Pending",
-      date: new Date().toISOString().split("T")[0]
+      sentToEmployee: true,
+      isIncentive: true
     };
 
     setState((s: any) => ({
       ...s,
-      products: s.products.map((prod: any) =>
-        batchIds.includes(prod.id)
+      products: (s.products || []).map((prod: any) =>
+        prod && batchIds.includes(prod.id)
           ? {
             ...prod,
-            assignedEmployeeId: incentiveFormEmpId,
+            assignedEmployeeId: targetEmpId,
             incentive: incentiveFormAmount >= 0 ? incentiveFormAmount : prod.incentive,
           }
           : prod
       ),
-      notifications: [newNotification, ...(s.notifications || [])],
-      tasks: [newTask, ...(s.tasks || [])]
+      orders: [newOrder, ...(s.orders || [])],
+      notifications: [newNotification, ...(s.notifications || [])]
     }));
-
-    alert(`✅ Incentive (${pctDisplay}) & Sell Request for ${incentiveFormQty} unit(s) of "${selectedProductForIncentive.name}" successfully assigned to ${assignedEmpName}!`);
 
     setShowGiveIncentiveModal(false);
     setSelectedProductForIncentive(null);
     setIncentiveFormNotes("");
+    setIncentiveFormError("");
+    setIncentiveFormEmpId("");
+    setIncentiveFormPercent("");
+    setIncentiveFormQty("");
+    setIncentiveSuccessMsg(`✅ Incentive (${pctDisplay}) & Sell Request for ${qtyVal} unit(s) of "${selectedProductForIncentive.name}" successfully assigned to ${assignedEmpName}!`);
+    setTimeout(() => setIncentiveSuccessMsg(""), 5000);
   };
 
   const ninetyDaysAgo = new Date();
@@ -4999,21 +5058,17 @@ export function SuperAdminIncentiveSection() {
         </div>
       </div>
 
+      {incentiveSuccessMsg && (
+        <div style={{ background: "#DCFCE7", color: "#15803D", border: "1px solid #86EFAC", padding: "12px 16px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, marginTop: "16px" }}>
+          {incentiveSuccessMsg}
+        </div>
+      )}
+
       <div className="panel" style={{ marginTop: 24, borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.04)", border: "1px solid var(--border)", overflow: "hidden" }}>
         <div className="panel-head" style={{ padding: "18px 24px", background: "linear-gradient(135deg, #fffbf0, #fff7ed)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h3 className="panel-title" style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
             <span>💰</span> Products Eligible for Incentive (&gt; 90 Days)
           </h3>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              setEditing({ id: Date.now().toString(), name: "", sku: "", cost: 0, stock: 0, status: "Available", incentive: 0, qty: 1 } as any);
-              setIncentiveMode(true);
-            }}
-            style={{ padding: "8px 16px", borderRadius: "8px", fontWeight: 600 }}
-          >
-            ➕ Add Incentive Product
-          </button>
         </div>
         <div className="table-wrap">
           <table className="tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -5134,13 +5189,12 @@ export function SuperAdminIncentiveSection() {
                         type="button"
                         onClick={() => {
                           setSelectedProductForIncentive(p);
-                          setIncentiveFormEmpId(assignedEmp || "");
-                          const base = p.price || p.cost || 0;
-                          const pct = base > 0 && p.incentive ? Math.round((p.incentive / base) * 100) : 10;
-                          setIncentiveFormPercent(pct || 10);
-                          setIncentiveFormAmount(p.incentive || (base > 0 ? Math.round((base * (pct || 10)) / 100) : 700));
+                          setIncentiveFormEmpId(assignedEmp || (employees[0]?.id || "all"));
+                          setIncentiveFormPercent("");
+                          setIncentiveFormAmount(p.incentive || 0);
                           setIncentiveFormQty(p.qty ?? p.stock ?? 1);
                           setIncentiveFormNotes("");
+                          setIncentiveFormError("");
                           setShowGiveIncentiveModal(true);
                         }}
                         style={{
@@ -5159,7 +5213,7 @@ export function SuperAdminIncentiveSection() {
                           boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
                           transition: "transform 0.15s ease"
                         }}
-                        title="Open Incentive Form (इन्सेंटिव्ह फॉर्म उघडा)"
+                        title="Open Incentive Form"
                       >
                         +
                       </button>
@@ -5290,7 +5344,7 @@ export function SuperAdminIncentiveSection() {
                 <span style={{ fontSize: "22px" }}>💰</span>
                 <div>
                   <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#FFFFFF" }}>Assign Employee Incentive</h3>
-                  <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#FFC6A8", opacity: 0.9 }}>इन्सेंटिव्ह कोणाला द्यायचा आहे ते निवडा</p>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#FFC6A8", opacity: 0.9 }}>Select employee to assign incentive</p>
                 </div>
               </div>
               <button
@@ -5314,6 +5368,11 @@ export function SuperAdminIncentiveSection() {
 
             {/* Form Content */}
             <form onSubmit={handleAssignIncentiveSubmit} style={{ padding: "24px" }}>
+              {incentiveFormError && (
+                <div style={{ background: "#FEF2F2", color: "#991B1B", border: "1px solid #FCA5A5", padding: "10px 14px", borderRadius: "12px", fontSize: "13px", fontWeight: 700, marginBottom: "16px" }}>
+                  ⚠️ {incentiveFormError}
+                </div>
+              )}
               {/* Product Card Info */}
               <div style={{
                 background: "#FFF0E8",
@@ -5341,12 +5400,14 @@ export function SuperAdminIncentiveSection() {
               {/* 1. Employee Selector */}
               <div style={{ marginBottom: "18px" }}>
                 <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
-                  👤 Select Employee / Manager (कोणाला इन्सेंटिव्ह द्यायचा आहे) <span style={{ color: "#D9534F" }}>*</span>
+                  👤 Select Employee / Manager <span style={{ color: "#D9534F" }}>*</span>
                 </label>
                 <select
                   value={incentiveFormEmpId}
-                  onChange={(e) => setIncentiveFormEmpId(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setIncentiveFormEmpId(e.target.value);
+                    setIncentiveFormError("");
+                  }}
                   style={{
                     width: "100%",
                     padding: "12px 14px",
@@ -5361,95 +5422,101 @@ export function SuperAdminIncentiveSection() {
                   }}
                 >
                   <option value="">-- Select Employee --</option>
-                  <option value="all" style={{ fontWeight: 700, color: "#741A2F" }}>👥 All Employees (सर्वांना)</option>
+                  <option value="all" style={{ fontWeight: 700, color: "#741A2F" }}>👥 All Employees</option>
                   {employees.map((u) => (
                     <option key={u.id} value={u.id}>
-                      👤 {u.name} ({u.email || u.role})
+                      👤 {u.name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* 2. Quantity to Sell */}
-              <div style={{ marginBottom: "18px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <label style={{ fontSize: "13px", fontWeight: 700, color: "#2B0B13" }}>
-                    📦 Quantity to Sell (किती नग विकायचे आहेत) <span style={{ color: "#D9534F" }}>*</span>
-                  </label>
-                  {selectedProductForIncentive && (
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#6B4752" }}>
-                      Max Stock: <strong>{selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1} units</strong>
-                    </span>
-                  )}
-                </div>
-                <input
-                  type="number"
-                  min="1"
-                  max={selectedProductForIncentive?.qty ?? selectedProductForIncentive?.stock ?? 9999}
-                  value={incentiveFormQty}
-                  onChange={(e) => setIncentiveFormQty(parseInt(e.target.value) || 1)}
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "12px",
-                    border: "1px solid #F4D4C5",
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: "#2B0B13",
-                    background: "#FAF4EF",
-                    outline: "none"
-                  }}
-                  placeholder="Enter quantity to sell e.g. 5"
-                />
-              </div>
-
-              {/* 3. Incentive Percentage (%) */}
-              <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
-                  💰 Incentive (%) (इन्सेंटिव्ह टक्केवारी) <span style={{ color: "#D9534F" }}>*</span>
-                </label>
-                <div style={{ position: "relative" }}>
+              {/* 2. Quantity & Incentive (Side by Side) */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "18px" }}>
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <label style={{ fontSize: "13px", fontWeight: 700, color: "#2B0B13" }}>
+                      📦 Quantity <span style={{ color: "#D9534F" }}>*</span>
+                    </label>
+                    {selectedProductForIncentive && (
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#6B4752" }}>
+                        Max: <strong>{selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1} units</strong>
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
-                    min="0"
-                    max="100"
-                    step="any"
-                    value={incentiveFormPercent}
+                    min="1"
+                    max={selectedProductForIncentive?.qty ?? selectedProductForIncentive?.stock ?? 9999}
+                    value={incentiveFormQty}
                     onChange={(e) => {
-                      const valStr = e.target.value;
-                      setIncentiveFormPercent(valStr);
-                      const pctVal = parseFloat(valStr) || 0;
-                      const basePrice = selectedProductForIncentive?.price || selectedProductForIncentive?.cost || 0;
-                      if (basePrice > 0) {
-                        setIncentiveFormAmount(Math.round((basePrice * pctVal) / 100));
-                      }
+                      setIncentiveFormQty(e.target.value === "" ? "" : parseInt(e.target.value) || "");
+                      setIncentiveFormError("");
                     }}
                     style={{
                       width: "100%",
-                      padding: "12px 35px 12px 14px",
+                      padding: "12px 14px",
                       borderRadius: "12px",
                       border: "1px solid #F4D4C5",
-                      fontSize: "15px",
+                      fontSize: "14px",
                       fontWeight: 700,
-                      color: "#741A2F",
+                      color: "#2B0B13",
                       background: "#FAF4EF",
-                      outline: "none"
+                      outline: "none",
+                      boxSizing: "border-box"
                     }}
-                    placeholder="e.g. 10"
+                    placeholder="e.g. 5"
                   />
-                  <span style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", fontWeight: 800, fontSize: "16px", color: "#741A2F" }}>%</span>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
+                    💰 Incentive (%) <span style={{ color: "#D9534F" }}>*</span>
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="any"
+                      value={incentiveFormPercent}
+                      onChange={(e) => {
+                        const valStr = e.target.value;
+                        setIncentiveFormPercent(valStr);
+                        setIncentiveFormError("");
+                        const pctVal = parseFloat(valStr) || 0;
+                        const basePrice = selectedProductForIncentive?.price || selectedProductForIncentive?.cost || 0;
+                        if (basePrice > 0) {
+                          setIncentiveFormAmount(Math.round((basePrice * pctVal) / 100));
+                        }
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "12px 35px 12px 14px",
+                        borderRadius: "12px",
+                        border: "1px solid #F4D4C5",
+                        fontSize: "15px",
+                        fontWeight: 700,
+                        color: "#741A2F",
+                        background: "#FAF4EF",
+                        outline: "none",
+                        boxSizing: "border-box"
+                      }}
+                      placeholder="e.g. 10"
+                    />
+                    <span style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", fontWeight: 800, fontSize: "16px", color: "#741A2F" }}>%</span>
+                  </div>
                 </div>
               </div>
-
-
-
 
               {/* Form Actions */}
               <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
                 <button
                   type="button"
-                  onClick={() => setShowGiveIncentiveModal(false)}
+                  onClick={() => {
+                    setShowGiveIncentiveModal(false);
+                    setIncentiveFormError("");
+                  }}
                   style={{
                     padding: "10px 20px",
                     borderRadius: "20px",
@@ -5855,7 +5922,7 @@ function IncentiveSellOrderModal({ product, onClose }: { product: Product; onClo
         {/* Employee & Manager Selection dropdown */}
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
           <label style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", color: "var(--brown-dark)" }}>
-            Select Assignee (ज्या कर्मचाऱ्याच्या/मॅनेजरच्या ऑर्डरमध्ये पाठवायचे आहे) *
+            Select Assignee *
           </label>
           <select
             className="form-select"
@@ -6092,7 +6159,7 @@ export function PDFPreviewContainer() {
           >
             ✕ Close
           </button>
-          
+
           {mode === "csv" ? (
             <button
               className="btn btn-primary"
