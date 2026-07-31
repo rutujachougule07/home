@@ -104,18 +104,17 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                     className={`sidebar-item nav-item ${isActive ? "active" : ""}`}
                     onClick={() => { onNav(n.key); setOpen(false); }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span>{n.icon}</span>
-                      <span>{n.label}</span>
-                    </div>
+                    <span className="nav-icon">{n.icon}</span>
+                    <span className="nav-label">{n.label}</span>
                     {badgeCount > 0 && (
-                      <span style={{
-                        background: isActive ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
-                        color: isActive ? "#FFFFFF" : "#123A22",
+                      <span className="nav-badge" style={{
+                        background: isActive ? "rgba(255, 255, 255, 0.25)" : "#E0E7FF",
+                        color: isActive ? "#FFFFFF" : "#4F46E5",
                         fontSize: 11,
                         fontWeight: 800,
                         padding: "2px 8px",
-                        borderRadius: "999px"
+                        borderRadius: "999px",
+                        marginLeft: "auto"
                       }}>
                         {badgeCount}
                       </span>
