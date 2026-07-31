@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SuperAdminRouteImport } from './routes/super-admin'
+import { Route as ProductDetailRouteImport } from './routes/product-detail'
 import { Route as ManagerRouteImport } from './routes/manager'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EmployeeRouteImport } from './routes/employee'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const SuperAdminRoute = SuperAdminRouteImport.update({
   id: '/super-admin',
   path: '/super-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductDetailRoute = ProductDetailRouteImport.update({
+  id: '/product-detail',
+  path: '/product-detail',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManagerRoute = ManagerRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/product-detail': typeof ProductDetailRoute
   '/super-admin': typeof SuperAdminRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/product-detail': typeof ProductDetailRoute
   '/super-admin': typeof SuperAdminRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,34 @@ export interface FileRoutesById {
   '/employee': typeof EmployeeRoute
   '/login': typeof LoginRoute
   '/manager': typeof ManagerRoute
+  '/product-detail': typeof ProductDetailRoute
   '/super-admin': typeof SuperAdminRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/employee' | '/login' | '/manager' | '/super-admin'
+  fullPaths:
+    | '/'
+    | '/employee'
+    | '/login'
+    | '/manager'
+    | '/product-detail'
+    | '/super-admin'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/employee' | '/login' | '/manager' | '/super-admin'
-  id: '__root__' | '/' | '/employee' | '/login' | '/manager' | '/super-admin'
+  to:
+    | '/'
+    | '/employee'
+    | '/login'
+    | '/manager'
+    | '/product-detail'
+    | '/super-admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/employee'
+    | '/login'
+    | '/manager'
+    | '/product-detail'
+    | '/super-admin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +104,7 @@ export interface RootRouteChildren {
   EmployeeRoute: typeof EmployeeRoute
   LoginRoute: typeof LoginRoute
   ManagerRoute: typeof ManagerRoute
+  ProductDetailRoute: typeof ProductDetailRoute
   SuperAdminRoute: typeof SuperAdminRoute
 }
 
@@ -86,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/super-admin'
       fullPath: '/super-admin'
       preLoaderRoute: typeof SuperAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/product-detail': {
+      id: '/product-detail'
+      path: '/product-detail'
+      fullPath: '/product-detail'
+      preLoaderRoute: typeof ProductDetailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manager': {
@@ -124,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployeeRoute: EmployeeRoute,
   LoginRoute: LoginRoute,
   ManagerRoute: ManagerRoute,
+  ProductDetailRoute: ProductDetailRoute,
   SuperAdminRoute: SuperAdminRoute,
 }
 export const routeTree = rootRouteImport

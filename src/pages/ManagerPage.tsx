@@ -1,10 +1,11 @@
 import { EmployeeIncentiveSection } from "./EmployeePage";
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { useStore, User, Customer, Order } from "../app/store";
+import { useStore, User, Customer, Order, Product } from "../app/store";
 import { DashboardLayout, StatCard, Pill, Modal, NavItem, BarChart } from "../app/DashboardLayout";
-import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection, ProductForm, SuperAdminIncentiveSection } from "./SuperAdminPage";
+import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection, ProductForm, SuperAdminIncentiveSection, DownloadDropdown, openPDFPreview } from "./SuperAdminPage";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
+import { Search, Download, Plus, SlidersHorizontal } from "lucide-react";
 
 const NAV: NavItem[] = [
   { key: "overview", label: "Live Dashboard", icon: "📡" },
@@ -332,7 +333,7 @@ function OrdersMgmt() {
       <div className="panel">
         <div className="panel-head">
           <h3 className="panel-title">My Orders ({orders.length})</h3>
-          <button className="btn btn-primary btn-sm" onClick={() => setShow(true)} style={{ background: "#123A22", color: "#FFFFFF", fontWeight: 700, borderRadius: "999px", padding: "10px 22px", fontSize: "14px", border: "none", boxShadow: "0 8px 20px rgba(18, 58, 34, 0.25)" }}>+ Create Order</button>
+          <button className="btn btn-primary btn-sm" onClick={() => setShow(true)}>+ Create Order</button>
         </div>
         <div className={orders.length > 0 ? "card-grid" : ""}>
           {orders.map((o) => {
@@ -740,86 +741,278 @@ function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSav
 
 function ProductsAvail() {
   const { products, setState, uid } = useStore();
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [stockFilter, setStockFilter] = useState("All");
+  const [editing, setEditing] = useState<Product | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All Products");
+  const [stockFilter, setStockFilter] = useState("All");
+  const [locationFilter, setLocationFilter] = useState("All");
 
   // Calculations for cards
-  const totalProducts = products.length;
-  const lowStockCount = products.filter((p) => (p.qty ?? p.stock ?? 0) < 20).length;
-  const highStockCount = products.filter((p) => (p.qty ?? p.stock ?? 0) >= 50).length;
+  const locProducts = locationFilter === "All" ? products : products.filter(p => (p.location || "Unassigned") === locationFilter);
 
   // Gather unique categories dynamically
   const categories = useMemo(() => {
-    const cats = new Set(products.map((p) => p.category).filter(Boolean));
-    return ["All", ...Array.from(cats)];
+    const defaultCats = ["All Products", "Fans", "AC Units", "Microwaves", "Lighting", "Kitchen"];
+    const dbCats = products.map((p) => p.category).filter(Boolean);
+    const combined = new Set([...defaultCats, ...dbCats]);
+    return Array.from(combined);
   }, [products]);
 
   // Filter products list
   const filteredProducts = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
     return products.filter((p) => {
-      const matchCat = categoryFilter === "All" || p.category === categoryFilter;
+      const matchSearch = !q || p.name.toLowerCase().includes(q) || (p.category || "").toLowerCase().includes(q) || (p.sku || "").toLowerCase().includes(q) || (p.brand || "").toLowerCase().includes(q);
+      const matchCat = categoryFilter === "All Products" || categoryFilter === "All" || p.category.toLowerCase().includes(categoryFilter.toLowerCase());
       let matchStock = true;
       if (stockFilter === "Low") {
-        matchStock = (p.qty ?? p.stock ?? 0) < 20;
-      } else if (stockFilter === "High") {
-        matchStock = (p.qty ?? p.stock ?? 0) >= 50;
+        matchStock = (p.qty ?? p.stock ?? 0) > 0 && (p.qty ?? p.stock ?? 0) < 20;
+      } else if (stockFilter === "InStock") {
+        matchStock = (p.qty ?? p.stock ?? 0) >= 20;
+      } else if (stockFilter === "OutOfStock") {
+        matchStock = (p.qty ?? p.stock ?? 0) === 0;
       }
-      return matchCat && matchStock;
+      const matchLoc = locationFilter === "All" || (p.location || "Unassigned") === locationFilter;
+      return matchSearch && matchCat && matchStock && matchLoc;
+    }).sort((a, b) => {
+      const nameCompare = a.name.localeCompare(b.name);
+      if (nameCompare !== 0) return nameCompare;
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateA - dateB;
     });
-  }, [products, categoryFilter, stockFilter]);
+  }, [products, searchQuery, categoryFilter, stockFilter, locationFilter]);
+
+  const groupedProducts = useMemo(() => {
+    const map = new Map<string, Product & { batches: Product[] }>();
+    filteredProducts.forEach(p => {
+      const key = (p.sku || p.name).toLowerCase();
+      if (map.has(key)) {
+        const existing = map.get(key)!;
+        existing.qty = (existing.qty ?? existing.stock ?? 0) + (p.qty ?? p.stock ?? 0);
+        existing.stock = existing.qty;
+        existing.batches.push(p);
+      } else {
+        map.set(key, { ...p, batches: [p] });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredProducts]);
 
   return (
-    <>
-      <h2 className="page-title">Product Availability</h2>
-      <p className="page-sub">Read-only stock view.</p>
+    <div className="inventory-page">
+      {/* Header */}
+      <div className="top-section">
+        <div>
+          <div className="title-row">
+            <div className="title-icon">
+              📦
+            </div>
+            <div>
+              <h1>Stocking Inventory</h1>
+              <p>
+                Manage and track your electronic appliances catalog across all godowns.
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <div className="stat-grid" style={{ marginBottom: 20 }}>
-        <StatCard icon="📦" label="Total Products" value={totalProducts} onClick={() => setStockFilter("All")} />
-        <StatCard icon="⚠️" label="Low Stock (< 20)" value={lowStockCount} onClick={() => setStockFilter("Low")} />
-        <StatCard icon="📈" label="High Stock (≥ 50)" value={highStockCount} onClick={() => setStockFilter("High")} />
+        <div className="header-buttons">
+          <DownloadDropdown
+            label="Download"
+            onPDF={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
+              const rows = filteredProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitCost = p.cost || 0;
+                const totalCost = qty * unitCost;
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
+              });
+              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`, "pdf");
+            }}
+            onCSV={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
+              const rows = filteredProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitCost = p.cost || 0;
+                const totalCost = qty * unitCost;
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
+              });
+              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`, "csv");
+            }}
+          />
+
+          <button className="add-btn" onClick={() => setShowAdd(true)}>
+            <Plus size={18} />
+            Add Product
+          </button>
+        </div>
       </div>
 
-      <div className="panel">
-        <div className="panel-head">
-          <h3 className="panel-title">Catalog ({filteredProducts.length})</h3>
-          <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
+      {/* Search */}
+      <div className="search-box">
+        <Search size={18} />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search product name, category or SKU..."
+        />
+      </div>
+
+      {/* Category */}
+      <div className="category-row">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            className={categoryFilter === cat ? "active-category" : ""}
+            onClick={() => setCategoryFilter(cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className="stats">
+        <div className="stat-card" onClick={() => setStockFilter("All")}>
+          <span>📦</span>
+          <div>
+            <small>Total Products</small>
+            <h2>{products.length}</h2>
           </div>
+        </div>
+
+        <div className="stat-card" onClick={() => setStockFilter("InStock")}>
+          <span>🟢</span>
+          <div>
+            <small>In Stock</small>
+            <h2>{products.filter(p => (p.qty ?? p.stock ?? 0) >= 20).length}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => setStockFilter("Low")}>
+          <span>⚠️</span>
+          <div>
+            <small>Low Stock</small>
+            <h2>{products.filter(p => (p.qty ?? p.stock ?? 0) > 0 && (p.qty ?? p.stock ?? 0) < 20).length}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => setStockFilter("OutOfStock")}>
+          <span>❌</span>
+          <div>
+            <small>Out Of Stock</small>
+            <h2>{products.filter(p => (p.qty ?? p.stock ?? 0) === 0).length}</h2>
+          </div>
+        </div>
+      </div>
+
+      <div className="panel" style={{ margin: 0 }}>
+        <div className="panel-head">
+          <h3 className="panel-title">📋 Full Inventory Register</h3>
         </div>
         <div className="table-wrap">
           <table className="tbl">
-            <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead>
+            <thead>
+              <tr>
+                <th>PRODUCT</th>
+                <th>SKU</th>
+                <th>CATEGORY</th>
+                <th>QTY</th>
+                <th>UNIT COST</th>
+                <th style={{ whiteSpace: "nowrap" }}>TOTAL COST</th>
+                <th>SUPPLIER</th>
+                <th>DATE</th>
+                <th>STATUS</th>
+                <th className="text-right">ACTIONS</th>
+              </tr>
+            </thead>
             <tbody>
-              {filteredProducts.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="product-cell-flex">
-                      {p.image ? (
-                        <img src={p.image} className="product-image-cell" alt={p.name} />
-                      ) : (
-                        <div className="product-image-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--biscuit-light)", fontSize: 20 }}>📦</div>
-                      )}
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{p.name}</div>
-                        <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
-                          {p.sku && <span>SKU: {p.sku}</span>}
-                          {p.sku && <span> · </span>}
-                          <span>Brand: {p.brand || "—"}</span>
-                          {p.warranty && <span> · Warranty: {p.warranty}</span>}
-                        </div>
+              {groupedProducts.map((p) => {
+                const totalValue = (p.qty ?? p.stock ?? 0) * p.cost;
+                const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric"
+                }) : "—";
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{p.name}</div>
+                      <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
+                        <span>Brand: {p.brand || "—"}</span>
+                        {p.warranty && <span> · Warranty: {p.warranty}</span>}
                       </div>
-                    </div>
-                  </td>
-                  <td>{p.category}</td>
-                  <td>₹{p.price.toLocaleString()}</td>
-                  <td>{p.qty ?? p.stock}</td>
-                  <td><Pill status={p.status} /></td>
-                </tr>
-              ))}
+                    </td>
+                    <td>{p.sku}</td>
+                    <td>
+                      {(() => {
+                        const loc = p.location || "Unassigned";
+                        const locMap: Record<string, { bg: string; color: string; icon: string; label: string }> = {
+                          "Shop": { bg: "#FDF2F8", color: "#DB2777", icon: "🏪", label: "Shop" },
+                          "Godown 1": { bg: "#EEF2FF", color: "#4F46E5", icon: "🏭", label: "Godown 1" },
+                          "Godown 2": { bg: "#F0FDFA", color: "#0D9488", icon: "🏭", label: "Godown 2" },
+                          "Display": { bg: "#F0FDF4", color: "#16A34A", icon: "📺", label: "Display" },
+                          "Unassigned": { bg: "#FFF7ED", color: "#EA580C", icon: "🚫", label: "Unassigned" },
+                        };
+                        const style = locMap[loc] || { bg: "#FFF7ED", color: "#EA580C", icon: "🚫", label: loc };
+                        return (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              background: style.bg,
+                              color: style.color,
+                              borderRadius: "10px",
+                              padding: "6px 14px",
+                              fontSize: "12px",
+                              fontWeight: 700,
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            <span>{style.icon}</span>
+                            <span>{style.label}</span>
+                          </span>
+                        );
+                      })()}
+                    </td>
+                    <td>
+                      <span style={{ fontWeight: 800, fontSize: 15, color: "#1F2937" }}>{p.qty ?? p.stock ?? 0}</span>
+                    </td>
+                    <td>₹{p.cost.toLocaleString()}</td>
+                    <td style={{ fontWeight: 600 }}>₹{totalValue.toLocaleString()}</td>
+                    <td>{p.supplier}</td>
+                    <td>{formattedDate}</td>
+                    <td><span style={{ fontWeight: 600 }}>{p.status}</span></td>
+                    <td className="text-right">
+                      <button
+                        type="button"
+                        className="btn btn-circle"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          localStorage.setItem("product_detail_preview", JSON.stringify(p));
+                          localStorage.setItem("product_detail_role", "manager");
+                          window.location.href = "/product-detail";
+                        }}
+                        title="View Product & Batch Details"
+                        style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}
+                      >
+                        ℹ️
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="empty">No products found matching filters.</td>
+                  <td colSpan={10} className="empty">No products found matching filters.</td>
                 </tr>
               )}
             </tbody>
@@ -827,7 +1020,32 @@ function ProductsAvail() {
         </div>
       </div>
 
-      {showAdd && <ProductForm title="Add Product" onClose={() => setShowAdd(false)} onSave={(d) => { const nextId = uid("p"); setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] })); setShowAdd(false); }} />}
-    </>
+      {showAdd && (
+        <ProductForm
+          title="+ New Product"
+          onClose={() => setShowAdd(false)}
+          onSave={(d) => {
+            const nextId = uid("p");
+            setState((s) => ({ ...s, products: [...s.products, { id: nextId, ...d }] }));
+            setShowAdd(false);
+          }}
+        />
+      )}
+
+      {editing && (
+        <ProductForm
+          title="Edit Product"
+          initial={editing}
+          onClose={() => setEditing(null)}
+          onSave={(d) => {
+            setState((s) => ({
+              ...s,
+              products: s.products.map((p) => (p.id === editing.id ? { ...p, ...d } : p))
+            }));
+            setEditing(null);
+          }}
+        />
+      )}
+    </div>
   );
 }

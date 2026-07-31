@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { useStore, Role } from "./store";
@@ -387,26 +387,26 @@ export function PieChart({ data }: { data: { label: string; value: number; color
 }
 
 export function Modal({ title, onClose, children, className }: { title: string; onClose: () => void; children: ReactNode; className?: string }) {
+  const maxWidth = className?.includes("modal-report-preview") ? 1200 : className?.includes("modal-lg") ? 880 : 680;
+  const cardRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const originalBodyOverflow = document.body.style.overflow;
-    const originalHtmlOverflow = document.documentElement.style.overflow;
+    // Simply hide overflow - prevents scroll without affecting layout
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
+
+    // Focus card with preventScroll to prevent browser auto-scrolling
+    cardRef.current?.focus({ preventScroll: true });
+
     return () => {
-      document.body.style.overflow = originalBodyOverflow;
-      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overflow = prev;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getMaxWidth = () => {
-    if (className?.includes("modal-lg")) return "880px";
-    if (className?.includes("modal-report-preview")) return "1200px";
-    return "680px";
-  };
-
+  // Single fixed wrapper covers full viewport, flexbox centers the card
   return createPortal(
     <div
-      className="modal-backdrop"
       onClick={onClose}
       style={{
         position: "fixed",
@@ -414,45 +414,50 @@ export function Modal({ title, onClose, children, className }: { title: string; 
         left: 0,
         right: 0,
         bottom: 0,
-        width: "100vw",
-        height: "100vh",
         zIndex: 999999,
-        background: "rgba(15, 23, 42, 0.65)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "center",
         justifyContent: "center",
-        padding: "20px 16px",
-        overflowY: "auto"
+        padding: "20px",
+        background: "rgba(15,23,42,0.65)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)"
       }}
     >
+      {/* Card stops click from closing */}
       <div
-        className={`modal ${className ?? ""}`}
+        ref={(el) => { cardRef.current = el; }}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "#FFFFFF",
-          color: "#1F2937",
           borderRadius: "24px",
-          padding: "24px",
-          maxWidth: getMaxWidth(),
+          padding: "28px",
           width: "100%",
-          maxHeight: "calc(100vh - 40px)",
+          maxWidth: maxWidth + "px",
+          maxHeight: "85vh",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.35)",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.4)",
           border: "1px solid #E2EBE0",
-          zIndex: 1000000,
           position: "relative",
-          margin: "auto 0"
+          flexShrink: 0,
+          boxSizing: "border-box",
+          outline: "none"
         }}
       >
-        <div className="modal-head" style={{ borderBottom: "1px solid #E2EBE0", paddingBottom: "14px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-          <h3 className="modal-title" style={{ fontSize: "20px", fontWeight: 800, color: "#1F2937", margin: 0 }}>{title}</h3>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} style={{ background: "#F2EEE5", border: "1px solid #DCE5DB", borderRadius: "50%", width: "34px", height: "34px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", color: "#1F2937", fontWeight: 700 }}>✕</button>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, borderBottom: "1px solid #EFF6FF", paddingBottom: "14px", marginBottom: "16px" }}>
+          <h3 style={{ fontSize: "22px", fontWeight: 800, color: "#1E3A8A", margin: 0 }}>{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "50%", width: "34px", height: "34px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", color: "#2563EB", fontWeight: 700, flexShrink: 0 }}
+          >✕</button>
         </div>
-        <div className="modal-body-scroll" style={{ color: "#1F2937", flex: "1 1 auto", overflowY: "auto", minHeight: 0, paddingRight: "4px" }}>
+        {/* Scrollable body */}
+        <div style={{ flex: "1 1 auto", overflowY: "auto", color: "#1F2937", minHeight: 0 }}>
           {children}
         </div>
       </div>

@@ -2,8 +2,9 @@ import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useStore, Product, User, Order, Lead, Task } from "../app/store";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
+import { ProductBatchDetailsModal } from "../components/ProductBatchDetailsModal";
 import { DashboardLayout, StatCard, Pill, BarChart, Modal, NavItem } from "../app/DashboardLayout";
-import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key } from "lucide-react";
+import { AlertCircle, Snowflake, Clock, Flame, CheckCircle2, XCircle, MessageSquare, Briefcase, Calendar, Phone, User as UserIcon, Trash2, Mail, Key, Search, Download, Plus, SlidersHorizontal } from "lucide-react";
 import { OrderDocumentModal } from "./EmployeePage";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -980,43 +981,40 @@ function ProductsSection() {
   const [viewingBatches, setViewingBatches] = useState<Product & { batches: Product[] } | null>(null);
 
   // Filter states
-  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All Products");
   const [stockFilter, setStockFilter] = useState("All");
   const [locationFilter, setLocationFilter] = useState("All");
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Calculations for cards
   const locProducts = locationFilter === "All" ? products : products.filter(p => (p.location || "Unassigned") === locationFilter);
-  const totalProducts = locProducts.length;
-  const lowStockCount = locProducts.filter((p) => (p.qty ?? p.stock ?? 0) < 20).length;
-  const highStockCount = locProducts.filter((p) => (p.qty ?? p.stock ?? 0) >= 50).length;
-
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-  const oldProductsForIncentive = locProducts.filter(p => p.date && new Date(p.date) < ninetyDaysAgo);
-  const totalIncentive = oldProductsForIncentive.reduce((acc, p) => acc + ((p.qty ?? p.stock ?? 0) * (p.incentive || 0)), 0);
 
   // Gather unique categories dynamically
   const categories = useMemo(() => {
-    const cats = new Set(products.map((p) => p.category).filter(Boolean));
-    return ["All", ...Array.from(cats)];
+    const defaultCats = ["All Products", "Fans", "AC Units", "Microwaves", "Lighting", "Kitchen"];
+    const dbCats = products.map((p) => p.category).filter(Boolean);
+    const combined = new Set([...defaultCats, ...dbCats]);
+    return Array.from(combined);
   }, [products]);
 
   // Filter products list
   const filteredProducts = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
     return products.filter((p) => {
-      const matchCat = categoryFilter === "All" || p.category === categoryFilter;
+      const matchSearch = !q || p.name.toLowerCase().includes(q) || (p.category || "").toLowerCase().includes(q) || (p.sku || "").toLowerCase().includes(q) || (p.brand || "").toLowerCase().includes(q);
+      const matchCat = categoryFilter === "All Products" || categoryFilter === "All" || p.category.toLowerCase().includes(categoryFilter.toLowerCase());
       let matchStock = true;
       if (stockFilter === "Low") {
-        matchStock = (p.qty ?? p.stock ?? 0) < 20;
-      } else if (stockFilter === "High") {
-        matchStock = (p.qty ?? p.stock ?? 0) >= 50;
-      } else if (stockFilter === "Incentive") {
-        const ninetyDaysAgo = new Date();
-        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-        matchStock = !!p.date && new Date(p.date) < ninetyDaysAgo;
+        matchStock = (p.qty ?? p.stock ?? 0) > 0 && (p.qty ?? p.stock ?? 0) < 20;
+      } else if (stockFilter === "InStock") {
+        matchStock = (p.qty ?? p.stock ?? 0) >= 20;
+      } else if (stockFilter === "OutOfStock") {
+        matchStock = (p.qty ?? p.stock ?? 0) === 0;
       }
       const matchLoc = locationFilter === "All" || (p.location || "Unassigned") === locationFilter;
-      return matchCat && matchStock && matchLoc;
+      return matchSearch && matchCat && matchStock && matchLoc;
     }).sort((a, b) => {
       const nameCompare = a.name.localeCompare(b.name);
       if (nameCompare !== 0) return nameCompare;
@@ -1024,7 +1022,7 @@ function ProductsSection() {
       const dateB = b.date ? new Date(b.date).getTime() : 0;
       return dateA - dateB;
     });
-  }, [products, categoryFilter, stockFilter, locationFilter]);
+  }, [products, searchQuery, categoryFilter, stockFilter, locationFilter]);
 
   const groupedProducts = useMemo(() => {
     const map = new Map<string, Product & { batches: Product[] }>();
@@ -1048,14 +1046,26 @@ function ProductsSection() {
   };
 
   return (
-    <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+    <div className="inventory-page">
+      {/* Header */}
+      <div className="top-section">
         <div>
-          <h2 className="page-title">Product Management</h2>
-          <p className="page-sub">Maintain catalog, stock, and status.</p>
+          <div className="title-row">
+            <div className="title-icon">
+              📦
+            </div>
+            <div>
+              <h1>Stocking Inventory</h1>
+              <p>
+                Manage and track your electronic appliances catalog across all godowns.
+              </p>
+            </div>
+          </div>
         </div>
-        <div>
+
+        <div className="header-buttons">
           <DownloadDropdown
+            label="Download"
             onPDF={() => {
               const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Quantity", "Unit Cost", "Total Cost", "Supplier", "Date", "Status"];
               const rows = filteredProducts.map((p, index) => {
@@ -1076,33 +1086,88 @@ function ProductsSection() {
                 const formattedDate = p.date ? new Date(p.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
                 return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitCost, totalCost, p.supplier || "—", formattedDate, p.status || "Verified"];
               });
-              openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`, "csv");
-            }}
           />
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="search-box">
+        <Search size={18} />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search product name, category or SKU..."
+        />
+      </div>
+
+      {/* Category */}
+      <div className="category-row">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            className={categoryFilter === cat ? "active-category" : ""}
+            onClick={() => setCategoryFilter(cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className="stats">
+        <div className="stat-card" onClick={() => setStockFilter("All")}>
+          <span>📦</span>
+          <div>
+            <small>Total Products</small>
+            <h2>{products.length}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => setStockFilter("InStock")}>
+          <span>🟢</span>
+          <div>
+            <small>In Stock</small>
+            <h2>{products.filter(p => (p.qty ?? p.stock ?? 0) >= 20).length}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => setStockFilter("Low")}>
+          <span>⚠️</span>
+          <div>
+            <small>Low Stock</small>
+            <h2>{products.filter(p => (p.qty ?? p.stock ?? 0) > 0 && (p.qty ?? p.stock ?? 0) < 20).length}</h2>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => setStockFilter("OutOfStock")}>
+          <span>❌</span>
+          <div>
+            <small>Out Of Stock</small>
+            <h2>{products.filter(p => (p.qty ?? p.stock ?? 0) === 0).length}</h2>
+          </div>
         </div>
       </div>
 
 
 
+      {/* Floating Button */}
+      <div className="floating-btn" title="Add Product" onClick={() => setShowAdd(true)}>
+        ⚡
+      </div>
 
-      <div className="panel">
+      <div className="panel" style={{ marginTop: "24px" }}>
         <div className="panel-head">
           <h3 className="panel-title">📋 Full Inventory Register</h3>
-          <div className="actions-row" style={{ alignItems: "center", gap: 12 }}>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Product</button>
-          </div>
         </div>
         <div className="table-wrap">
           <table className="tbl">
             <thead>
               <tr>
-                <th>IMAGE</th>
                 <th>PRODUCT</th>
                 <th>SKU</th>
                 <th>CATEGORY</th>
                 <th>QTY</th>
                 <th>UNIT COST</th>
-                <th style={{ whiteSpace: "nowrap" }}>INCENTIVE/UNIT</th>
                 <th style={{ whiteSpace: "nowrap" }}>TOTAL COST</th>
                 <th>SUPPLIER</th>
                 <th>DATE</th>
@@ -1121,13 +1186,6 @@ function ProductsSection() {
                 return (
                   <tr key={p.id}>
                     <td>
-                      {p.image ? (
-                        <img src={p.image} className="product-image-cell" alt={p.name} />
-                      ) : (
-                        <div className="product-image-cell" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "var(--biscuit-light)", fontSize: 20 }}>📦</div>
-                      )}
-                    </td>
-                    <td>
                       <div style={{ fontWeight: 600 }}>{p.name}</div>
                       <div style={{ fontSize: 11, color: "var(--brown)", marginTop: 2 }}>
                         <span>Brand: {p.brand || "—"}</span>
@@ -1136,30 +1194,41 @@ function ProductsSection() {
                     </td>
                     <td>{p.sku}</td>
                     <td>
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>{p.category}</div>
-                      <div style={{ marginTop: 6 }}>
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            padding: "2px 8px",
-                            borderRadius: "12px",
-                            fontSize: "10px",
-                            fontWeight: 600,
-                            background: "#faf6f0",
-                            border: "1px solid #e8e2d9",
-                            color: "#735c47",
-                            whiteSpace: "nowrap"
-                          }}
-                        >
-                          {p.location === "Shop" ? "🏪 In Stock" : p.location === "Godown 1" ? "🏭 Godown 1" : p.location === "Godown 2" ? "🏭 Godown 2" : p.location === "Display" ? "📺 Display" : "🚫 Unassigned"}
-                        </span>
-                      </div>
+                      {(() => {
+                        const loc = p.location || "Unassigned";
+                        const locMap: Record<string, { bg: string; color: string; icon: string; label: string }> = {
+                          "Shop": { bg: "#FDF2F8", color: "#DB2777", icon: "🏪", label: "Shop" },
+                          "Godown 1": { bg: "#EEF2FF", color: "#4F46E5", icon: "🏭", label: "Godown 1" },
+                          "Godown 2": { bg: "#F0FDFA", color: "#0D9488", icon: "🏭", label: "Godown 2" },
+                          "Display": { bg: "#F0FDF4", color: "#16A34A", icon: "📺", label: "Display" },
+                          "Unassigned": { bg: "#FFF7ED", color: "#EA580C", icon: "🚫", label: "Unassigned" },
+                        };
+                        const style = locMap[loc] || { bg: "#FFF7ED", color: "#EA580C", icon: "🚫", label: loc };
+                        return (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              background: style.bg,
+                              color: style.color,
+                              borderRadius: "10px",
+                              padding: "6px 14px",
+                              fontSize: "12px",
+                              fontWeight: 700,
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            <span>{style.icon}</span>
+                            <span>{style.label}</span>
+                          </span>
+                        );
+                      })()}
                     </td>
-                    <td>{p.qty ?? p.stock}</td>
+                    <td>
+                      <span style={{ fontWeight: 800, fontSize: 15, color: "#1F2937" }}>{p.qty ?? p.stock ?? 0}</span>
+                    </td>
                     <td>₹{p.cost.toLocaleString()}</td>
-                    <td>₹{p.incentive.toLocaleString()}</td>
                     <td style={{ fontWeight: 600 }}>₹{totalValue.toLocaleString()}</td>
                     <td>{p.supplier}</td>
                     <td>{formattedDate}</td>
@@ -1170,10 +1239,12 @@ function ProductsSection() {
                         className="btn btn-circle"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setViewingBatches(p);
+                          localStorage.setItem("product_detail_preview", JSON.stringify(p));
+                          localStorage.setItem("product_detail_role", "superadmin");
+                          window.location.href = "/product-detail";
                         }}
                         title="View Product & Batch Details"
-                        style={{ background: "#F5F3E8", border: "1px solid #ECE7DA", color: "#193828", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}
+                        style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}
                       >
                         ℹ️
                       </button>
@@ -1183,7 +1254,7 @@ function ProductsSection() {
               })}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={12} className="empty">No products found matching filters.</td>
+                  <td colSpan={10} className="empty">No products found matching filters.</td>
                 </tr>
               )}
             </tbody>
@@ -1204,98 +1275,24 @@ function ProductsSection() {
       )}
       {editing && <ProductForm title="Edit Product" initial={editing} onClose={() => setEditing(null)} onSave={(d) => { setState((s) => ({ ...s, products: s.products.map((p) => p.id === editing.id ? { ...p, ...d } : p) })); setEditing(null); }} />}
 
-      {viewingBatches && (() => {
-        const batchList = (viewingBatches.batches && viewingBatches.batches.length > 0) ? viewingBatches.batches : [viewingBatches];
-        return (
-          <Modal title="Product & Batch Details" onClose={() => setViewingBatches(null)} className="modal-lg">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "#EEF4EC", padding: "16px", borderRadius: "16px", border: "1px solid #E2EBE0", alignItems: "flex-start" }}>
-              {viewingBatches.image ? (
-                <img src={viewingBatches.image} alt={viewingBatches.name} style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "12px", border: "1px solid #E2EBE0", background: "#FFFFFF", flexShrink: 0 }} />
-              ) : (
-                <div style={{ width: "100px", height: "100px", borderRadius: "12px", background: "#FFFFFF", border: "1px solid #E2EBE0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", flexShrink: 0 }}>📦</div>
-              )}
-              <div style={{ flex: 1, minWidth: "200px" }}>
-                <h3 style={{ margin: "0 0 10px 0", fontSize: "20px", color: "#1F2937", textTransform: "capitalize", fontWeight: 800 }}>{viewingBatches.name}</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px 16px", fontSize: "13px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>SKU</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.sku || "—"}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Brand</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.brand || "—"}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Category</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.category || "—"}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Warranty</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.warranty || "—"}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Location</span> <strong style={{ textAlign: "right", color: "#1F2937" }}>{viewingBatches.location || "Unassigned"}</strong></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "6px" }}><span style={{ color: "#6F767E", fontWeight: 500 }}>Total Stock</span> <strong style={{ textAlign: "right", fontSize: "15px", color: "#193828", fontWeight: 800 }}>{viewingBatches.qty ?? viewingBatches.stock ?? 0}</strong></div>
-                </div>
-              </div>
-            </div>
-
-            <h4 style={{ borderBottom: "2px solid #E2EBE0", paddingBottom: "10px", marginBottom: "16px", color: "#1F2937", fontWeight: 800 }}>Batch History</h4>
-            <div className="table-wrap">
-              <table className="tbl">
-                <thead>
-                  <tr style={{ background: "#EEF4EC" }}>
-                    <th style={{ color: "#1F2937" }}>Date Added</th>
-                    <th style={{ color: "#1F2937" }}>Quantity</th>
-                    <th style={{ color: "#1F2937" }}>Unit Cost</th>
-                    <th style={{ color: "#1F2937" }}>Supplier</th>
-                    <th style={{ color: "#1F2937" }}>Status</th>
-                    <th style={{ color: "#1F2937" }}>Incentive</th>
-                    <th className="text-right" style={{ color: "#1F2937" }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {batchList.map((b, idx) => (
-                    <tr key={b.id || idx}>
-                      <td>
-                        <div style={{ fontWeight: 600, color: "#1F2937" }}>{b.date ? new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                        {idx === batchList.length - 1 && <div style={{ fontSize: "10px", color: "#193828", marginTop: "2px", fontWeight: 700 }}>Latest Batch</div>}
-                      </td>
-                      <td style={{ fontWeight: 700, fontSize: "15px", color: "#1F2937" }}>{b.qty ?? b.stock ?? 0}</td>
-                      <td style={{ color: "#1F2937" }}>₹{(b.cost || 0).toLocaleString()}</td>
-                      <td style={{ color: "#1F2937" }}>{b.supplier || "—"}</td>
-                      <td>
-                        <span className="pill" style={{ background: b.status === "Verified" ? "#dcfce7" : "#fef9c3", color: b.status === "Verified" ? "#166534" : "#854d0e", fontSize: "11px", padding: "4px 8px" }}>
-                          {b.status || "In Stock"}
-                        </span>
-                      </td>
-                      <td style={{ color: "#193828", fontWeight: 700 }}>₹{(b.incentive || 0).toLocaleString()}</td>
-                      <td className="text-right">
-                        <div className="actions-row" style={{ justifyContent: "flex-end" }}>
-                          <button
-                            className="btn btn-circle"
-                            title="Edit Batch"
-                            onClick={() => {
-                              setEditing(b);
-                              setViewingBatches(null);
-                            }}
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="btn btn-circle btn-circle-danger"
-                            title="Delete Batch"
-                            onClick={() => {
-                              if (confirm("Delete this batch?")) {
-                                setState((s: any) => ({ ...s, products: s.products.filter((p: any) => p.id !== b.id) }));
-                                setViewingBatches(null);
-                              }
-                            }}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="modal-actions" style={{ marginTop: "24px" }}>
-              <button className="btn btn-ghost" onClick={() => setViewingBatches(null)}>Close</button>
-            </div>
-          </Modal>
-        );
-      })()}
-    </>
+      {viewingBatches && (
+        <ProductBatchDetailsModal
+          product={viewingBatches}
+          isAdmin={true}
+          onClose={() => setViewingBatches(null)}
+          onEditBatch={(b) => {
+            setEditing(b);
+            setViewingBatches(null);
+          }}
+          onDeleteBatch={(bId) => {
+            if (confirm("Delete this batch?")) {
+              setState((s: any) => ({ ...s, products: s.products.filter((p: any) => p.id !== (bId || viewingBatches.id)) }));
+              setViewingBatches(null);
+            }
+          }}
+        />
+      )}
+    </div>
   );
 }
 
@@ -1714,30 +1711,38 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
 
   return (
     <Modal title={modalTitle} onClose={onClose} className="modal-lg">
-      <div className="form-row-2-3" style={{ marginBottom: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: 12 }}>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>PRODUCT NAME</label>
-          <input
-            className="form-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Wireless Headset X200"
-          />
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>PRODUCT NAME</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+            <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>📦</span>
+            <input
+              className="form-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Wireless Headset X200"
+              style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+            />
+          </div>
         </div>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SKU</label>
-          <input
-            className="form-input"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            placeholder="WH-X200-BLK"
-          />
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>SKU</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+            <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🏷️</span>
+            <input
+              className="form-input"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              placeholder="WH-X200-BLK"
+              style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+            />
+          </div>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px", marginBottom: 12 }}>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>BRAND</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>BRAND</label>
           {brandOptions && !isCustomBrand ? (
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <CustomSelect
@@ -1763,7 +1768,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
                   placeholder="Type brand name..."
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
               {brandOptions && (
@@ -1771,7 +1776,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                   type="button"
                   className="btn btn-ghost"
                   onClick={() => { addLocalBrand(brand); setIsCustomBrand(false); }}
-                  style={{ padding: "4px 8px", fontSize: 11, background: "#f6ede2", height: "36px", alignSelf: "center", border: "1px solid var(--border)" }}
+                  style={{ padding: "4px 8px", fontSize: 11, background: "#EFF6FF", height: "36px", alignSelf: "center", border: "1px solid #BFDBFE", color: "#2563EB", borderRadius: 10 }}
                   title="Show suggestions list"
                 >
                   📋 List
@@ -1781,16 +1786,17 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
           )}
         </div>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>WARRANTY</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>WARRANTY</label>
           <input
             className="form-input"
             value={warranty}
             onChange={(e) => setWarranty(e.target.value)}
             placeholder="e.g. 1 Year, 6 Months"
+            style={{ background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, color: "#1E293B", fontWeight: 600 }}
           />
         </div>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>CATEGORY</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>CATEGORY</label>
           {categoryOptions && !isCustomCategory ? (
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <CustomSelect
@@ -1816,7 +1822,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   placeholder="Type category name..."
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
               {categoryOptions && (
@@ -1824,7 +1830,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                   type="button"
                   className="btn btn-ghost"
                   onClick={() => { addLocalCategory(category); setIsCustomCategory(false); }}
-                  style={{ padding: "4px 8px", fontSize: 11, background: "#f6ede2", height: "36px", alignSelf: "center", border: "1px solid var(--border)" }}
+                  style={{ padding: "4px 8px", fontSize: 11, background: "#EFF6FF", height: "36px", alignSelf: "center", border: "1px solid #BFDBFE", color: "#2563EB", borderRadius: 10 }}
                   title="Show suggestions list"
                 >
                   📋 List
@@ -1839,165 +1845,173 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
 
       {isIncentiveMode ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 14 }}>
+
           <div className="form-group">
-            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>INCENTIVE (%)</label>
-            <select
-              className="form-input"
-              value={incentivePercent}
-              onChange={(e) => {
-                const pct = e.target.value;
-                setIncentivePercent(pct);
-                const pctVal = parseFloat(pct) || 0;
-                setIncentive(parseFloat((cost * pctVal / 100).toFixed(2)));
-              }}
-              style={{ appearance: "auto" }}
-            >
-              <option value="0">0%</option>
-              <option value="5">5%</option>
-              <option value="10">10%</option>
-              <option value="15">15%</option>
-              <option value="20">20%</option>
-              <option value="25">25%</option>
-              <option value="30">30%</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>ASSIGN EMPLOYEE</label>
-            <select
-              className="form-input"
-              value={assignedEmployeeId}
-              onChange={(e) => setAssignedEmployeeId(e.target.value)}
-              style={{ appearance: "auto" }}
-            >
-              <option value="">-- Select Employee --</option>
-              <option value="all">All Employees</option>
-              {users.filter(u => u.role === "employee").map(u => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>ASSIGN EMPLOYEE</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+              <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>👤</span>
+              <select
+                className="form-input"
+                value={assignedEmployeeId}
+                onChange={(e) => setAssignedEmployeeId(e.target.value)}
+                style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600, appearance: "auto" }}
+              >
+                <option value="">-- Select Employee --</option>
+                <option value="all">All Employees</option>
+                {users.filter(u => u.role === "employee").map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       ) : (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 12 }}>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>QUANTITY</label>
-              <input
-                type="number"
-                className="form-input"
-                value={qty || ""}
-                onChange={(e) => {
-                  const val = Math.max(0, +e.target.value);
-                  setQty(val);
-                  setTotalCost(parseFloat((val * cost).toFixed(2)));
-                  setSerialNumbers(prev => {
-                    const next = Array(val).fill("");
-                    for (let i = 0; i < Math.min(prev.length, val); i++) next[i] = prev[i];
-                    return next;
-                  });
-                }}
-                placeholder="0"
-              />
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>QUANTITY</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>🧮</span>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={qty || ""}
+                  onChange={(e) => {
+                    const val = Math.max(0, +e.target.value);
+                    setQty(val);
+                    setTotalCost(parseFloat((val * cost).toFixed(2)));
+                    setSerialNumbers(prev => {
+                      const next = Array(val).fill("");
+                      for (let i = 0; i < Math.min(prev.length, val); i++) next[i] = prev[i];
+                      return next;
+                    });
+                  }}
+                  placeholder="0"
+                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                />
+              </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>UNIT COST (₹)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={cost || ""}
-                onChange={(e) => {
-                  const val = +e.target.value;
-                  setCost(val);
-                  setTotalCost(parseFloat((val * qty).toFixed(2)));
-                  const pctVal = parseFloat(incentivePercent) || 0;
-                  setIncentive(parseFloat((val * pctVal / 100).toFixed(2)));
-                }}
-                placeholder="0.00"
-              />
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>UNIT COST (₹)</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, fontWeight: 700 }}>₹</span>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={cost || ""}
+                  onChange={(e) => {
+                    const val = +e.target.value;
+                    setCost(val);
+                    setTotalCost(parseFloat((val * qty).toFixed(2)));
+                  }}
+                  placeholder="0.00"
+                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                />
+              </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>TOTAL COST (₹)</label>
-              <input
-                type="number"
-                className="form-input"
-                value={totalCost || ""}
-                onChange={(e) => {
-                  const val = +e.target.value;
-                  setTotalCost(val);
-                  const calculatedCost = qty > 0 ? parseFloat((val / qty).toFixed(2)) : 0;
-                  setCost(calculatedCost);
-                  const pctVal = parseFloat(incentivePercent) || 0;
-                  setIncentive(parseFloat((calculatedCost * pctVal / 100).toFixed(2)));
-                }}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>INCENTIVE (%)</label>
-              <select
-                className="form-input"
-                value={incentivePercent}
-                onChange={(e) => {
-                  const pct = e.target.value;
-                  setIncentivePercent(pct);
-                  const pctVal = parseFloat(pct) || 0;
-                  setIncentive(parseFloat((cost * pctVal / 100).toFixed(2)));
-                }}
-                style={{ appearance: "auto" }}
-              >
-                <option value="0">0%</option>
-                <option value="5">5%</option>
-                <option value="10">10%</option>
-                <option value="15">15%</option>
-                <option value="20">20%</option>
-                <option value="25">25%</option>
-                <option value="30">30%</option>
-              </select>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>TOTAL COST (₹)</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>💵</span>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={totalCost || ""}
+                  onChange={(e) => {
+                    const val = +e.target.value;
+                    setTotalCost(val);
+                    const calculatedCost = qty > 0 ? parseFloat((val / qty).toFixed(2)) : 0;
+                    setCost(calculatedCost);
+                  }}
+                  placeholder="0.00"
+                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                />
+              </div>
             </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 14 }}>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>LOCATION</label>
-              <select
-                className="form-input"
-                value={location}
-                onChange={(e) => setLocation(e.target.value as any)}
-                style={{ appearance: "auto" }}
-              >
-                {!isGodownOnly && <option value="Shop">In Stock</option>}
-                <option value="Godown 1">Godown 1</option>
-                <option value="Godown 2">Godown 2</option>
-                {!isGodownOnly && <option value="Display">Display</option>}
-              </select>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>LOCATION</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📍</span>
+                <select
+                  className="form-input"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value as any)}
+                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600, appearance: "auto" }}
+                >
+                  {!isGodownOnly && <option value="Shop">In Stock</option>}
+                  <option value="Godown 1">Godown 1</option>
+                  <option value="Godown 2">Godown 2</option>
+                  {!isGodownOnly && <option value="Display">Display</option>}
+                </select>
+              </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>SUPPLIER</label>
-              <input
-                className="form-input"
-                value={supplier}
-                onChange={(e) => setSupplier(e.target.value)}
-                placeholder="Supplier Name"
-              />
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>SUPPLIER</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>👤</span>
+                <input
+                  className="form-input"
+                  value={supplier}
+                  onChange={(e) => setSupplier(e.target.value)}
+                  placeholder="Supplier Name"
+                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                />
+              </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4 }}>STOCK DATE</label>
-              <input
-                type="date"
-                className="form-input"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>STOCK DATE</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📅</span>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                />
+              </div>
             </div>
           </div>
         </>
       )}
 
-      <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 10 }}>
-        <button className="btn btn-primary" onClick={save} style={{ background: "linear-gradient(135deg, var(--accent), var(--light-brown))", borderColor: "var(--accent)", color: "#fff" }}>
+      <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 14 }}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={save}
+          style={{
+            background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
+            border: "none",
+            color: "#ffffff",
+            borderRadius: 12,
+            padding: "10px 24px",
+            fontWeight: 700,
+            fontSize: 14,
+            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
+            cursor: "pointer"
+          }}
+        >
           💾 Save Entry
         </button>
-        <button className="btn btn-ghost" onClick={onClose} style={{ background: "var(--biscuit-light)" }}>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={onClose}
+          style={{
+            background: "#EFF6FF",
+            border: "1px solid #BFDBFE",
+            color: "#2563EB",
+            borderRadius: 12,
+            padding: "10px 24px",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
           Cancel
         </button>
       </div>
@@ -5612,17 +5626,17 @@ export function SuperAdminGodownSection() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "#FAF9F5", padding: "12px", borderRadius: "24px", border: "1px solid #DCE5DB" }}>
+      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "#F6F7FC", padding: "12px", borderRadius: "24px", border: "1px solid #EEF0F8" }}>
         <button
           onClick={() => setActiveTab("Godown 1")}
           style={{
             flex: "1 1 140px",
             maxWidth: "250px",
             padding: "12px 24px",
-            borderRadius: "18px",
-            border: activeTab === "Godown 1" ? "none" : "1px solid #DCE5DB",
-            background: activeTab === "Godown 1" ? "#123A22" : "#FFFFFF",
-            color: activeTab === "Godown 1" ? "#FFFFFF" : "#1F2937",
+            borderRadius: "999px",
+            border: activeTab === "Godown 1" ? "none" : "1px solid #E2E8F0",
+            background: activeTab === "Godown 1" ? "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)" : "#FFFFFF",
+            color: activeTab === "Godown 1" ? "#FFFFFF" : "#475569",
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
@@ -5631,16 +5645,16 @@ export function SuperAdminGodownSection() {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: activeTab === "Godown 1" ? "0 6px 18px rgba(18, 58, 34, 0.25)" : "0 2px 8px rgba(0,0,0,0.03)"
+            boxShadow: activeTab === "Godown 1" ? "0 8px 22px rgba(124, 58, 237, 0.35)" : "0 2px 8px rgba(0,0,0,0.03)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "none"; }}
         >
           <span style={{ fontSize: "18px" }}>🏫</span>
-          <span style={{ color: activeTab === "Godown 1" ? "#FFFFFF" : "#1F2937" }}>Godown 1</span>
+          <span style={{ color: activeTab === "Godown 1" ? "#FFFFFF" : "#1E1B4B" }}>Godown 1</span>
           <span style={{
-            background: activeTab === "Godown 1" ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
-            color: activeTab === "Godown 1" ? "#FFFFFF" : "#123A22",
+            background: activeTab === "Godown 1" ? "rgba(255, 255, 255, 0.25)" : "#EEF2FF",
+            color: activeTab === "Godown 1" ? "#FFFFFF" : "#4F46E5",
             width: "22px",
             height: "22px",
             borderRadius: "50%",
@@ -5660,10 +5674,10 @@ export function SuperAdminGodownSection() {
             flex: "1 1 140px",
             maxWidth: "250px",
             padding: "12px 24px",
-            borderRadius: "18px",
-            border: activeTab === "Godown 2" ? "none" : "1px solid #DCE5DB",
-            background: activeTab === "Godown 2" ? "#123A22" : "#FFFFFF",
-            color: activeTab === "Godown 2" ? "#FFFFFF" : "#1F2937",
+            borderRadius: "999px",
+            border: activeTab === "Godown 2" ? "none" : "1px solid #E2E8F0",
+            background: activeTab === "Godown 2" ? "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)" : "#FFFFFF",
+            color: activeTab === "Godown 2" ? "#FFFFFF" : "#475569",
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
@@ -5672,16 +5686,16 @@ export function SuperAdminGodownSection() {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: activeTab === "Godown 2" ? "0 6px 18px rgba(18, 58, 34, 0.25)" : "0 2px 8px rgba(0,0,0,0.03)"
+            boxShadow: activeTab === "Godown 2" ? "0 8px 22px rgba(124, 58, 237, 0.35)" : "0 2px 8px rgba(0,0,0,0.03)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "none"; }}
         >
           <span style={{ fontSize: "18px" }}>🏫</span>
-          <span style={{ color: activeTab === "Godown 2" ? "#FFFFFF" : "#1F2937" }}>Godown 2</span>
+          <span style={{ color: activeTab === "Godown 2" ? "#FFFFFF" : "#1E1B4B" }}>Godown 2</span>
           <span style={{
-            background: activeTab === "Godown 2" ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
-            color: activeTab === "Godown 2" ? "#FFFFFF" : "#123A22",
+            background: activeTab === "Godown 2" ? "rgba(255, 255, 255, 0.25)" : "#EEF2FF",
+            color: activeTab === "Godown 2" ? "#FFFFFF" : "#4F46E5",
             width: "22px",
             height: "22px",
             borderRadius: "50%",
@@ -5702,14 +5716,14 @@ export function SuperAdminGodownSection() {
             <h3 className="panel-title" style={{ display: "flex", alignItems: "center", gap: 6, margin: 0, fontSize: "16px", fontWeight: 800, whiteSpace: "nowrap" }}>
               <span>🏭 {activeTab} Inventory</span>
             </h3>
-            <span style={{ fontSize: 12, background: "#F2EEE5", color: "#123A22", padding: "4px 12px", borderRadius: "10px", fontWeight: 700, whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 12, background: "#EEF2FF", color: "#4F46E5", padding: "4px 12px", borderRadius: "10px", fontWeight: 700, whiteSpace: "nowrap" }}>
               {activeProducts.length} Products | Total Qty: {activeTotalQty} | Value: ₹{activeTotalCost.toLocaleString()}
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, flexWrap: "nowrap" }}>
-            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EFECE4", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1F2937", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
-            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EFECE4", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1F2937", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
-            <button className="btn btn-primary btn-sm" style={{ background: "#123A22", color: "#FFFFFF", borderRadius: "999px", padding: "8px 20px", fontWeight: 700, border: "none", boxShadow: "0 6px 18px rgba(18, 58, 34, 0.25)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => setShowAdd(true)}>+ Add Product</button>
+            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EEF0F8", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1E1B4B", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
+            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EEF0F8", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1E1B4B", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
+            <button className="btn btn-primary btn-sm" style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)", color: "#FFFFFF", borderRadius: "999px", padding: "8px 20px", fontWeight: 700, border: "none", boxShadow: "0 8px 22px rgba(124, 58, 237, 0.35)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>
         </div>
         {renderTable(activeProducts)}

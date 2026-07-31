@@ -406,8 +406,8 @@ button.btn-ghost:hover {
 th,
 .table-header,
 .data-table th {
-  background-color: #F2EEE5 !important;
-  color: #1F2937 !important;
+  background-color: #F1F5F9 !important;
+  color: #4F46E5 !important;
   font-weight: 700 !important;
   letter-spacing: 0.5px !important;
 }
@@ -417,5 +417,5 @@ th,
 }
 
 .table-row-hover:hover {
-  background-color: #FAF8F3 !important;
+  background-color: #F8FAFC !important;
 }

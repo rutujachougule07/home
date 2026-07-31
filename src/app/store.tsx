@@ -33,9 +33,9 @@ const initialCustomers: Customer[] = [];
 const initialOrders: Order[] = [];
 const initialTasks: Task[] = [];
 const initialNotifications: Notification[] = [];
-const initialLeads: Lead[] = [];
 
 const USER_STORAGE_KEY = "sham_current_user_v2";
+const STATE_CACHE_KEY = "sham_full_state_cache_v2";
 
 function loadCurrentUser(): User | null {
   if (typeof window === "undefined") return null;
@@ -70,6 +70,42 @@ function defaultState(): State {
     notifications: [],
     leads: [],
   };
+}
+
+function loadCachedState(): State {
+  const base = defaultState();
+  if (typeof window === "undefined") return base;
+  try {
+    const raw = localStorage.getItem(STATE_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        ...base,
+        users: Array.isArray(parsed.users) && parsed.users.length ? parsed.users : base.users,
+        products: Array.isArray(parsed.products) && parsed.products.length ? parsed.products : base.products,
+        customers: Array.isArray(parsed.customers) && parsed.customers.length ? parsed.customers : base.customers,
+        orders: Array.isArray(parsed.orders) && parsed.orders.length ? parsed.orders : base.orders,
+        tasks: Array.isArray(parsed.tasks) && parsed.tasks.length ? parsed.tasks : base.tasks,
+        notifications: Array.isArray(parsed.notifications) && parsed.notifications.length ? parsed.notifications : base.notifications,
+        leads: Array.isArray(parsed.leads) && parsed.leads.length ? parsed.leads : base.leads,
+      };
+    }
+  } catch { /* ignore */ }
+  return base;
+}
+
+function persistStateCache(state: State) {
+  try {
+    localStorage.setItem(STATE_CACHE_KEY, JSON.stringify({
+      users: state.users,
+      products: state.products,
+      customers: state.customers,
+      orders: state.orders,
+      tasks: state.tasks,
+      notifications: state.notifications,
+      leads: state.leads,
+    }));
+  } catch { /* ignore */ }
 }
 
 const PASSWORDS: Record<string, { password: string; role: Role }> = {
@@ -124,7 +160,6 @@ const syncCollection = async (
       await batch.commit();
     } catch (err) {
       console.error(`Error syncing collection ${colName} to Firestore:`, err);
-      alert(`Database Sync Error (${colName}): ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 };
@@ -178,49 +213,59 @@ export const StoreContext = createContext<(State & { login: (username: string, p
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
-  const [state, setStateRaw] = useState<State>(() => defaultState());
+  const [state, setStateRaw] = useState<State>(() => loadCachedState());
+
+  const updateCollectionState = (col: keyof State, list: any[]) => {
+    setStateRaw((prev) => {
+      const next = { ...prev, [col]: list };
+      persistStateCache(next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     setIsMounted(true);
-    // 2. Seed database and subscribe to collections
-    seedDatabase().then(() => {
-      const unsubscribers = [
-        onSnapshot(collection(db, "users"), (snap) => {
-          const list = snap.docs
-            .map((d) => d.data() as User)
-            .filter((u) => u.id !== "u3" && u.id !== "u5" && u.id !== "u4" && u.username !== "employee@gmail.com" && u.username !== "employee2");
-          setStateRaw((s) => ({ ...s, users: list }));
-        }),
-        onSnapshot(collection(db, "products"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as Product);
-          setStateRaw((s) => ({ ...s, products: list }));
-        }),
-        onSnapshot(collection(db, "customers"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as Customer);
-          setStateRaw((s) => ({ ...s, customers: list }));
-        }),
-        onSnapshot(collection(db, "orders"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as Order);
-          setStateRaw((s) => ({ ...s, orders: list }));
-        }),
-        onSnapshot(collection(db, "tasks"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as Task);
-          setStateRaw((s) => ({ ...s, tasks: list }));
-        }),
-        onSnapshot(collection(db, "notifications"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as Notification);
-          setStateRaw((s) => ({ ...s, notifications: list }));
-        }),
-        onSnapshot(collection(db, "leads"), (snap) => {
-          const list = snap.docs.map((d) => d.data() as Lead);
-          setStateRaw((s) => ({ ...s, leads: list }));
-        }),
-      ];
 
-      return () => {
-        unsubscribers.forEach((unsub) => unsub());
-      };
-    });
+    // 1. Immediately subscribe to Firestore collections without waiting for network seed check
+    const unsubscribers = [
+      onSnapshot(collection(db, "users"), (snap) => {
+        const list = snap.docs
+          .map((d) => d.data() as User)
+          .filter((u) => u.id !== "u3" && u.id !== "u5" && u.id !== "u4" && u.username !== "employee@gmail.com" && u.username !== "employee2");
+        if (snap.docs.length > 0) updateCollectionState("users", list);
+      }),
+      onSnapshot(collection(db, "products"), (snap) => {
+        const list = snap.docs.map((d) => d.data() as Product);
+        if (snap.docs.length > 0) updateCollectionState("products", list);
+      }),
+      onSnapshot(collection(db, "customers"), (snap) => {
+        const list = snap.docs.map((d) => d.data() as Customer);
+        if (snap.docs.length > 0) updateCollectionState("customers", list);
+      }),
+      onSnapshot(collection(db, "orders"), (snap) => {
+        const list = snap.docs.map((d) => d.data() as Order);
+        if (snap.docs.length > 0) updateCollectionState("orders", list);
+      }),
+      onSnapshot(collection(db, "tasks"), (snap) => {
+        const list = snap.docs.map((d) => d.data() as Task);
+        if (snap.docs.length > 0) updateCollectionState("tasks", list);
+      }),
+      onSnapshot(collection(db, "notifications"), (snap) => {
+        const list = snap.docs.map((d) => d.data() as Notification);
+        if (snap.docs.length > 0) updateCollectionState("notifications", list);
+      }),
+      onSnapshot(collection(db, "leads"), (snap) => {
+        const list = snap.docs.map((d) => d.data() as Lead);
+        if (snap.docs.length > 0) updateCollectionState("leads", list);
+      }),
+    ];
+
+    // 2. Non-blocking seed check in background
+    seedDatabase().catch((err) => console.error("Background seed error:", err));
+
+    return () => {
+      unsubscribers.forEach((unsub) => unsub());
+    };
   }, []);
 
   const prevStateRef = useRef<State>(state);
@@ -232,8 +277,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const prev = prevStateRef.current;
     if (prev !== state) {
-      // Sync the difference asynchronously
       syncStateToFirestore(prev, state);
+      persistStateCache(state);
       prevStateRef.current = state;
     }
   }, [state]);
@@ -241,7 +286,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const setState = (updater: (s: State) => State) => {
     setStateRaw((prev) => {
       prevStateRef.current = prev;
-      return updater(prev);
+      const next = updater(prev);
+      persistStateCache(next);
+      return next;
     });
   };
 
@@ -255,11 +302,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const authUser = userCredential.user;
 
       if (authUser) {
-        // Find user by email in Firestore
         let user = state.users.find((u) => u.email?.toLowerCase().trim() === searchVal) ?? null;
 
         if (!user) {
-          // If not found in Firestore, let's create a new user profile dynamically
           const isSuperAdmin = searchVal === "admin@gmail.com";
           const isManager = searchVal.includes("manager");
           const role: Role = isSuperAdmin ? "superadmin" : (isManager ? "manager" : "employee");
@@ -270,11 +315,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             username: searchVal,
             email: searchVal,
             role: role,
-            password: password, // Store password so local check works next time
+            password: password,
             status: "Verified"
           };
 
-          // Add user to state and sync to Firestore
           setState((s) => ({
             ...s,
             users: [...s.users, user!]
@@ -296,13 +340,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ) ?? null;
 
     if (user) {
-      // If user has a password in Firestore, verify it
       if (user.password && user.password === password) {
         setState((s) => ({ ...s, currentUser: user }));
         return user.role;
       }
 
-      // Fallback: If user password is not in Firestore but is in PASSWORDS config
       const entry = PASSWORDS[searchVal];
       if (entry && entry.password === password) {
         setState((s) => ({ ...s, currentUser: user }));
