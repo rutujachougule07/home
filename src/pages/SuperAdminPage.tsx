@@ -49,40 +49,39 @@ export function DownloadDropdown({
     <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
       <button
         type="button"
-        className="btn btn-ghost"
         onClick={() => setOpen((prev) => !prev)}
         style={{
           display: "inline-flex",
           alignItems: "center",
           gap: "8px",
-          border: "1px solid var(--border)",
+          border: "1px solid rgba(109, 74, 255, 0.12)",
           background: "#ffffff",
-          borderRadius: "10px",
-          padding: "8px 16px",
-          fontSize: "13px",
-          fontWeight: 600,
-          color: "var(--brown-dark)",
+          borderRadius: "40px",
+          padding: "10px 22px",
+          fontSize: "14px",
+          fontWeight: 700,
+          color: "#1E1B4B",
           cursor: "pointer",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-          transition: "all 0.2s ease"
+          boxShadow: "0 8px 25px rgba(109, 74, 255, 0.12)",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         }}
       >
         <span>📥</span>
         <span>{label}</span>
-        <span style={{ fontSize: "10px", opacity: 0.7 }}>{open ? "▲" : "▼"}</span>
+        <span style={{ fontSize: "10px", opacity: 0.75 }}>{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
         <div style={{
           position: "absolute",
-          top: "calc(100% + 6px)",
+          top: "calc(100% + 8px)",
           right: 0,
           background: "#ffffff",
-          border: "1px solid var(--border)",
-          borderRadius: "12px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
-          padding: "6px",
-          minWidth: "160px",
+          border: "1px solid rgba(109, 74, 255, 0.12)",
+          borderRadius: "16px",
+          boxShadow: "0 12px 30px rgba(109, 74, 255, 0.18)",
+          padding: "8px",
+          minWidth: "170px",
           zIndex: 100,
           display: "flex",
           flexDirection: "column",
@@ -4855,6 +4854,7 @@ export function SuperAdminIncentiveSection() {
   const [incentiveFormNotes, setIncentiveFormNotes] = useState<string>("");
   const [incentiveFormError, setIncentiveFormError] = useState<string>("");
   const [incentiveSuccessMsg, setIncentiveSuccessMsg] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const employees = useMemo(() => users.filter((u) => u.role === "employee" || u.role === "manager"), [users]);
 
@@ -4974,6 +4974,19 @@ export function SuperAdminIncentiveSection() {
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [products]);
 
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(groupedOldProducts.length / itemsPerPage) || 1;
+
+  const paginatedProducts = useMemo(() => {
+    return groupedOldProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  }, [groupedOldProducts, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const remove = (id: string) => {
     if (!confirm("Delete this product?")) return;
     setState((s) => ({ ...s, products: s.products.filter((p) => p.id !== id) }));
@@ -4981,210 +4994,179 @@ export function SuperAdminIncentiveSection() {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div className="main-content">
+        {/* Hero Section Header Bar with Download Dropdown on Right */}
+        <div className="hero">
+          <div className="hero-left">
+            <div className="hero-icon">💰</div>
+            <div className="hero-text">
+              <h1 style={{ display: "flex", alignItems: "center", gap: "12px", margin: 0 }}>
+                Products Eligible for Incentive
+                <span className="badge">&gt; 90 Days</span>
+              </h1>
+            </div>
+          </div>
+
+          <div className="hero-right">
+            <DownloadDropdown
+              onPDF={() => {
+                const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+                const rows = groupedOldProducts.map((p, index) => {
+                  const qty = p.qty ?? p.stock ?? 0;
+                  const unitIncentive = p.incentive || 0;
+                  const totalIncentive = qty * unitIncentive;
+                  return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+                });
+                openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "pdf");
+              }}
+              onCSV={() => {
+                const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+                const rows = groupedOldProducts.map((p, index) => {
+                  const qty = p.qty ?? p.stock ?? 0;
+                  const unitIncentive = p.incentive || 0;
+                  const totalIncentive = qty * unitIncentive;
+                  return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+                });
+                openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "csv");
+              }}
+            />
+          </div>
+        </div>
+
+        {incentiveSuccessMsg && (
+          <div style={{ background: "#DCFCE7", color: "#15803D", border: "1px solid #86EFAC", padding: "12px 16px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, marginTop: "16px", marginBottom: "16px" }}>
+            {incentiveSuccessMsg}
+          </div>
+        )}
+
+
+        {/* Table Body / Rows */}
         <div>
-          <h2 className="page-title">Incentive Management</h2>
-          <p className="page-sub">Track and manage employee incentives and payouts.</p>
+          {paginatedProducts.map((p) => {
+            const hasUnseen = p.batches.some(b => !b.incentiveSeen);
+            const assignedEmp = p.assignedEmployeeId || p.batches.find(b => b.assignedEmployeeId)?.assignedEmployeeId || "";
+
+            return (
+              <div className="product-card-premium" key={p.id}>
+                {/* 1. 3D CYLINDRICAL PEDESTAL STAND */}
+                <div className="product-img-platform">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} />
+                  ) : (
+                    <span style={{ fontSize: 44, position: "relative", zIndex: 2 }}>📦</span>
+                  )}
+                </div>
+
+                {/* 2. PRODUCT INFO */}
+                <div className="product-name-premium">
+                  <h2>{p.name.toLowerCase()}</h2>
+                  <p>Brand: {p.brand || "—"}</p>
+                </div>
+
+                {/* 3. SKU */}
+                <div className="sku-premium">
+                  {p.sku || "—"}
+                </div>
+
+                {/* 4. LOCATION CAPSULE */}
+                <div>
+                  <span className="location-chip-premium">📍 🏪 {p.location || "Shop"}</span>
+                </div>
+
+                {/* 5. QUANTITY RING GAUGE (CLICKABLE FOR BATCH DETAILS) */}
+                <div>
+                  <div
+                    className="qty-circle-premium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewingBatches(p);
+                      const unseenBatches = (p.batches || []).filter(b => !b.incentiveSeen);
+                      if (unseenBatches.length > 0) {
+                        setState((s: any) => ({
+                          ...s,
+                          products: s.products.map((prod: any) =>
+                            unseenBatches.some(ub => ub.id === prod.id)
+                              ? { ...prod, incentiveSeen: true }
+                              : prod
+                          )
+                        }));
+                      }
+                    }}
+                    title="Click to view batch & product details"
+                  >
+                    <span className="num">{p.qty ?? p.stock}</span>
+                    <span className="lbl">Units</span>
+                    {hasUnseen && <div style={{ position: "absolute", top: "2px", right: "2px", width: "10px", height: "10px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
+                  </div>
+                </div>
+
+                {/* 6. INCENTIVE PEACH BOX */}
+                <div className="incentive-box-premium">
+                  <span className="icon">🏷️</span>
+                  <div className="details">
+                    <span className="amount">₹{(p.cost || p.price || 0).toLocaleString()}</span>
+                    <span className="subtext">/ unit</span>
+                  </div>
+                </div>
+
+                {/* 7. ASSIGN BTN */}
+                <div>
+                  <button
+                    className="assign-btn-premium"
+                    onClick={() => {
+                      setSelectedProductForIncentive(p);
+                      setIncentiveFormEmpId(assignedEmp || (employees[0]?.id || "all"));
+                      setIncentiveFormPercent("");
+                      setIncentiveFormAmount(p.incentive || 0);
+                      setIncentiveFormQty(p.qty ?? p.stock ?? 1);
+                      setIncentiveFormNotes("");
+                      setIncentiveFormError("");
+                      setShowGiveIncentiveModal(true);
+                    }}
+                  >
+                    <span className="btn-icon">👤⁺</span>
+                    <span>Assign</span>
+                    <small>Employee</small>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {groupedOldProducts.length === 0 && (
+            <div style={{ textAlign: "center", padding: 48, background: "#ffffff", borderRadius: 20, color: "#64748B", border: "1px solid rgba(226, 232, 240, 0.8)" }}>
+              No products eligible for incentive (&gt; 90 days) found.
+            </div>
+          )}
         </div>
-        <div>
-          <DownloadDropdown
-            onPDF={() => {
-              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
-              const rows = groupedOldProducts.map((p, index) => {
-                const qty = p.qty ?? p.stock ?? 0;
-                const unitIncentive = p.incentive || 0;
-                const totalIncentive = qty * unitIncentive;
-                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
-              });
-              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "pdf");
-            }}
-            onCSV={() => {
-              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
-              const rows = groupedOldProducts.map((p, index) => {
-                const qty = p.qty ?? p.stock ?? 0;
-                const unitIncentive = p.incentive || 0;
-                const totalIncentive = qty * unitIncentive;
-                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
-              });
-              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "csv");
-            }}
-          />
-        </div>
-      </div>
 
-      {incentiveSuccessMsg && (
-        <div style={{ background: "#DCFCE7", color: "#15803D", border: "1px solid #86EFAC", padding: "12px 16px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, marginTop: "16px" }}>
-          {incentiveSuccessMsg}
-        </div>
-      )}
-
-      <div className="panel" style={{ marginTop: 24, borderRadius: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.04)", border: "1px solid var(--border)", overflow: "hidden" }}>
-        <div className="panel-head" style={{ padding: "18px 24px", background: "linear-gradient(135deg, #fffbf0, #fff7ed)", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 className="panel-title" style={{ fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
-            <span>💰</span> Products Eligible for Incentive (&gt; 90 Days)
-          </h3>
-        </div>
-        <div className="table-wrap">
-          <table className="tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "var(--cream-light)", borderBottom: "1px solid var(--border)" }}>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>IMAGE</th>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>PRODUCT</th>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>SKU</th>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>LOCATION</th>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>QTY</th>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px", whiteSpace: "nowrap" }}>INCENTIVE / UNIT</th>
-                <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: "var(--brown)", letterSpacing: "0.5px" }}>👤 ASSIGN EMPLOYEE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupedOldProducts.map((p) => {
-                const hasUnseen = p.batches.some(b => !b.incentiveSeen);
-                const assignedEmp = p.assignedEmployeeId || p.batches.find(b => b.assignedEmployeeId)?.assignedEmployeeId || "";
-
-                // Styling based on assignment state
-                const isUnassigned = !assignedEmp;
-                const isAll = assignedEmp === "all";
-
-                const selectBg = isUnassigned
-                  ? "linear-gradient(135deg, #f8fafc, #f1f5f9)"
-                  : isAll
-                    ? "linear-gradient(135deg, #eff6ff, #dbeafe)"
-                    : "linear-gradient(135deg, #f0fdf4, #dcfce7)";
-
-                const selectBorder = isUnassigned
-                  ? "1.5px dashed #cbd5e1"
-                  : isAll
-                    ? "1.5px solid #93c5fd"
-                    : "1.5px solid #86efac";
-
-                const selectColor = isUnassigned
-                  ? "#64748b"
-                  : isAll
-                    ? "#1e40af"
-                    : "#15803d";
-
-                return (
-                  <tr key={p.id} style={{ borderBottom: "1px solid var(--border)", transition: "background 0.15s ease" }}>
-                    <td style={{ padding: "12px 16px" }}>
-                      {p.image ? (
-                        <div style={{ width: 44, height: 44, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }}>
-                          <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        </div>
-                      ) : (
-                        <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--biscuit)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
-                          📦
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: "8px", color: "var(--text)" }}>
-                        {p.name}
-                        {hasUnseen && (
-                          <span style={{ background: "#ef4444", color: "white", fontSize: "9px", padding: "2px 6px", borderRadius: "10px", fontWeight: 800, animation: "pulse 2s infinite" }}>NEW</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--brown)", marginTop: 2 }}>
-                        <span>Brand: {p.brand || "—"}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px 16px", fontSize: 13, color: "var(--text)", fontWeight: 500 }}>{p.sku || "—"}</td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span style={{ padding: "4px 10px", background: "var(--biscuit)", border: "1px solid var(--border)", borderRadius: 6, fontSize: 11, fontWeight: 600, color: "var(--brown)" }}>
-                        📍 {p.location || "Unassigned"}
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ fontWeight: 700, fontSize: 14 }}>{p.qty ?? p.stock}</span>
-                        <button
-                          type="button"
-                          style={{ background: "#F5F3E8", border: "1px solid #ECE7DA", color: "#193828", width: "28px", height: "28px", borderRadius: "50%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "14px", position: "relative" }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setViewingBatches(p);
-                            const unseenBatches = (p.batches || []).filter(b => !b.incentiveSeen);
-                            if (unseenBatches.length > 0) {
-                              setState((s: any) => ({
-                                ...s,
-                                products: s.products.map((prod: any) =>
-                                  unseenBatches.some(ub => ub.id === prod.id)
-                                    ? { ...prod, incentiveSeen: true }
-                                    : prod
-                                )
-                              }));
-                            }
-                          }}
-                          title="Click to view product & batch details"
-                        >
-                          ℹ️
-                          {hasUnseen && <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
-                        </button>
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                        background: "linear-gradient(135deg, #FFF0E8, #FFC6A8)",
-                        color: "#741A2F",
-                        border: "1px solid #FFC6A8",
-                        padding: "5px 12px",
-                        borderRadius: "20px",
-                        fontWeight: 700,
-                        fontSize: "13px"
-                      }}>
-                        🏷️ ₹{(p.cost || 0).toLocaleString()} / unit
-                      </span>
-                    </td>
-                    <td style={{ padding: "12px 16px", textAlign: "center" }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedProductForIncentive(p);
-                          setIncentiveFormEmpId(assignedEmp || (employees[0]?.id || "all"));
-                          setIncentiveFormPercent("");
-                          setIncentiveFormAmount(p.incentive || 0);
-                          setIncentiveFormQty(p.qty ?? p.stock ?? 1);
-                          setIncentiveFormNotes("");
-                          setIncentiveFormError("");
-                          setShowGiveIncentiveModal(true);
-                        }}
-                        style={{
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "10px",
-                          border: "none",
-                          background: "linear-gradient(135deg, #741A2F, #9E2B45)",
-                          color: "#ffffff",
-                          fontWeight: 800,
-                          fontSize: "20px",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          boxShadow: "0 2px 8px rgba(116, 26, 47, 0.25)",
-                          transition: "transform 0.15s ease"
-                        }}
-                        title="Open Incentive Form"
-                      >
-                        +
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {groupedOldProducts.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: 32, color: "var(--brown)" }}>
-                    No products eligible for incentive (&gt; 90 days) found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {groupedOldProducts.length > 0 && (
+          <div className="pagination-wrapper">
+            <div className="page-info">
+              Showing <span>{Math.min((currentPage - 1) * itemsPerPage + 1, groupedOldProducts.length)}</span> to <span>{Math.min(currentPage * itemsPerPage, groupedOldProducts.length)}</span> of <span>{groupedOldProducts.length}</span> Products
+            </div>
+            <div className="pagination">
+              <button
+                type="button"
+                className="page-btn"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                ←
+              </button>
+              <div className="page-number">
+                {currentPage}
+              </div>
+              <button
+                type="button"
+                className="next-btn"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {editing && (
@@ -5270,8 +5252,8 @@ export function SuperAdminIncentiveSection() {
         <div style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(43, 11, 19, 0.55)",
-          backdropFilter: "blur(4px)",
+          background: "rgba(15, 23, 42, 0.55)",
+          backdropFilter: "blur(6px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -5280,43 +5262,59 @@ export function SuperAdminIncentiveSection() {
         }}>
           <div style={{
             background: "#FFFFFF",
-            borderRadius: "24px",
+            borderRadius: "28px",
             width: "100%",
-            maxWidth: "520px",
-            boxShadow: "0 20px 50px rgba(116, 26, 47, 0.25)",
-            border: "1px solid #F4D4C5",
+            maxWidth: "540px",
+            boxShadow: "0 25px 60px rgba(124, 58, 237, 0.25)",
+            border: "1px solid rgba(221, 214, 254, 0.8)",
             overflow: "hidden",
-            animation: "scaleUp 0.2s ease"
+            animation: "scaleUp 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
           }}>
-            {/* Header */}
+            {/* Header (Clean Normal Purple Shade) */}
             <div style={{
-              background: "linear-gradient(135deg, #741A2F, #9E2B45)",
-              padding: "20px 24px",
+              background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 50%, #8B5CF6 100%)",
+              padding: "22px 28px",
               color: "#FFFFFF",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center"
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "22px" }}>💰</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "50%",
+                  background: "rgba(255, 255, 255, 0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "22px",
+                  boxShadow: "inset 0 1px 2px rgba(255, 255, 255, 0.4)"
+                }}>
+                  💰
+                </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#FFFFFF" }}>Assign Employee Incentive</h3>
-                  <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#FFC6A8", opacity: 0.9 }}>Select employee to assign incentive</p>
+                  <h3 style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.3px" }}>Assign Employee Incentive</h3>
+                  <p style={{ margin: "2px 0 0 0", fontSize: "13px", color: "rgba(255, 255, 255, 0.9)", fontWeight: 500 }}>Select employee to assign incentive</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowGiveIncentiveModal(false)}
                 style={{
-                  background: "rgba(255,255,255,0.15)",
-                  border: "none",
+                  background: "rgba(255, 255, 255, 0.22)",
+                  border: "1px solid rgba(255, 255, 255, 0.35)",
                   color: "#FFFFFF",
-                  width: "32px",
-                  height: "32px",
+                  width: "36px",
+                  height: "36px",
                   borderRadius: "50%",
                   cursor: "pointer",
                   fontSize: "16px",
-                  fontWeight: 700
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.2s ease"
                 }}
               >
                 ✕
@@ -5324,40 +5322,46 @@ export function SuperAdminIncentiveSection() {
             </div>
 
             {/* Form Content */}
-            <form onSubmit={handleAssignIncentiveSubmit} style={{ padding: "24px" }}>
+            <form onSubmit={handleAssignIncentiveSubmit} style={{ padding: "28px" }}>
               {incentiveFormError && (
-                <div style={{ background: "#FEF2F2", color: "#991B1B", border: "1px solid #FCA5A5", padding: "10px 14px", borderRadius: "12px", fontSize: "13px", fontWeight: 700, marginBottom: "16px" }}>
+                <div style={{ background: "#FEF2F2", color: "#991B1B", border: "1px solid #FCA5A5", padding: "12px 16px", borderRadius: "14px", fontSize: "13px", fontWeight: 700, marginBottom: "20px" }}>
                   ⚠️ {incentiveFormError}
                 </div>
               )}
-              {/* Product Card Info */}
+
+              {/* Product Summary Card with 3D Stand */}
               <div style={{
-                background: "#FFF0E8",
-                border: "1px solid #FFC6A8",
-                borderRadius: "16px",
-                padding: "14px 16px",
-                marginBottom: "20px",
+                background: "linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)",
+                border: "1px solid #DDD6FE",
+                borderRadius: "20px",
+                padding: "16px 20px",
+                marginBottom: "22px",
                 display: "flex",
                 alignItems: "center",
-                gap: "14px"
+                gap: "16px",
+                boxShadow: "inset 0 1px 3px rgba(255, 255, 255, 0.9)"
               }}>
-                {selectedProductForIncentive.image ? (
-                  <img src={selectedProductForIncentive.image} alt={selectedProductForIncentive.name} style={{ width: 48, height: 48, borderRadius: 12, objectFit: "cover" }} />
-                ) : (
-                  <div style={{ width: 48, height: 48, borderRadius: 12, background: "#FFC6A8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>📦</div>
-                )}
+                <div className="product-img-platform" style={{ width: 70, height: 65, flexShrink: 0 }}>
+                  {selectedProductForIncentive.image ? (
+                    <img src={selectedProductForIncentive.image} alt={selectedProductForIncentive.name} style={{ width: 44, height: 44, objectFit: "contain", mixBlendMode: "multiply" }} />
+                  ) : (
+                    <span style={{ fontSize: 26, position: "relative", zIndex: 2 }}>📦</span>
+                  )}
+                </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: "15px", color: "#2B0B13" }}>{selectedProductForIncentive.name}</div>
-                  <div style={{ fontSize: "12px", color: "#6B4752", marginTop: 2 }}>
-                    SKU: <strong>{selectedProductForIncentive.sku || "—"}</strong> | Location: <strong>{selectedProductForIncentive.location || "Unassigned"}</strong>
+                  <div style={{ fontWeight: 800, fontSize: "18px", color: "#1E2937", textTransform: "lowercase" }}>{selectedProductForIncentive.name}</div>
+                  <div style={{ fontSize: "13px", color: "#64748B", marginTop: 3, fontWeight: 500 }}>
+                    SKU: <strong style={{ color: "#334155" }}>{selectedProductForIncentive.sku || "—"}</strong> &nbsp;|&nbsp; Location: <strong style={{ color: "#7C3AED", fontWeight: 800 }}>{selectedProductForIncentive.location || "Shop"}</strong>
                   </div>
                 </div>
               </div>
 
-              {/* 1. Employee Selector */}
-              <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
-                  👤 Select Employee / Manager <span style={{ color: "#D9534F" }}>*</span>
+              {/* 1. Select Employee / Manager */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", fontWeight: 800, color: "#1E2937", marginBottom: "8px" }}>
+                  <span style={{ color: "#7C3AED", fontSize: "16px" }}>👤</span>
+                  <span>Select Employee / Manager</span>
+                  <span style={{ color: "#EF4444" }}>*</span>
                 </label>
                 <select
                   value={incentiveFormEmpId}
@@ -5367,19 +5371,20 @@ export function SuperAdminIncentiveSection() {
                   }}
                   style={{
                     width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "12px",
-                    border: "1px solid #F4D4C5",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    color: "#2B0B13",
-                    background: "#FAF4EF",
+                    padding: "14px 18px",
+                    borderRadius: "16px",
+                    border: "1px solid #C4B5FD",
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: "#2E1065",
+                    background: "#F5F3FF",
                     outline: "none",
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(124, 58, 237, 0.05)"
                   }}
                 >
                   <option value="">-- Select Employee --</option>
-                  <option value="all" style={{ fontWeight: 700, color: "#741A2F" }}>👥 All Employees</option>
+                  <option value="all" style={{ fontWeight: 800, color: "#7C3AED" }}>👥 All Employees</option>
                   {employees.map((u) => (
                     <option key={u.id} value={u.id}>
                       👤 {u.name}
@@ -5388,15 +5393,17 @@ export function SuperAdminIncentiveSection() {
                 </select>
               </div>
 
-              {/* 2. Quantity & Incentive (Side by Side) */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "18px" }}>
+              {/* 2. Quantity & Incentive (%) (Side by Side) */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px", marginBottom: "24px" }}>
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                    <label style={{ fontSize: "13px", fontWeight: 700, color: "#2B0B13" }}>
-                      📦 Quantity <span style={{ color: "#D9534F" }}>*</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: 800, color: "#1E2937" }}>
+                      <span style={{ color: "#7C3AED", fontSize: "16px" }}>📦</span>
+                      <span>Quantity</span>
+                      <span style={{ color: "#EF4444" }}>*</span>
                     </label>
                     {selectedProductForIncentive && (
-                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#6B4752" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
                         Max: <strong>{selectedProductForIncentive.qty ?? selectedProductForIncentive.stock ?? 1} units</strong>
                       </span>
                     )}
@@ -5412,23 +5419,26 @@ export function SuperAdminIncentiveSection() {
                     }}
                     style={{
                       width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: "12px",
-                      border: "1px solid #F4D4C5",
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      color: "#2B0B13",
-                      background: "#FAF4EF",
+                      padding: "14px 18px",
+                      borderRadius: "16px",
+                      border: "1px solid #C4B5FD",
+                      fontSize: "16px",
+                      fontWeight: 800,
+                      color: "#2E1065",
+                      background: "#F5F3FF",
                       outline: "none",
-                      boxSizing: "border-box"
+                      boxSizing: "border-box",
+                      boxShadow: "0 2px 8px rgba(124, 58, 237, 0.05)"
                     }}
                     placeholder="e.g. 5"
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 700, color: "#2B0B13", marginBottom: "6px" }}>
-                    💰 Incentive (%) <span style={{ color: "#D9534F" }}>*</span>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: 800, color: "#1E2937", marginBottom: "8px" }}>
+                    <span style={{ color: "#7C3AED", fontSize: "16px" }}>💰</span>
+                    <span>Incentive (%)</span>
+                    <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <div style={{ position: "relative" }}>
                     <input
@@ -5449,25 +5459,26 @@ export function SuperAdminIncentiveSection() {
                       }}
                       style={{
                         width: "100%",
-                        padding: "12px 35px 12px 14px",
-                        borderRadius: "12px",
-                        border: "1px solid #F4D4C5",
-                        fontSize: "15px",
-                        fontWeight: 700,
-                        color: "#741A2F",
-                        background: "#FAF4EF",
+                        padding: "14px 40px 14px 18px",
+                        borderRadius: "16px",
+                        border: "1px solid #C4B5FD",
+                        fontSize: "16px",
+                        fontWeight: 800,
+                        color: "#7C3AED",
+                        background: "#F5F3FF",
                         outline: "none",
-                        boxSizing: "border-box"
+                        boxSizing: "border-box",
+                        boxShadow: "0 2px 8px rgba(124, 58, 237, 0.05)"
                       }}
                       placeholder="e.g. 10"
                     />
-                    <span style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", fontWeight: 800, fontSize: "16px", color: "#741A2F" }}>%</span>
+                    <span style={{ position: "absolute", right: "18px", top: "50%", transform: "translateY(-50%)", fontWeight: 800, fontSize: "18px", color: "#7C3AED" }}>%</span>
                   </div>
                 </div>
               </div>
 
-              {/* Form Actions */}
-              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              {/* Form Action Buttons */}
+              <div style={{ display: "flex", gap: "14px", justifyContent: "flex-end", alignItems: "center" }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -5475,13 +5486,16 @@ export function SuperAdminIncentiveSection() {
                     setIncentiveFormError("");
                   }}
                   style={{
-                    padding: "10px 20px",
-                    borderRadius: "20px",
-                    border: "1px solid #F4D4C5",
-                    background: "transparent",
-                    color: "#741A2F",
-                    fontWeight: 600,
-                    cursor: "pointer"
+                    padding: "12px 28px",
+                    borderRadius: "40px",
+                    border: "1px solid #CBD5E1",
+                    background: "#FFFFFF",
+                    color: "#6D28D9",
+                    fontWeight: 800,
+                    fontSize: "15px",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.04)",
+                    transition: "all 0.2s ease"
                   }}
                 >
                   Cancel
@@ -5489,17 +5503,23 @@ export function SuperAdminIncentiveSection() {
                 <button
                   type="submit"
                   style={{
-                    padding: "10px 24px",
-                    borderRadius: "20px",
+                    padding: "12px 34px",
+                    borderRadius: "40px",
                     border: "none",
-                    background: "linear-gradient(135deg, #741A2F, #9E2B45)",
+                    background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 50%, #8B5CF6 100%)",
                     color: "#FFFFFF",
-                    fontWeight: 700,
+                    fontWeight: 800,
+                    fontSize: "15px",
                     cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(116, 26, 47, 0.25)"
+                    boxShadow: "0 10px 25px rgba(124, 58, 237, 0.4)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "all 0.2s ease"
                   }}
                 >
-                  ✓ Assign Incentive
+                  <span>✓</span>
+                  <span>Assign Incentive</span>
                 </button>
               </div>
             </form>
