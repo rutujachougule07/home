@@ -101,7 +101,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                 return (
                   <button
                     key={n.key}
-                    className={`nav-item ${isActive ? "active" : ""}`}
+                    className={`sidebar-item nav-item ${isActive ? "active" : ""}`}
                     onClick={() => { onNav(n.key); setOpen(false); }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
