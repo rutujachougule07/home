@@ -127,7 +127,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
           </div>
 
           {/* Bottom Section: Pinned Logout Button */}
-          <div style={{ paddingTop: "14px", borderTop: "1px solid #DCE5DB", marginTop: "10px" }}>
+          <div style={{ paddingTop: "14px", borderTop: "1px solid #E2E8F0", marginTop: "10px" }}>
             <button
               type="button"
               className="btn btn-logout"
@@ -139,18 +139,18 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                 gap: "10px",
                 padding: "12px 16px",
                 width: "100%",
-                background: "#123A22",
+                background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
                 border: "none",
-                borderRadius: "16px",
+                borderRadius: "999px",
                 color: "#FFFFFF",
                 fontWeight: 700,
                 fontSize: "14px",
                 cursor: "pointer",
-                boxShadow: "0 8px 22px rgba(18, 58, 34, 0.25)",
+                boxShadow: "0 8px 22px rgba(124, 58, 237, 0.35)",
                 transition: "all 300ms ease"
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = "#1B4D2F"; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = "#123A22"; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #4338CA 0%, #6D28D9 100%)"; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)"; }}
             >
               <span style={{ fontSize: "16px", color: "#FFFFFF" }}>🚪</span>
               <span style={{ color: "#FFFFFF", fontWeight: 700 }}>Logout</span>
@@ -158,7 +158,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
           </div>
         </aside>
 
-        <div className="main" style={{ marginLeft: "260px", background: "#FAF9F5", minHeight: "100vh" }}>
+        <div className="main" style={{ marginLeft: "260px", background: "#F6F7FC", minHeight: "100vh" }}>
           <div className="content" style={{ padding: "24px 32px" }}>{children}</div>
         </div>
       </div>

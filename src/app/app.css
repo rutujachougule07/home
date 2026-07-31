@@ -1,39 +1,40 @@
 :root {
-  /* Apple-Inspired Soft Cream & Forest Green Luxury Glassmorphism Variables */
-  --primary: #123A22;
-  --primary-dark: #1B4D2F;
-  --primary-light: #DCEFD7;
+  /* Reference Image Match: Vibrant Blue-Purple 2-Color Gradient Theme */
+  --primary: #4F46E5;
+  --primary-dark: #3730A3;
+  --primary-light: #EEF2FF;
+  --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
 
-  --secondary: #C59D5F;
-  --secondary-medium: #B38B4D;
-  --secondary-light: #F4B266;
+  --secondary: #7C3AED;
+  --secondary-medium: #6D28D9;
+  --secondary-light: #F5F3FF;
 
-  --tertiary: #DCEFD7;
-  --tertiary-dark: #123A22;
-  --tertiary-light: #FAF9F4;
+  --tertiary: #EEF2FF;
+  --tertiary-dark: #1E1B4B;
+  --tertiary-light: #FAFAFD;
 
-  --neutral: #FAF9F5;
-  --brown-dark: #1F2937;
-  --brown: #556052;
-  --light-brown: #7A8391;
+  --neutral: #F6F7FC;
+  --brown-dark: #1E1B4B;
+  --brown: #64748B;
+  --light-brown: #94A3B8;
 
-  --accent: #C59D5F;
-  --accent-dark: #B38B4D;
+  --accent: #7C3AED;
+  --accent-dark: #6D28D9;
   --danger: #EF4444;
-  --success: #123A22;
-  --info: #2F6F46;
-  --warning: #F4B266;
+  --success: #10B981;
+  --info: #3B82F6;
+  --warning: #F59E0B;
 
-  --cream: #FAF9F5;
-  --biscuit-light: #EBF0E9;
-  --biscuit: #DCE5DB;
+  --cream: #F6F7FC;
+  --biscuit-light: #F1F3F9;
+  --biscuit: #EEF0F8;
   --warm-white: #FFFFFF;
-  --beige: #DCE5DB;
-  --border: #DCE5DB;
+  --beige: #EEF0F8;
+  --border: #EEF0F8;
 
-  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 4px 15px rgba(79, 70, 229, 0.04);
+  --shadow-md: 0 10px 30px rgba(79, 70, 229, 0.06);
+  --shadow-lg: 0 15px 40px rgba(124, 58, 237, 0.12);
   --radius: 24px;
   --radius-sm: 16px;
 }
@@ -58,7 +59,7 @@ body {
 
 .sham-app {
   font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
-  color: var(--brown-dark);
+  color: #1E1B4B;
 }
 
 .btn,
@@ -69,8 +70,12 @@ body {
 button.btn-primary,
 button.btn-submit,
 button[type="submit"] {
-  background: #123A22 !important;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
   color: #FFFFFF !important;
+  border-radius: 999px !important;
+  border: none !important;
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn:hover,
@@ -79,7 +84,9 @@ button[type="submit"] {
 button.btn-primary:hover,
 button.btn-submit:hover,
 button[type="submit"]:hover {
-  background: #1B4D2F !important;
+  background: linear-gradient(135deg, #4338CA 0%, #6D28D9 100%) !important;
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.48), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-2px) scale(1.02) !important;
 }
 
 h1,
@@ -93,7 +100,7 @@ h6,
 .login-title,
 .data-card-title {
   font-family: 'Manrope', 'Work Sans', sans-serif !important;
-  color: #1F2937 !important;
+  color: #1E1B4B !important;
   font-weight: 700 !important;
 }
 
@@ -106,15 +113,15 @@ h6,
 
 .sham-app {
   min-height: 100vh;
-  background: #FAF9F5 !important;
+  background: #F6F7FC !important;
 }
 
 /* Table Header Styles */
 th,
 .table-header,
 .data-table th {
-  background-color: #F2EEE5 !important;
-  color: #1F2937 !important;
+  background-color: #F1F3F9 !important;
+  color: #1E1B4B !important;
   font-weight: 700 !important;
 }
 
@@ -124,12 +131,12 @@ th,
   min-height: 100vh;
 }
 
-/* REFERENCE MATCHING FOREST GREEN SIDEBAR & 3D GLASSMORPHISM THEME */
+/* REFERENCE MATCHING VIBRANT BLUE-PURPLE SIDEBAR & 3D GLASSMORPHISM THEME */
 .sidebar {
-  background: rgba(235, 240, 233, 0.88) !important;
+  background: rgba(241, 243, 249, 0.92) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border-right: 1px solid rgba(220, 229, 219, 0.8) !important;
+  border-right: 1px solid #E2E8F0 !important;
   position: fixed !important;
   top: 0 !important;
   bottom: 0 !important;
@@ -140,7 +147,7 @@ th,
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
-  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 4px 0 25px rgba(79, 70, 229, 0.05) !important;
   overflow: hidden !important;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -152,9 +159,9 @@ th,
   gap: 12px;
   font-weight: 800;
   font-size: 16px;
-  color: #1F2937;
+  color: #1E1B4B;
   padding: 8px 10px 20px;
-  border-bottom: 1px solid rgba(220, 229, 219, 0.8);
+  border-bottom: 1px solid #E2E8F0;
   margin-bottom: 16px;
 }
 
@@ -162,13 +169,13 @@ th,
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #123A22 0%, #1B4D2F 100%) !important;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
   color: #FFFFFF !important;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  box-shadow: 0 8px 20px rgba(18, 58, 34, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
   transition: transform 0.3s ease;
 }
@@ -185,7 +192,7 @@ th,
   border-radius: 18px;
   font-size: 14px;
   font-weight: 600;
-  color: #3B473A;
+  color: #475569;
   cursor: pointer;
   margin-bottom: 6px;
   border: none;
@@ -197,18 +204,18 @@ th,
 }
 
 .nav-item:hover {
-  background: rgba(220, 239, 215, 0.65) !important;
-  color: #123A22 !important;
+  background: rgba(238, 242, 255, 0.8) !important;
+  color: #4F46E5 !important;
   transform: translateX(4px) scale(1.01);
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #123A22 0%, #1B4D2F 100%) !important;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
   border-radius: 18px !important;
   border: none !important;
-  box-shadow: 0 10px 26px rgba(18, 58, 34, 0.32), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
   transform: scale(1.02);
 }
 
