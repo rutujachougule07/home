@@ -116,64 +116,7 @@ function QuickRoleSwitcher() {
     }
   };
 
-  return (
-    <div style={{ position: "fixed", bottom: 20, right: 20, zIndex: 9999, fontFamily: "sans-serif" }}>
-      {isOpen ? (
-        <div style={{
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid #e6d6b8",
-          borderRadius: 14,
-          padding: 12,
-          boxShadow: "0 8px 32px rgba(122, 90, 50, 0.15)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-          minWidth: 200,
-          maxHeight: "80vh",
-          overflowY: "auto"
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#7a5a32", borderBottom: "1px solid #e6d6b8", paddingBottom: 6, marginBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>QUICK NAVIGATION</span>
-            <button onClick={() => setIsOpen(false)} style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: "#7a5a32" }}>✕</button>
-          </div>
-          <button onClick={() => switchRole("superadmin")} style={btnStyle}>🔑 Super Admin</button>
-          <button onClick={() => switchRole("manager")} style={btnStyle}>💼 Manager</button>
-
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#b08a5b", marginTop: 4, borderTop: "1px solid #f6ede2", paddingTop: 4 }}>EMPLOYEES:</div>
-          {store.users.filter(u => u.role === "employee" && u.employeeId).map(emp => (
-            <button key={emp.id} onClick={() => switchRole("employee", emp)} style={btnStyle}>
-              🧑‍🔧 {emp.name} ({emp.employeeId})
-            </button>
-          ))}
-
-          <button onClick={() => switchRole("logout")} style={{ ...btnStyle, background: "#f4d6d2", color: "#c0473b", borderColor: "#f4d6d2", marginTop: 4 }}>↩️ Logout</button>
-        </div>
-      ) : (
-        <button onClick={() => setIsOpen(true)} style={{
-          background: "#4A43C4",
-          color: "#FFFFFF",
-          border: "none",
-          borderRadius: "50%",
-          width: 52,
-          height: 52,
-          fontSize: 22,
-          cursor: "pointer",
-          boxShadow: "0 8px 22px rgba(74, 67, 196, 0.4)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "transform 0.2s"
-        }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.08)"}
-          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-          title="Quick Navigation"
-        >
-          ⚡
-        </button>
-      )}
-    </div>
-  );
+  return null;
 }
 
 const btnStyle = {

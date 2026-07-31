@@ -72,37 +72,15 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
       <div className="dash">
         <div className={`sidebar-overlay ${open ? "open" : ""}`} onClick={() => setOpen(false)} />
         {/* FULL HEIGHT REFERENCE MATCHING SOFT LAVENDER SIDEBAR */}
-        <aside className={`sidebar ${open ? "open" : ""}`} style={{
-          background: "#EAE8F7",
-          borderRight: "1px solid #DFDBF2",
-          position: "fixed",
-          top: 0,
-          bottom: 0,
-          left: 0,
-          width: "260px",
-          zIndex: 10,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "20px 14px",
-          boxShadow: "2px 0 15px rgba(0, 0, 0, 0.03)"
-        }}>
+        <aside className={`sidebar ${open ? "open" : ""}`}>
           {/* Top Section: Brand + Navigation Links */}
           <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             {/* Brand Logo Header */}
-            <div className="sidebar-brand" style={{ borderBottom: "1px solid #DFDBF2", paddingBottom: "16px", marginBottom: "14px" }}>
-              <span className="logo-sq" style={{
-                background: "#4A43C4",
-                boxShadow: "0 6px 16px rgba(74, 67, 196, 0.3)",
-                borderRadius: "14px",
-                width: "42px",
-                height: "42px",
-                fontSize: "20px",
-                color: "#FFFFFF"
-              }}>⚡</span>
+            <div className="sidebar-brand">
+              <span className="logo-sq">⚡</span>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: "18px", fontWeight: 800, color: "#1F2937", letterSpacing: "-0.4px", lineHeight: 1.1 }}>ElectroHub</span>
-                <span style={{ fontSize: "12px", color: "#65637D", fontWeight: 600 }}>Electric Shop</span>
+                <span style={{ fontSize: "12px", color: "#556052", fontWeight: 600 }}>Electric Shop</span>
               </div>
             </div>
 
@@ -125,28 +103,15 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                     key={n.key}
                     className={`nav-item ${isActive ? "active" : ""}`}
                     onClick={() => { onNav(n.key); setOpen(false); }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      background: isActive ? "#4A43C4" : "transparent",
-                      color: isActive ? "#FFFFFF" : "#5E5B78",
-                      borderRadius: "16px",
-                      padding: "12px 16px",
-                      fontSize: "14px",
-                      fontWeight: isActive ? 700 : 600,
-                      boxShadow: isActive ? "0 8px 22px rgba(74, 67, 196, 0.35)" : "none",
-                      transition: "all 300ms ease"
-                    }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ fontSize: "17px", display: "inline-flex", alignItems: "center", color: isActive ? "#FFFFFF" : "#5E5B78" }}>{n.icon}</span>
-                      <span style={{ color: isActive ? "#FFFFFF" : "#5E5B78" }}>{n.label}</span>
+                      <span>{n.icon}</span>
+                      <span>{n.label}</span>
                     </div>
                     {badgeCount > 0 && (
                       <span style={{
-                        background: isActive ? "rgba(255, 255, 255, 0.25)" : "#DFDBF2",
-                        color: isActive ? "#FFFFFF" : "#4A43C4",
+                        background: isActive ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
+                        color: isActive ? "#FFFFFF" : "#123A22",
                         fontSize: 11,
                         fontWeight: 800,
                         padding: "2px 8px",
@@ -162,7 +127,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
           </div>
 
           {/* Bottom Section: Pinned Logout Button */}
-          <div style={{ paddingTop: "14px", borderTop: "1px solid #DFDBF2", marginTop: "10px" }}>
+          <div style={{ paddingTop: "14px", borderTop: "1px solid #DCE5DB", marginTop: "10px" }}>
             <button
               type="button"
               className="btn btn-logout"
@@ -174,18 +139,18 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
                 gap: "10px",
                 padding: "12px 16px",
                 width: "100%",
-                background: "#4A43C4",
+                background: "#123A22",
                 border: "none",
                 borderRadius: "16px",
                 color: "#FFFFFF",
                 fontWeight: 700,
                 fontSize: "14px",
                 cursor: "pointer",
-                boxShadow: "0 8px 22px rgba(74, 67, 196, 0.35)",
+                boxShadow: "0 8px 22px rgba(18, 58, 34, 0.25)",
                 transition: "all 300ms ease"
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = "#3B34AF"; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = "#4A43C4"; }}
+              onMouseOver={(e) => { e.currentTarget.style.background = "#1B4D2F"; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = "#123A22"; }}
             >
               <span style={{ fontSize: "16px", color: "#FFFFFF" }}>🚪</span>
               <span style={{ color: "#FFFFFF", fontWeight: 700 }}>Logout</span>
@@ -193,7 +158,7 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
           </div>
         </aside>
 
-        <div className="main" style={{ marginLeft: "260px" }}>
+        <div className="main" style={{ marginLeft: "260px", background: "#FAF9F5", minHeight: "100vh" }}>
           <div className="content" style={{ padding: "24px 32px" }}>{children}</div>
         </div>
       </div>
@@ -449,14 +414,61 @@ export function Modal({ title, onClose, children, className }: { title: string; 
     };
   }, []);
 
+  const getMaxWidth = () => {
+    if (className?.includes("modal-lg")) return "880px";
+    if (className?.includes("modal-report-preview")) return "1200px";
+    return "680px";
+  };
+
   return createPortal(
-    <div className="modal-backdrop" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div className={`modal ${className ?? ""}`} onClick={(e) => e.stopPropagation()} style={{ background: "#FAF8F2", color: "#1F2937", borderRadius: "24px", padding: "28px", maxWidth: "680px", width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 25px 60px rgba(0,0,0,0.35)", border: "1px solid #E2EBE0", zIndex: 100000, position: "relative" }}>
-        <div className="modal-head" style={{ borderBottom: "1px solid #E2EBE0", paddingBottom: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div
+      className="modal-backdrop"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: "100vw",
+        height: "100vh",
+        zIndex: 999999,
+        background: "rgba(15, 23, 42, 0.65)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: "20px 16px",
+        overflowY: "auto"
+      }}
+    >
+      <div
+        className={`modal ${className ?? ""}`}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#FFFFFF",
+          color: "#1F2937",
+          borderRadius: "24px",
+          padding: "24px",
+          maxWidth: getMaxWidth(),
+          width: "100%",
+          maxHeight: "calc(100vh - 40px)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 25px 60px rgba(0,0,0,0.35)",
+          border: "1px solid #E2EBE0",
+          zIndex: 1000000,
+          position: "relative",
+          margin: "auto 0"
+        }}
+      >
+        <div className="modal-head" style={{ borderBottom: "1px solid #E2EBE0", paddingBottom: "14px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
           <h3 className="modal-title" style={{ fontSize: "20px", fontWeight: 800, color: "#1F2937", margin: 0 }}>{title}</h3>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} style={{ background: "#EEF4EC", border: "1px solid #E2EBE0", borderRadius: "50%", width: "32px", height: "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", color: "#1F2937", fontWeight: 700 }}>✕</button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} style={{ background: "#F2EEE5", border: "1px solid #DCE5DB", borderRadius: "50%", width: "34px", height: "34px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", color: "#1F2937", fontWeight: 700 }}>✕</button>
         </div>
-        <div style={{ color: "#1F2937" }}>
+        <div className="modal-body-scroll" style={{ color: "#1F2937", flex: "1 1 auto", overflowY: "auto", minHeight: 0, paddingRight: "4px" }}>
           {children}
         </div>
       </div>

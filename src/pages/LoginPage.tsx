@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useStore } from "../app/store";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 
 export function LoginPage() {
   const { login } = useStore();
@@ -27,16 +27,18 @@ export function LoginPage() {
 
   return (
     <div className="sham-app">
-      <div className="login-wrap">
-        <form className="login-card" onSubmit={submit}>
-          <div className="login-logo">🏠</div>
-          <h1 className="login-title">Smart Home Appliances</h1>
-          <p className="login-sub">Management System — Sign in to continue</p>
+      <div className="login-wrap" style={{ background: "#FAF8F3" }}>
+        <form className="login-card" onSubmit={submit} style={{ background: "#FFFFFF", border: "1px solid #EFECE4", borderRadius: "24px", boxShadow: "0 20px 50px rgba(18, 58, 34, 0.08)" }}>
+          <div className="login-logo" style={{ background: "#123A22", color: "#FFFFFF", boxShadow: "0 8px 20px rgba(18, 58, 34, 0.25)", borderRadius: "18px" }}>
+            <ShieldCheck size={32} color="#FFFFFF" />
+          </div>
+          <h1 className="login-title" style={{ color: "#1F2937", fontWeight: 800, fontSize: "24px" }}>ElectroHub</h1>
+          <p className="login-sub" style={{ color: "#556052", fontSize: "14px", marginTop: "4px" }}>Smart Management System — Sign in to continue</p>
 
           {error && <div className="alert-error">{error}</div>}
 
           <div className="form-group">
-            <label className="form-label">Username</label>
+            <label className="form-label" style={{ color: "#1F2937", fontWeight: 700 }}>Username</label>
             <input
               className="form-input"
               value={username}
@@ -47,7 +49,7 @@ export function LoginPage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label" style={{ color: "#1F2937", fontWeight: 700 }}>Password</label>
             <div className="password-wrap">
               <input
                 className="form-input"
@@ -63,7 +65,7 @@ export function LoginPage() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 6 }}>
+          <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 12, background: "#123A22", color: "#FFFFFF", borderRadius: "999px", padding: "14px", fontWeight: 700, border: "none", boxShadow: "0 8px 22px rgba(18, 58, 34, 0.25)" }}>
             Sign In
           </button>
         </form>

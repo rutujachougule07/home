@@ -56,10 +56,10 @@ function Overview() {
   const totalTasks = mine.length || 1;
 
   const chartData = [
-    { label: "Total", val: mine.length },
-    { label: "Pending", val: pendingCount },
-    { label: "In Prog", val: inProgressCount },
-    { label: "Done", val: completedCount },
+    { label: "Total", value: mine.length },
+    { label: "Pending", value: pendingCount },
+    { label: "In Prog", value: inProgressCount },
+    { label: "Done", value: completedCount },
   ];
 
   // Pie Chart calculations
@@ -1020,7 +1020,7 @@ function ProductsSection() {
                 min={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setBookingExpiryDate(e.target.value)}
               />
-              
+
               <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
                 💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
               </span>
@@ -1493,7 +1493,7 @@ export function EmployeeIncentiveSection() {
                 min={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setBookingExpiryDate(e.target.value)}
               />
-              
+
               <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
                 💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
               </span>
@@ -2097,7 +2097,7 @@ export function EmployeeCreateOrderModal({ onClose }: { onClose: () => void }) {
               min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setBookingExpiryDate(e.target.value)}
             />
-            
+
             <span style={{ fontSize: "11px", color: "#7e22ce", lineHeight: "1.3" }}>
               💡 If booking is not fulfilled by this date, an expiration alert will be sent to Admin.
             </span>

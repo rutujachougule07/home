@@ -3276,15 +3276,15 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
           <button onClick={() => setActiveTab("employee")} style={{
             padding: "12px 24px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "15px",
             borderRadius: "20px",
-            background: activeTab === "employee" ? "#4845D2" : "#FFFFFF",
-            color: activeTab === "employee" ? "#FFFFFF" : "#3E3A56",
+            background: activeTab === "employee" ? "#123A22" : "#FFFFFF",
+            color: activeTab === "employee" ? "#FFFFFF" : "#1F2937",
             transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "employee" ? "0 8px 25px rgba(72, 69, 210, 0.3)" : "0 2px 8px rgba(0,0,0,0.04)"
+            boxShadow: activeTab === "employee" ? "0 8px 25px rgba(18, 58, 34, 0.25)" : "0 2px 8px rgba(0,0,0,0.04)"
           }}>
-            <span style={{ color: activeTab === "employee" ? "#FFFFFF" : "#3E3A56" }}>👤 Employees</span>
+            <span style={{ color: activeTab === "employee" ? "#FFFFFF" : "#1F2937" }}>👤 Employees</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3293,23 +3293,23 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               height: "22px",
               borderRadius: "50%",
               fontSize: "12px",
-              background: activeTab === "employee" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
-              color: activeTab === "employee" ? "#FFFFFF" : "#4845D2",
+              background: activeTab === "employee" ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
+              color: activeTab === "employee" ? "#FFFFFF" : "#123A22",
               fontWeight: 800,
             }}>{employees.length}</span>
           </button>
           <button onClick={() => setActiveTab("manager")} style={{
             padding: "12px 24px", border: "none", cursor: "pointer", fontWeight: 700, fontSize: "15px",
             borderRadius: "20px",
-            background: activeTab === "manager" ? "#4845D2" : "#FFFFFF",
-            color: activeTab === "manager" ? "#FFFFFF" : "#3E3A56",
+            background: activeTab === "manager" ? "#123A22" : "#FFFFFF",
+            color: activeTab === "manager" ? "#FFFFFF" : "#1F2937",
             transition: "all 300ms ease",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            boxShadow: activeTab === "manager" ? "0 8px 25px rgba(72, 69, 210, 0.3)" : "0 2px 8px rgba(0,0,0,0.04)"
+            boxShadow: activeTab === "manager" ? "0 8px 25px rgba(18, 58, 34, 0.25)" : "0 2px 8px rgba(0,0,0,0.04)"
           }}>
-            <span style={{ color: activeTab === "manager" ? "#FFFFFF" : "#3E3A56" }}>👔 Managers</span>
+            <span style={{ color: activeTab === "manager" ? "#FFFFFF" : "#1F2937" }}>👔 Managers</span>
             <span style={{
               display: "inline-flex",
               alignItems: "center",
@@ -3318,8 +3318,8 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
               height: "22px",
               borderRadius: "50%",
               fontSize: "12px",
-              background: activeTab === "manager" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
-              color: activeTab === "manager" ? "#FFFFFF" : "#4845D2",
+              background: activeTab === "manager" ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
+              color: activeTab === "manager" ? "#FFFFFF" : "#123A22",
               fontWeight: 800,
             }}>{managers.length}</span>
           </button>
@@ -3340,9 +3340,9 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
             {!readOnly && (
               <button onClick={() => setShowAddEmployee(true)} className="btn btn-primary btn-sm" style={{
                 padding: "10px 22px", borderRadius: "999px", border: "none",
-                background: "#4845D2", color: "#FFFFFF",
+                background: "#123A22", color: "#FFFFFF",
                 cursor: "pointer", fontSize: "13px", fontWeight: 700,
-                boxShadow: "0 8px 20px rgba(72, 69, 210, 0.3)",
+                boxShadow: "0 8px 20px rgba(18, 58, 34, 0.25)",
                 transition: "all 300ms ease",
               }}>+ Add Employee</button>
             )}
@@ -3392,9 +3392,9 @@ export function TasksAssignSection({ readOnly = false }: { readOnly?: boolean } 
             {!readOnly && (
               <button onClick={() => setShowAddManager(true)} className="btn btn-primary btn-sm" style={{
                 padding: "10px 22px", borderRadius: "999px", border: "none",
-                background: "#4845D2", color: "#FFFFFF",
+                background: "#123A22", color: "#FFFFFF",
                 cursor: "pointer", fontSize: "13px", fontWeight: 700,
-                boxShadow: "0 8px 20px rgba(72, 69, 210, 0.3)",
+                boxShadow: "0 8px 20px rgba(18, 58, 34, 0.25)",
                 transition: "all 300ms ease",
               }}>+ Add Manager</button>
             )}
@@ -5556,11 +5556,11 @@ export function SuperAdminGodownSection() {
               <tr key={p.id}>
                 <td>
                   {p.image ? (
-                    <div style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", border: "1px solid #DFDBF2", background: "#EFF1FD" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", border: "1px solid #EAE2D5", background: "#F5EFE6" }}>
                       <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                   ) : (
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "#EFF1FD", border: "1px solid #DFDBF2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "#F5EFE6", border: "1px solid #EAE2D5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
                       📦
                     </div>
                   )}
@@ -5612,7 +5612,7 @@ export function SuperAdminGodownSection() {
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "#F0EEF9", padding: "12px", borderRadius: "24px", border: "1px solid #E4E0F4" }}>
+      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "12px", marginTop: "20px", marginBottom: "24px", background: "#FAF9F5", padding: "12px", borderRadius: "24px", border: "1px solid #DCE5DB" }}>
         <button
           onClick={() => setActiveTab("Godown 1")}
           style={{
@@ -5620,9 +5620,9 @@ export function SuperAdminGodownSection() {
             maxWidth: "250px",
             padding: "12px 24px",
             borderRadius: "18px",
-            border: activeTab === "Godown 1" ? "none" : "1px solid #ECE7F6",
-            background: activeTab === "Godown 1" ? "#4A43C4" : "#FFFFFF",
-            color: activeTab === "Godown 1" ? "#FFFFFF" : "#3E3A56",
+            border: activeTab === "Godown 1" ? "none" : "1px solid #DCE5DB",
+            background: activeTab === "Godown 1" ? "#123A22" : "#FFFFFF",
+            color: activeTab === "Godown 1" ? "#FFFFFF" : "#1F2937",
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
@@ -5631,16 +5631,16 @@ export function SuperAdminGodownSection() {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: activeTab === "Godown 1" ? "0 6px 18px rgba(74, 67, 196, 0.35)" : "0 2px 8px rgba(0,0,0,0.03)"
+            boxShadow: activeTab === "Godown 1" ? "0 6px 18px rgba(18, 58, 34, 0.25)" : "0 2px 8px rgba(0,0,0,0.03)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 1") e.currentTarget.style.transform = "none"; }}
         >
           <span style={{ fontSize: "18px" }}>🏫</span>
-          <span style={{ color: activeTab === "Godown 1" ? "#FFFFFF" : "#3E3A56" }}>Godown 1</span>
+          <span style={{ color: activeTab === "Godown 1" ? "#FFFFFF" : "#1F2937" }}>Godown 1</span>
           <span style={{
-            background: activeTab === "Godown 1" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
-            color: activeTab === "Godown 1" ? "#FFFFFF" : "#4A43C4",
+            background: activeTab === "Godown 1" ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
+            color: activeTab === "Godown 1" ? "#FFFFFF" : "#123A22",
             width: "22px",
             height: "22px",
             borderRadius: "50%",
@@ -5661,9 +5661,9 @@ export function SuperAdminGodownSection() {
             maxWidth: "250px",
             padding: "12px 24px",
             borderRadius: "18px",
-            border: activeTab === "Godown 2" ? "none" : "1px solid #ECE7F6",
-            background: activeTab === "Godown 2" ? "#4A43C4" : "#FFFFFF",
-            color: activeTab === "Godown 2" ? "#FFFFFF" : "#3E3A56",
+            border: activeTab === "Godown 2" ? "none" : "1px solid #DCE5DB",
+            background: activeTab === "Godown 2" ? "#123A22" : "#FFFFFF",
+            color: activeTab === "Godown 2" ? "#FFFFFF" : "#1F2937",
             fontSize: "15px",
             fontWeight: 700,
             cursor: "pointer",
@@ -5672,16 +5672,16 @@ export function SuperAdminGodownSection() {
             alignItems: "center",
             justifyContent: "center",
             gap: "10px",
-            boxShadow: activeTab === "Godown 2" ? "0 6px 18px rgba(74, 67, 196, 0.35)" : "0 2px 8px rgba(0,0,0,0.03)"
+            boxShadow: activeTab === "Godown 2" ? "0 6px 18px rgba(18, 58, 34, 0.25)" : "0 2px 8px rgba(0,0,0,0.03)"
           }}
           onMouseOver={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={(e) => { if (activeTab !== "Godown 2") e.currentTarget.style.transform = "none"; }}
         >
           <span style={{ fontSize: "18px" }}>🏫</span>
-          <span style={{ color: activeTab === "Godown 2" ? "#FFFFFF" : "#3E3A56" }}>Godown 2</span>
+          <span style={{ color: activeTab === "Godown 2" ? "#FFFFFF" : "#1F2937" }}>Godown 2</span>
           <span style={{
-            background: activeTab === "Godown 2" ? "rgba(255, 255, 255, 0.25)" : "#EAE8F7",
-            color: activeTab === "Godown 2" ? "#FFFFFF" : "#4A43C4",
+            background: activeTab === "Godown 2" ? "rgba(255, 255, 255, 0.25)" : "#DCEFD7",
+            color: activeTab === "Godown 2" ? "#FFFFFF" : "#123A22",
             width: "22px",
             height: "22px",
             borderRadius: "50%",
@@ -5697,19 +5697,19 @@ export function SuperAdminGodownSection() {
       </div>
 
       <div className="panel" style={{ margin: 0 }}>
-        <div className="panel-head">
-          <div>
-            <h3 className="panel-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "20px", width: "100%", flexWrap: "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "nowrap" }}>
+            <h3 className="panel-title" style={{ display: "flex", alignItems: "center", gap: 6, margin: 0, fontSize: "16px", fontWeight: 800, whiteSpace: "nowrap" }}>
               <span>🏭 {activeTab} Inventory</span>
-              <span style={{ fontSize: 13, background: "#E0DCF8", color: "#4A43C4", padding: "4px 14px", borderRadius: 12, fontWeight: 700 }}>
-                {activeProducts.length} Products | Total Qty: {activeTotalQty} | Value: ₹{activeTotalCost.toLocaleString()}
-              </span>
             </h3>
+            <span style={{ fontSize: 12, background: "#F2EEE5", color: "#123A22", padding: "4px 12px", borderRadius: "10px", fontWeight: 700, whiteSpace: "nowrap" }}>
+              {activeProducts.length} Products | Total Qty: {activeTotalQty} | Value: ₹{activeTotalCost.toLocaleString()}
+            </span>
           </div>
-          <div className="actions-row" style={{ alignItems: "center", gap: 10 }}>
-            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #DFDBF2", borderRadius: "12px", padding: "8px 16px", fontWeight: 600, color: "#3E3A56", boxShadow: "0 2px 6px rgba(0,0,0,0.03)" }} onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
-            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #DFDBF2", borderRadius: "12px", padding: "8px 16px", fontWeight: 600, color: "#3E3A56", boxShadow: "0 2px 6px rgba(0,0,0,0.03)" }} onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
-            <button className="btn btn-primary btn-sm" style={{ background: "#4A43C4", color: "#FFFFFF", borderRadius: "14px", padding: "10px 22px", fontWeight: 700, border: "none", boxShadow: "0 6px 18px rgba(74, 67, 196, 0.35)" }} onClick={() => setShowAdd(true)}>+ Add Product</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, flexWrap: "nowrap" }}>
+            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EFECE4", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1F2937", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
+            <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EFECE4", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1F2937", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
+            <button className="btn btn-primary btn-sm" style={{ background: "#123A22", color: "#FFFFFF", borderRadius: "999px", padding: "8px 20px", fontWeight: 700, border: "none", boxShadow: "0 6px 18px rgba(18, 58, 34, 0.25)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>
         </div>
         {renderTable(activeProducts)}
