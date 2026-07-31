@@ -186,36 +186,26 @@ th,
   transform: scale(1.08) rotate(-4deg);
 }
 
-/* ===== USER CUSTOM SIDEBAR ITEM STYLES ===== */
-/* Sidebar Item */
+/* ===== USER CUSTOM SIDEBAR ITEM STYLES MATCHING IMAGE 2 ===== */
 .sidebar-item,
 .nav-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  width: 100%;
-  height: 42px;
-
-  padding: 0 14px;
-  margin-bottom: 4px;
-
-  border-radius: 16px;
-  cursor: pointer;
-
-  color: #475569;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  background: transparent;
-  background: transparent;
-  text-align: left;
-
-  transition:
-    background .35s ease,
-    transform .35s ease,
-    box-shadow .35s ease,
-    color .35s ease;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  width: 100% !important;
+  height: 52px !important;
+  padding: 0 18px !important;
+  margin-bottom: 10px !important;
+  border-radius: 999px !important;
+  cursor: pointer !important;
+  color: #475569 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  background: transparent !important;
+  text-align: left !important;
+  transition: background .35s ease, transform .35s ease, box-shadow .35s ease, color .35s ease !important;
+  box-sizing: border-box !important;
 }
 
 /* Hover */
@@ -223,7 +213,7 @@ th,
 .nav-item:hover {
   background: #F3F4FF !important;
   color: #6A2EF4 !important;
-  transform: translateX(5px);
+  transform: translateX(5px) !important;
 }
 
 /* Active Button matching Image 2 */
@@ -244,12 +234,12 @@ th,
 }
 
 /* Icon */
+.sidebar-item .nav-icon,
+.nav-item .nav-icon,
 .sidebar-item i,
 .sidebar-item svg,
 .nav-item i,
-.nav-item svg,
-.sidebar-item span:first-child,
-.nav-item span:first-child {
+.nav-item svg {
   width: 22px;
   height: 22px;
   display: inline-flex;
@@ -257,22 +247,23 @@ th,
   justify-content: center;
   color: inherit;
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 /* Text */
-.sidebar-item span,
-.nav-item span {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: .2px;
+.sidebar-item .nav-label,
+.nav-item .nav-label {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: .2px !important;
+  color: inherit !important;
+  flex: 1;
 }
 
-.sidebar-item.active span,
-.sidebar-item.active svg,
-.sidebar-item.active i,
-.nav-item.active span,
-.nav-item.active svg,
-.nav-item.active i {
+.sidebar-item.active .nav-label,
+.sidebar-item.active .nav-icon,
+.nav-item.active .nav-label,
+.nav-item.active .nav-icon {
   color: #FFFFFF !important;
 }
 
