@@ -1,5 +1,6 @@
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useStore, Product, User, Order, Lead, Task } from "../app/store";
 import { UnifiedEmployeeCard } from "../components/UnifiedEmployeeCard";
 import { ProductBatchDetailsModal } from "../components/ProductBatchDetailsModal";
@@ -34,11 +35,12 @@ export function DownloadDropdown({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [dropPos, setDropPos] = useState({ top: 0, right: 0 });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (btnRef.current && !btnRef.current.closest('[data-download-dropdown]')?.contains(event.target as Node)) {
         setOpen(false);
       }
     };
@@ -46,11 +48,23 @@ export function DownloadDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleToggle = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setDropPos({
+        top: rect.bottom + window.scrollY + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setOpen((prev) => !prev);
+  };
+
   return (
-    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+    <div data-download-dropdown style={{ position: "relative", display: "inline-block" }}>
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={handleToggle}
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -72,22 +86,25 @@ export function DownloadDropdown({
         <span style={{ fontSize: "10px", opacity: 0.75 }}>{open ? "▲" : "▼"}</span>
       </button>
 
-      {open && (
-        <div style={{
-          position: "absolute",
-          top: "calc(100% + 8px)",
-          right: 0,
-          background: "#ffffff",
-          border: "1px solid rgba(109, 74, 255, 0.12)",
-          borderRadius: "16px",
-          boxShadow: "0 12px 30px rgba(109, 74, 255, 0.18)",
-          padding: "8px",
-          minWidth: "170px",
-          zIndex: 100,
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px"
-        }}>
+      {open && createPortal(
+        <div
+          data-download-dropdown
+          style={{
+            position: "absolute",
+            top: dropPos.top,
+            right: dropPos.right,
+            background: "#ffffff",
+            border: "1px solid rgba(109, 74, 255, 0.12)",
+            borderRadius: "16px",
+            boxShadow: "0 12px 30px rgba(109, 74, 255, 0.18)",
+            padding: "8px",
+            minWidth: "170px",
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px"
+          }}
+        >
           <button
             type="button"
             onClick={() => { setOpen(false); onPDF(); }}
@@ -101,14 +118,14 @@ export function DownloadDropdown({
               borderRadius: "8px",
               fontSize: "13px",
               fontWeight: 600,
-              color: "var(--brown-dark)",
+              color: "#1E1B4B",
               cursor: "pointer",
               textAlign: "left",
               width: "100%",
               transition: "background 0.15s ease"
             }}
-            onMouseOver={(e) => e.currentTarget.style.background = "var(--biscuit-light)"}
-            onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+            onMouseOver={(e) => (e.currentTarget.style.background = "#F3F0FF")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <span>📄</span>
             <span>Download PDF</span>
@@ -126,19 +143,20 @@ export function DownloadDropdown({
               borderRadius: "8px",
               fontSize: "13px",
               fontWeight: 600,
-              color: "var(--brown-dark)",
+              color: "#1E1B4B",
               cursor: "pointer",
               textAlign: "left",
               width: "100%",
               transition: "background 0.15s ease"
             }}
-            onMouseOver={(e) => e.currentTarget.style.background = "var(--biscuit-light)"}
-            onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+            onMouseOver={(e) => (e.currentTarget.style.background = "#F3F0FF")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <span>📊</span>
             <span>Export CSV</span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -1062,7 +1080,26 @@ function ProductsSection() {
           </div>
         </div>
 
-        <div className="header-buttons">
+        <div className="header-buttons" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setShowAdd(true)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "9px 18px",
+              borderRadius: "999px",
+              fontWeight: 700,
+              fontSize: "14px",
+              cursor: "pointer"
+            }}
+          >
+            <Plus size={18} />
+            <span>Add Product</span>
+          </button>
+
           <DownloadDropdown
             label="Download"
             onPDF={() => {
@@ -1152,9 +1189,12 @@ function ProductsSection() {
 
 
       {/* Floating Button */}
-      <div className="floating-btn" title="Add Product" onClick={() => setShowAdd(true)}>
-        ⚡
-      </div>
+      {createPortal(
+        <div className="floating-btn" title="Add Product" onClick={() => setShowAdd(true)}>
+          ⚡
+        </div>,
+        document.body
+      )}
 
       <div className="panel" style={{ marginTop: "24px" }}>
         <div className="panel-head">
@@ -1712,38 +1752,38 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
 
   return (
     <Modal title={modalTitle} onClose={onClose} className="modal-lg">
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "12px", marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "10px", marginBottom: 8 }}>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>PRODUCT NAME</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>PRODUCT NAME</label>
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-            <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>📦</span>
+            <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📦</span>
             <input
               className="form-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Wireless Headset X200"
-              style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+              style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
             />
           </div>
         </div>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>SKU</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>SKU</label>
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-            <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🏷️</span>
+            <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>🏷️</span>
             <input
               className="form-input"
               value={sku}
               onChange={(e) => setSku(e.target.value)}
               placeholder="WH-X200-BLK"
-              style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+              style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
             />
           </div>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px", marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginBottom: 8 }}>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>BRAND</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>BRAND</label>
           {brandOptions && !isCustomBrand ? (
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <CustomSelect
@@ -1787,7 +1827,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
           )}
         </div>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>WARRANTY</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>WARRANTY</label>
           <input
             className="form-input"
             value={warranty}
@@ -1797,7 +1837,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
           />
         </div>
         <div className="form-group">
-          <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>CATEGORY</label>
+          <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>CATEGORY</label>
           {categoryOptions && !isCustomCategory ? (
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <CustomSelect
@@ -1845,17 +1885,17 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
 
 
       {isIncentiveMode ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 8 }}>
 
           <div className="form-group">
-            <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>ASSIGN EMPLOYEE</label>
+            <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>ASSIGN EMPLOYEE</label>
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-              <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>👤</span>
+              <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>👤</span>
               <select
                 className="form-input"
                 value={assignedEmployeeId}
                 onChange={(e) => setAssignedEmployeeId(e.target.value)}
-                style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600, appearance: "auto" }}
+                style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600, appearance: "auto" }}
               >
                 <option value="">-- Select Employee --</option>
                 <option value="all">All Employees</option>
@@ -1868,11 +1908,11 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
         </div>
       ) : (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 8 }}>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>QUANTITY</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>QUANTITY</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>🧮</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>🧮</span>
                 <input
                   type="number"
                   className="form-input"
@@ -1888,14 +1928,14 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                     });
                   }}
                   placeholder="0"
-                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                  style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>UNIT COST (₹)</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>UNIT COST (₹)</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, fontWeight: 700 }}>₹</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, fontWeight: 700 }}>₹</span>
                 <input
                   type="number"
                   className="form-input"
@@ -1906,14 +1946,14 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                     setTotalCost(parseFloat((val * qty).toFixed(2)));
                   }}
                   placeholder="0.00"
-                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                  style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>TOTAL COST (₹)</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>TOTAL COST (₹)</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>💵</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>💵</span>
                 <input
                   type="number"
                   className="form-input"
@@ -1925,22 +1965,22 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
                     setCost(calculatedCost);
                   }}
                   placeholder="0.00"
-                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                  style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 8 }}>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>LOCATION</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>LOCATION</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📍</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📍</span>
                 <select
                   className="form-input"
                   value={location}
                   onChange={(e) => setLocation(e.target.value as any)}
-                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600, appearance: "auto" }}
+                  style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600, appearance: "auto" }}
                 >
                   {!isGodownOnly && <option value="Shop">In Stock</option>}
                   <option value="Godown 1">Godown 1</option>
@@ -1950,28 +1990,28 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>SUPPLIER</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>SUPPLIER</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>👤</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>👤</span>
                 <input
                   className="form-input"
                   value={supplier}
                   onChange={(e) => setSupplier(e.target.value)}
                   placeholder="Supplier Name"
-                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                  style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ fontSize: 11, marginBottom: 4, color: "#2563EB", fontWeight: 800 }}>STOCK DATE</label>
+              <label className="form-label" style={{ fontSize: 11, marginBottom: 3, color: "#2563EB", fontWeight: 800 }}>STOCK DATE</label>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#F0F6FE", border: "1px solid #DBEAFE", borderRadius: 12, padding: "2px 10px" }}>
-                <span style={{ width: 30, height: 30, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📅</span>
+                <span style={{ width: 28, height: 28, borderRadius: 8, background: "#EFF6FF", border: "1px solid #BFDBFE", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0 }}>📅</span>
                 <input
                   type="date"
                   className="form-input"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  style={{ border: "none", background: "transparent", padding: "8px 0", color: "#1E293B", fontWeight: 600 }}
+                  style={{ border: "none", background: "transparent", padding: "6px 8px", color: "#1E293B", fontWeight: 600 }}
                 />
               </div>
             </div>
@@ -1979,46 +2019,8 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
         </>
       )}
 
-      <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 14 }}>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={save}
-          style={{
-            background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
-            border: "none",
-            color: "#ffffff",
-            borderRadius: 12,
-            padding: "10px 24px",
-            fontWeight: 700,
-            fontSize: 14,
-            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
-            cursor: "pointer"
-          }}
-        >
-          💾 Save Entry
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={onClose}
-          style={{
-            background: "#EFF6FF",
-            border: "1px solid #BFDBFE",
-            color: "#2563EB",
-            borderRadius: 12,
-            padding: "10px 24px",
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: "pointer"
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-
       {serialNumbers.length > 0 && (
-        <div style={{ marginTop: 18, borderTop: "1.5px dashed var(--border)", paddingTop: 14 }}>
+        <div style={{ marginTop: 10, borderTop: "1.5px dashed var(--border)", paddingTop: 10 }}>
           {/* Collapsible header */}
           <button
             type="button"
@@ -2026,13 +2028,13 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
             style={{
               width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
               background: showSerials ? "linear-gradient(135deg, #fdf6ec, #f9ede0)" : "#f8f9fa",
-              border: "1.5px solid var(--border)", borderRadius: 10, padding: "10px 14px",
-              cursor: "pointer", transition: "all 0.2s", marginBottom: showSerials ? 12 : 0
+              border: "1.5px solid var(--border)", borderRadius: 10, padding: "8px 12px",
+              cursor: "pointer", transition: "all 0.2s", marginBottom: showSerials ? 8 : 0
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>📦</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--brown-dark)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              <span style={{ fontSize: 15 }}>📦</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--brown-dark)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 Serial / Batch Numbers
               </span>
               <span style={{
@@ -2051,7 +2053,7 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
               )}
             </div>
             <span style={{
-              fontSize: 18, color: "var(--brown)", transform: showSerials ? "rotate(180deg)" : "rotate(0deg)",
+              fontSize: 16, color: "var(--brown)", transform: showSerials ? "rotate(180deg)" : "rotate(0deg)",
               transition: "transform 0.2s", lineHeight: 1
             }}>▾</span>
           </button>
@@ -2098,6 +2100,44 @@ export function ProductForm({ title, initial, onSave, onClose, isIncentiveMode, 
           )}
         </div>
       )}
+
+      <div className="modal-actions" style={{ justifyContent: "flex-start", gap: 12, marginTop: 12 }}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={save}
+          style={{
+            background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)",
+            border: "none",
+            color: "#ffffff",
+            borderRadius: 12,
+            padding: "10px 24px",
+            fontWeight: 700,
+            fontSize: 14,
+            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
+            cursor: "pointer"
+          }}
+        >
+          💾 Save Entry
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={onClose}
+          style={{
+            background: "#EFF6FF",
+            border: "1px solid #BFDBFE",
+            color: "#2563EB",
+            borderRadius: 12,
+            padding: "10px 24px",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
+          Cancel
+        </button>
+      </div>
 
 
       {scanningIndex !== null && (
@@ -5010,180 +5050,145 @@ export function SuperAdminIncentiveSection() {
 
   return (
     <>
-      <div className="main-content">
-        {/* Hero Section Header Bar with Download Dropdown on Right */}
-        <div className="hero">
-          <div className="hero-left">
-            <div className="hero-icon">💰</div>
-            <div className="hero-text">
-              <h1 style={{ display: "flex", alignItems: "center", gap: "12px", margin: 0 }}>
-                Products Eligible for Incentive
-                <span className="badge">&gt; 90 Days</span>
-              </h1>
-            </div>
-          </div>
-
-          <div className="hero-right">
-            <DownloadDropdown
-              onPDF={() => {
-                const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
-                const rows = groupedOldProducts.map((p, index) => {
-                  const qty = p.qty ?? p.stock ?? 0;
-                  const unitIncentive = p.incentive || 0;
-                  const totalIncentive = qty * unitIncentive;
-                  return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
-                });
-                openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "pdf");
-              }}
-              onCSV={() => {
-                const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
-                const rows = groupedOldProducts.map((p, index) => {
-                  const qty = p.qty ?? p.stock ?? 0;
-                  const unitIncentive = p.incentive || 0;
-                  const totalIncentive = qty * unitIncentive;
-                  return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
-                });
-                openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "csv");
-              }}
-            />
-          </div>
-        </div>
-
-        {incentiveSuccessMsg && (
-          <div style={{ background: "#DCFCE7", color: "#15803D", border: "1px solid #86EFAC", padding: "12px 16px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, marginTop: "16px", marginBottom: "16px" }}>
-            {incentiveSuccessMsg}
-          </div>
-        )}
-
-
-        {/* Table Body / Rows */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
         <div>
-          {paginatedProducts.map((p) => {
-            const hasUnseen = p.batches.some(b => !b.incentiveSeen);
-            const assignedEmp = p.assignedEmployeeId || p.batches.find(b => b.assignedEmployeeId)?.assignedEmployeeId || "";
-
-            return (
-              <div className="product-card-premium" key={p.id}>
-                {/* 1. 3D CYLINDRICAL PEDESTAL STAND */}
-                <div className="product-img-platform">
-                  {p.image ? (
-                    <img src={p.image} alt={p.name} />
-                  ) : (
-                    <span style={{ fontSize: 44, position: "relative", zIndex: 2 }}>📦</span>
-                  )}
-                </div>
-
-                {/* 2. PRODUCT INFO */}
-                <div className="product-name-premium">
-                  <h2>{p.name.toLowerCase()}</h2>
-                  <p>Brand: {p.brand || "—"}</p>
-                </div>
-
-                {/* 3. SKU */}
-                <div className="sku-premium">
-                  {p.sku || "—"}
-                </div>
-
-                {/* 4. LOCATION CAPSULE */}
-                <div>
-                  <span className="location-chip-premium">📍 🏪 {p.location || "Shop"}</span>
-                </div>
-
-                {/* 5. QUANTITY RING GAUGE (CLICKABLE FOR BATCH DETAILS) */}
-                <div>
-                  <div
-                    className="qty-circle-premium"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setViewingBatches(p);
-                      const unseenBatches = (p.batches || []).filter(b => !b.incentiveSeen);
-                      if (unseenBatches.length > 0) {
-                        setState((s: any) => ({
-                          ...s,
-                          products: s.products.map((prod: any) =>
-                            unseenBatches.some(ub => ub.id === prod.id)
-                              ? { ...prod, incentiveSeen: true }
-                              : prod
-                          )
-                        }));
-                      }
-                    }}
-                    title="Click to view batch & product details"
-                  >
-                    <span className="num">{p.qty ?? p.stock}</span>
-                    <span className="lbl">Units</span>
-                    {hasUnseen && <div style={{ position: "absolute", top: "2px", right: "2px", width: "10px", height: "10px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
-                  </div>
-                </div>
-
-                {/* 6. INCENTIVE PEACH BOX */}
-                <div className="incentive-box-premium">
-                  <span className="icon">🏷️</span>
-                  <div className="details">
-                    <span className="amount">₹{(p.cost || p.price || 0).toLocaleString()}</span>
-                    <span className="subtext">/ unit</span>
-                  </div>
-                </div>
-
-                {/* 7. ASSIGN BTN */}
-                <div>
-                  <button
-                    className="assign-btn-premium"
-                    onClick={() => {
-                      setSelectedProductForIncentive(p);
-                      setIncentiveFormEmpId(assignedEmp || (employees[0]?.id || "all"));
-                      setIncentiveFormPercent("");
-                      setIncentiveFormAmount(p.incentive || 0);
-                      setIncentiveFormQty(p.qty ?? p.stock ?? 1);
-                      setIncentiveFormNotes("");
-                      setIncentiveFormError("");
-                      setShowGiveIncentiveModal(true);
-                    }}
-                  >
-                    <span className="btn-icon">👤⁺</span>
-                    <span>Assign</span>
-                    <small>Employee</small>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-          {groupedOldProducts.length === 0 && (
-            <div style={{ textAlign: "center", padding: 48, background: "#ffffff", borderRadius: 20, color: "#64748B", border: "1px solid rgba(226, 232, 240, 0.8)" }}>
-              No products eligible for incentive (&gt; 90 days) found.
-            </div>
-          )}
+          <h2 className="page-title">💰 Products Eligible for Incentive</h2>
+          <p className="page-sub">Products older than 90 days eligible for incentive assignment.</p>
         </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ background: "#F3E8FF", color: "#6D28D9", padding: "6px 16px", borderRadius: 40, fontWeight: 700, fontSize: 13 }}>&gt; 90 Days</span>
+          <DownloadDropdown
+            onPDF={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+              const rows = groupedOldProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitIncentive = p.incentive || 0;
+                const totalIncentive = qty * unitIncentive;
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+              });
+              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "pdf");
+            }}
+            onCSV={() => {
+              const headers = ["Sr. No.", "Product Name", "SKU", "Brand", "Location", "Qty (>90 Days)", "Incentive / Unit", "Total Incentive"];
+              const rows = groupedOldProducts.map((p, index) => {
+                const qty = p.qty ?? p.stock ?? 0;
+                const unitIncentive = p.incentive || 0;
+                const totalIncentive = qty * unitIncentive;
+                return [index + 1, p.name, p.sku || "", p.brand || "—", p.location || "Unassigned", qty, unitIncentive, totalIncentive];
+              });
+              openPDFPreview("Incentive Products Report (>90 Days)", headers, rows, `Total Incentive Products: ${groupedOldProducts.length}`, "csv");
+            }}
+          />
+        </div>
+      </div>
 
-        {groupedOldProducts.length > 0 && (
-          <div className="pagination-wrapper">
-            <div className="page-info">
-              Showing <span>{Math.min((currentPage - 1) * itemsPerPage + 1, groupedOldProducts.length)}</span> to <span>{Math.min(currentPage * itemsPerPage, groupedOldProducts.length)}</span> of <span>{groupedOldProducts.length}</span> Products
-            </div>
-            <div className="pagination">
-              <button
-                type="button"
-                className="page-btn"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                ←
-              </button>
-              <div className="page-number">
-                {currentPage}
+      {incentiveSuccessMsg && (
+        <div style={{ background: "#DCFCE7", color: "#15803D", border: "1px solid #86EFAC", padding: "12px 16px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, marginBottom: "16px" }}>
+          {incentiveSuccessMsg}
+        </div>
+      )}
+
+
+      {/* Table Body / Rows */}
+      <div>
+        {paginatedProducts.map((p) => {
+          const hasUnseen = p.batches.some(b => !b.incentiveSeen);
+          const assignedEmp = p.assignedEmployeeId || p.batches.find(b => b.assignedEmployeeId)?.assignedEmployeeId || "";
+
+          return (
+            <div className="product-card-premium" key={p.id}>
+              {/* 1. 3D CYLINDRICAL PEDESTAL STAND */}
+              <div className="product-img-platform">
+                {p.image ? (
+                  <img src={p.image} alt={p.name} />
+                ) : (
+                  <span style={{ fontSize: 44, position: "relative", zIndex: 2 }}>📦</span>
+                )}
               </div>
-              <button
-                type="button"
-                className="next-btn"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next →
-              </button>
+
+              {/* 2. PRODUCT INFO */}
+              <div className="product-name-premium">
+                <h2>{p.name.toLowerCase()}</h2>
+                <p>Brand: {p.brand || "—"}</p>
+              </div>
+
+              {/* 3. SKU */}
+              <div className="sku-premium">
+                {p.sku || "—"}
+              </div>
+
+              {/* 4. LOCATION CAPSULE */}
+              <div>
+                <span className="location-chip-premium">📍 🏪 {p.location || "Shop"}</span>
+              </div>
+
+              {/* 5. QUANTITY RING GAUGE (CLICKABLE FOR BATCH DETAILS) */}
+              <div>
+                <div
+                  className="qty-circle-premium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewingBatches(p);
+                    const unseenBatches = (p.batches || []).filter(b => !b.incentiveSeen);
+                    if (unseenBatches.length > 0) {
+                      setState((s: any) => ({
+                        ...s,
+                        products: s.products.map((prod: any) =>
+                          unseenBatches.some(ub => ub.id === prod.id)
+                            ? { ...prod, incentiveSeen: true }
+                            : prod
+                        )
+                      }));
+                    }
+                  }}
+                  title="Click to view batch & product details"
+                >
+                  <span className="num">{p.qty ?? p.stock}</span>
+                  <span className="lbl">Units</span>
+                  {hasUnseen && <div style={{ position: "absolute", top: "2px", right: "2px", width: "10px", height: "10px", background: "#ef4444", borderRadius: "50%", border: "2px solid white" }}></div>}
+                </div>
+              </div>
+
+              {/* 6. INCENTIVE PEACH BOX */}
+              <div className="incentive-box-premium">
+                <span className="icon">🏷️</span>
+                <div className="details">
+                  <span className="amount">₹{(p.cost || p.price || 0).toLocaleString()}</span>
+                  <span className="subtext">/ unit</span>
+                </div>
+              </div>
+
+              {/* 7. ASSIGN BTN */}
+              <div>
+                <button
+                  className="assign-btn-premium"
+                  onClick={() => {
+                    setSelectedProductForIncentive(p);
+                    setIncentiveFormEmpId(assignedEmp || (employees[0]?.id || "all"));
+                    setIncentiveFormPercent("");
+                    setIncentiveFormAmount(p.incentive || 0);
+                    setIncentiveFormQty(p.qty ?? p.stock ?? 1);
+                    setIncentiveFormNotes("");
+                    setIncentiveFormError("");
+                    setShowGiveIncentiveModal(true);
+                  }}
+                >
+                  <span className="btn-icon">👤⁺</span>
+                  <span>Assign</span>
+                  <small>Employee</small>
+                </button>
+              </div>
             </div>
+          );
+        })}
+        {groupedOldProducts.length === 0 && (
+          <div style={{ textAlign: "center", padding: 48, background: "#ffffff", borderRadius: 20, color: "#64748B", border: "1px solid rgba(226, 232, 240, 0.8)" }}>
+            No products eligible for incentive (&gt; 90 days) found.
           </div>
         )}
       </div>
+
+
 
       {editing && (
         <ProductForm
@@ -5745,7 +5750,6 @@ export function SuperAdminGodownSection() {
           <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0, flexWrap: "nowrap" }}>
             <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EEF0F8", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1E1B4B", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => handlePDFExport(activeTab)}>📄 PDF Report</button>
             <button className="btn btn-ghost btn-sm" style={{ background: "#FFFFFF", border: "1px solid #EEF0F8", borderRadius: "999px", padding: "8px 16px", fontWeight: 700, color: "#1E1B4B", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => exportGodownReport(products, activeTab)}>📥 CSV Report</button>
-            <button className="btn btn-primary btn-sm" style={{ background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)", color: "#FFFFFF", borderRadius: "999px", padding: "8px 20px", fontWeight: 700, border: "none", boxShadow: "0 8px 22px rgba(124, 58, 237, 0.35)", fontSize: "13px", whiteSpace: "nowrap" }} onClick={() => setShowAdd(true)}>+ Add Product</button>
           </div>
         </div>
         {renderTable(activeProducts)}

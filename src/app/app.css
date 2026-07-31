@@ -52,7 +52,6 @@ html {
 }
 
 body {
-  overflow-x: hidden;
   margin: 0;
   padding: 0;
   width: 100%;
@@ -721,7 +720,7 @@ button.nav-item:hover {
   cursor: pointer;
   box-shadow: 0 10px 28px rgba(124, 58, 237, 0.45);
   transition: all 0.3s ease;
-  z-index: 99;
+  z-index: 99999;
 }
 
 .floating-btn:hover {
@@ -2246,7 +2245,7 @@ table.tbl {
   }
 
   .content {
-    padding: 16px 12px;
+    padding: 16px 12px !important;
   }
 
   .stat-grid {
@@ -2523,7 +2522,6 @@ table.tbl {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 10px 30px rgba(109, 74, 255, 0.06);
-  overflow: hidden;
   position: relative;
 }
 
@@ -3014,10 +3012,11 @@ body::after {
   margin-top: 12px;
   background: #ffffff;
   border-radius: 20px;
-  padding: 14px 24px;
+  padding: 14px 20px;
   display: grid;
-  grid-template-columns: 130px 2fr 90px 160px 130px 190px 140px;
+  grid-template-columns: 100px 1fr 80px minmax(120px,150px) 90px minmax(150px,180px) 120px;
   align-items: center;
+  gap: 8px;
   box-shadow: 0 8px 24px rgba(109, 74, 255, 0.04);
   border: 1px solid rgba(109, 74, 255, 0.06);
   transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);

@@ -90,7 +90,8 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
               flexDirection: "column",
               gap: "3px",
               flex: 1,
-              overflow: "hidden"
+              overflowY: "auto",
+              overflowX: "hidden"
             }}>
               {nav.map((n) => {
                 const badgeCount = getBadgeCount(n.key);
@@ -140,6 +141,31 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
         </aside>
 
         <div className="main" style={{ marginLeft: "260px", background: "#F6F7FC", minHeight: "100vh" }}>
+          <div className="topbar">
+            <div className="topbar-left">
+              <button
+                type="button"
+                className="menu-btn"
+                onClick={() => setOpen((o) => !o)}
+                aria-label="Toggle Menu"
+              >
+                ☰
+              </button>
+              <div className="topbar-search">
+                <span>🔍</span>
+                <input placeholder={`Search in ${title}...`} />
+              </div>
+            </div>
+            <div className="topbar-right">
+              <div className="profile-chip">
+                <span className="avatar">{initials}</span>
+                <div style={{ fontSize: 12, lineHeight: 1.2 }}>
+                  <div style={{ fontWeight: 700 }}>{currentUser?.name}</div>
+                  <div style={{ color: "var(--brown)" }}>{title}</div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div className="content" style={{ padding: "24px 32px" }}>{children}</div>
         </div>
       </div>
@@ -415,7 +441,7 @@ export function Modal({ title, onClose, children, className }: { title: string; 
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "20px",
+        padding: "16px",
         background: "rgba(15,23,42,0.65)",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)"
@@ -427,12 +453,13 @@ export function Modal({ title, onClose, children, className }: { title: string; 
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         style={{
+          margin: "auto",
           background: "#FFFFFF",
-          borderRadius: "24px",
-          padding: "28px",
+          borderRadius: "20px",
+          padding: "20px 24px",
           width: "100%",
           maxWidth: maxWidth + "px",
-          maxHeight: "85vh",
+          maxHeight: "88vh",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -445,16 +472,16 @@ export function Modal({ title, onClose, children, className }: { title: string; 
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, borderBottom: "1px solid #EFF6FF", paddingBottom: "14px", marginBottom: "16px" }}>
-          <h3 style={{ fontSize: "22px", fontWeight: 800, color: "#1E3A8A", margin: 0 }}>{title}</h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, borderBottom: "1px solid #EFF6FF", paddingBottom: "10px", marginBottom: "12px" }}>
+          <h3 style={{ fontSize: "20px", fontWeight: 800, color: "#1E3A8A", margin: 0 }}>{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "50%", width: "34px", height: "34px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", color: "#2563EB", fontWeight: 700, flexShrink: 0 }}
+            style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "50%", width: "32px", height: "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "15px", color: "#2563EB", fontWeight: 700, flexShrink: 0 }}
           >✕</button>
         </div>
         {/* Scrollable body */}
-        <div style={{ flex: "1 1 auto", overflowY: "auto", color: "#1F2937", minHeight: 0 }}>
+        <div style={{ flex: "0 1 auto", overflowY: "auto", color: "#1F2937", minHeight: 0, maxHeight: "calc(85vh - 65px)" }}>
           {children}
         </div>
       </div>

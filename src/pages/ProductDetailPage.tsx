@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useStore } from "../app/store";
+import { ProductForm } from "./SuperAdminPage";
 
 interface Batch {
   id?: string;
@@ -29,6 +30,11 @@ export function ProductDetailPage() {
   const [data, setData] = useState<ProductData | null>(null);
   const [role, setRole] = useState<string>("superadmin");
   const [editingBatch, setEditingBatch] = useState<Batch | null>(null);
+  const [editProductName, setEditProductName] = useState("");
+  const [editProductSku, setEditProductSku] = useState("");
+  const [editProductBrand, setEditProductBrand] = useState("");
+  const [editProductCategory, setEditProductCategory] = useState("");
+  const [editProductWarranty, setEditProductWarranty] = useState("");
   const { setState } = useStore();
 
   useEffect(() => {
@@ -79,6 +85,22 @@ export function ProductDetailPage() {
   const totalStock = data.qty ?? data.stock ?? 0;
   const defaultImg = "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600";
 
+  // Pricing / Cost Analysis calculations
+  const costs = batchList.map(b => b.cost || 0).filter(c => c > 0);
+  const minCost = costs.length > 0 ? Math.min(...costs) : 0;
+  const maxCost = costs.length > 0 ? Math.max(...costs) : 0;
+  const costDifference = maxCost - minCost;
+  const averageCost = costs.length > 0 ? costs.reduce((sum, val) => sum + val, 0) / costs.length : 0;
+
+  const startEditingBatch = (b: Batch, idx: number) => {
+    setEditingBatch({ ...b, _index: idx });
+    setEditProductName(data?.name || "");
+    setEditProductSku(data?.sku || "");
+    setEditProductBrand(data?.brand || "");
+    setEditProductCategory(data?.category || "Electronics");
+    setEditProductWarranty(data?.warranty || "");
+  };
+
   const handleDeleteBatch = (idx: number) => {
     if (!confirm("Are you sure you want to delete this batch?")) return;
 
@@ -119,7 +141,18 @@ export function ProductDetailPage() {
     updatedBatches[idx] = bToSave;
 
     const newQty = updatedBatches.reduce((acc, item) => acc + (item.qty ?? item.stock ?? 0), 0);
-    const updatedData = { ...data, ...bToSave, qty: newQty, stock: newQty, batches: updatedBatches };
+    const updatedData = {
+      ...data,
+      name: editProductName,
+      sku: editProductSku,
+      brand: editProductBrand,
+      category: editProductCategory,
+      warranty: editProductWarranty,
+      ...bToSave,
+      qty: newQty,
+      stock: newQty,
+      batches: updatedBatches
+    };
 
     setState((s) => ({
       ...s,
@@ -277,7 +310,7 @@ export function ProductDetailPage() {
                       <td style={{ padding: "16px 18px", textAlign: "right" }}>
                         <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                           <button
-                            onClick={() => setEditingBatch({ ...b, _index: idx })}
+                            onClick={() => startEditingBatch(b, idx)}
                             title="Edit Batch"
                             style={{
                               width: "34px",
@@ -323,132 +356,106 @@ export function ProductDetailPage() {
             </table>
           </div>
 
-          {/* Bottom Card (Price Increased / Difference) */}
+          {/* Pricing & Difference Analytics Section */}
           <div
             style={{
-              background: "#F0F6FE",
-              border: "1px solid #DBEAFE",
+              marginTop: "20px",
+              background: "linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)",
+              border: "1px solid #BBF7D0",
               borderRadius: "16px",
-              padding: "18px 24px",
+              padding: "20px",
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between"
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "16px",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)"
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <div
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  borderRadius: "14px",
-                  background: "#DBEAFE",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "22px"
-                }}
-              >
-                📈
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span style={{ fontSize: "24px" }}>📊</span>
               <div>
-                <div style={{ fontSize: "14px", fontWeight: 800, color: "#1D4ED8", letterSpacing: "0.3px" }}>
-                  PRICE INCREASED
-                </div>
-                <div style={{ fontSize: "13px", color: "#475569", marginTop: "2px" }}>
-                  ₹{(data.cost || 0).toLocaleString()} → ₹{(data.cost || 0).toLocaleString()}
-                </div>
+                <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 800, color: "#166534" }}>Pricing & Cost Analysis</h4>
+                <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#15803D", fontWeight: 500 }}>
+                  Calculated across {costs.length} active batch{costs.length > 1 ? "es" : ""}.
+                </p>
               </div>
             </div>
 
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#2563EB", letterSpacing: "0.5px" }}>
-                DIFFERENCE
+            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+              <div style={{ background: "#FFFFFF", padding: "10px 18px", borderRadius: "12px", border: "1px solid #DCFCE7", minWidth: "120px" }}>
+                <span style={{ fontSize: "11px", color: "#15803D", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Average Cost</span>
+                <div style={{ fontSize: "20px", fontWeight: 900, color: "#166534", marginTop: "2px" }}>
+                  ₹{averageCost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                </div>
               </div>
-              <div style={{ fontSize: "28px", fontWeight: 900, color: "#2563EB" }}>
-                +₹0
-              </div>
+
+              {costs.length > 1 && (
+                <div style={{ background: "#FFFFFF", padding: "10px 18px", borderRadius: "12px", border: "1px solid #DCFCE7", minWidth: "120px" }}>
+                  <span style={{ fontSize: "11px", color: "#B91C1C", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Price Difference</span>
+                  <div style={{ fontSize: "20px", fontWeight: 900, color: "#B91C1C", marginTop: "2px" }}>
+                    ₹{costDifference.toLocaleString()}
+                  </div>
+                  <span style={{ fontSize: "10px", color: "#991B1B", fontWeight: 600 }}>
+                    ({minCost.toLocaleString()} - {maxCost.toLocaleString()})
+                  </span>
+                </div>
+              )}
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* Edit Batch Modal */}
       {editingBatch && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(15, 23, 42, 0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 99999, padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: 28, maxWidth: 450, width: "100%", boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.25)", border: "1px solid #E2E8F0" }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: 18, fontWeight: 800, color: "#1E3A8A" }}>✏️ Edit Batch Details</h3>
-            <form onSubmit={handleSaveBatchEdit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 4 }}>Quantity</label>
-                <input
-                  type="number"
-                  value={editingBatch.qty ?? editingBatch.stock ?? 0}
-                  onChange={(e) => setEditingBatch({ ...editingBatch, qty: Number(e.target.value), stock: Number(e.target.value) })}
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
-                  required
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 4 }}>Unit Cost (₹)</label>
-                <input
-                  type="number"
-                  value={editingBatch.cost || 0}
-                  onChange={(e) => setEditingBatch({ ...editingBatch, cost: Number(e.target.value) })}
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
-                  required
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 4 }}>Supplier</label>
-                <input
-                  type="text"
-                  value={editingBatch.supplier || ""}
-                  onChange={(e) => setEditingBatch({ ...editingBatch, supplier: e.target.value })}
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 4 }}>Incentive (₹)</label>
-                <input
-                  type="number"
-                  value={editingBatch.incentive || 0}
-                  onChange={(e) => setEditingBatch({ ...editingBatch, incentive: Number(e.target.value) })}
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14 }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 4 }}>Location</label>
-                <select
-                  value={editingBatch.location || "Shop"}
-                  onChange={(e) => setEditingBatch({ ...editingBatch, location: e.target.value })}
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #CBD5E1", fontSize: 14, background: "#fff" }}
-                >
-                  <option value="Shop">Shop</option>
-                  <option value="Godown 1">Godown 1</option>
-                  <option value="Godown 2">Godown 2</option>
-                  <option value="Display">Display</option>
-                  <option value="Unassigned">Unassigned</option>
-                </select>
-              </div>
+        <ProductForm
+          title="Edit Stock Entry"
+          initial={{
+            ...editingBatch,
+            name: editProductName || data.name,
+            sku: editProductSku || data.sku,
+            brand: editProductBrand || data.brand,
+            category: editProductCategory || data.category,
+            warranty: editProductWarranty || data.warranty
+          } as any}
+          onClose={() => setEditingBatch(null)}
+          onSave={(formData) => {
+            if (!editingBatch || editingBatch._index === undefined) return;
 
-              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setEditingBatch(null)}
-                  style={{ padding: "10px 18px", borderRadius: 10, border: "1px solid #CBD5E1", background: "#fff", cursor: "pointer", fontWeight: 600, fontSize: 14 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "#2563EB", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: 14 }}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            const idx = editingBatch._index;
+            const updatedBatches = [...batchList];
+            const bToSave = {
+              ...editingBatch,
+              ...formData
+            };
+            delete bToSave._index;
+
+            updatedBatches[idx] = bToSave;
+
+            const newQty = updatedBatches.reduce((acc, item) => acc + (item.qty ?? item.stock ?? 0), 0);
+            const updatedData = {
+              ...data,
+              ...bToSave,
+              name: formData.name,
+              sku: formData.sku,
+              brand: formData.brand,
+              category: formData.category,
+              warranty: formData.warranty,
+              qty: newQty,
+              stock: newQty,
+              batches: updatedBatches
+            };
+
+            setState((s) => ({
+              ...s,
+              products: s.products.map((p) => (p.id === data.id ? ({ ...p, ...updatedData } as any) : p))
+            }));
+
+            setData(updatedData as any);
+            localStorage.setItem("product_detail_preview", JSON.stringify(updatedData));
+            setEditingBatch(null);
+          }}
+        />
       )}
     </div>
   );
