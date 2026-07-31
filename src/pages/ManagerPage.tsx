@@ -847,11 +847,6 @@ function ProductsAvail() {
               openPDFPreview("Stocking Inventory Report", headers, rows, `Total Products: ${filteredProducts.length}`, "csv");
             }}
           />
-
-          <button className="add-btn" onClick={() => setShowAdd(true)}>
-            <Plus size={18} />
-            Add Product
-          </button>
         </div>
       </div>
 
