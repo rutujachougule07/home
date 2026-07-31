@@ -223,24 +223,23 @@ th,
   transform: translateX(5px);
 }
 
-/* Active Button */
+/* Active Button matching Image 2 */
 .sidebar-item.active,
 .nav-item.active {
   background: linear-gradient(
     90deg,
-    #6A2EF4 0%,
+    #5F2EEA 0%,
     #7B42FF 45%,
-    #C5B8FF 100%
+    #BDB4FE 100%
   ) !important;
-
   color: #FFFFFF !important;
-
-  border: 1px solid rgba(255,255,255,.25) !important;
-
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,.35) !important;
   box-shadow:
-      0 12px 30px rgba(106,46,244,.30),
-      0 5px 15px rgba(106,46,244,.20),
-      inset 0 1px 1px rgba(255,255,255,.18) !important;
+      0 14px 30px rgba(106,46,244,.35),
+      0 6px 16px rgba(106,46,244,.25),
+      inset 0 1px 1px rgba(255,255,255,.35) !important;
 }
 
 /* Icon */

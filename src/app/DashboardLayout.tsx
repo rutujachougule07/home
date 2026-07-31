@@ -126,34 +126,19 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
             </div>
           </div>
 
-          {/* Bottom Section: Pinned Logout Button */}
-          <div style={{ paddingTop: "14px", borderTop: "1px solid #E2E8F0", marginTop: "10px" }}>
+          {/* Bottom Section: Pinned Logout Link matching Image 2 */}
+          <div style={{ paddingTop: "12px", borderTop: "1px solid #E2E8F0", marginTop: "8px" }}>
             <button
               type="button"
-              className="btn btn-logout"
+              className="sidebar-item nav-item"
               onClick={handleLogout}
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-                padding: "12px 16px",
-                width: "100%",
-                background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-                border: "none",
-                borderRadius: "999px",
-                color: "#FFFFFF",
-                fontWeight: 700,
-                fontSize: "14px",
-                cursor: "pointer",
-                boxShadow: "0 8px 22px rgba(124, 58, 237, 0.35)",
-                transition: "all 300ms ease"
+                color: "#E11D48",
+                height: "48px"
               }}
-              onMouseOver={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #4338CA 0%, #6D28D9 100%)"; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)"; }}
             >
-              <span style={{ fontSize: "16px", color: "#FFFFFF" }}>🚪</span>
-              <span style={{ color: "#FFFFFF", fontWeight: 700 }}>Logout</span>
+              <span style={{ fontSize: "18px", color: "#E11D48" }}>🚪</span>
+              <span style={{ color: "#E11D48", fontWeight: 600 }}>Logout</span>
             </button>
           </div>
         </aside>
