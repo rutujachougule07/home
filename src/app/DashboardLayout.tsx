@@ -84,16 +84,13 @@ export function DashboardLayout({ role, title, nav, active, onNav, children }: P
               </div>
             </div>
 
-            {/* Navigation items (Smooth scroll, hidden scrollbar) */}
+            {/* Navigation items (Fixed non-scrolling container) */}
             <div className="sidebar-nav-container" style={{
               display: "flex",
               flexDirection: "column",
-              gap: "6px",
+              gap: "3px",
               flex: 1,
-              overflowY: "auto",
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-              paddingRight: "2px"
+              overflow: "hidden"
             }}>
               {nav.map((n) => {
                 const badgeCount = getBadgeCount(n.key);

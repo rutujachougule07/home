@@ -1,6 +1,7 @@
 import { EmployeeIncentiveSection } from "./EmployeePage";
 import { Navigate, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useStore, User, Customer, Order, Product } from "../app/store";
 import { DashboardLayout, StatCard, Pill, Modal, NavItem, BarChart } from "../app/DashboardLayout";
 import { NotificationsSection, ProfileSection, EmployeeForm, EmployeeWorkDetailsModal, LeadsSection, DashboardLeadPipelineOverview, UpcomingFollowUps, TasksAssignSection, TaskAssignmentSection, ProductForm, SuperAdminIncentiveSection, DownloadDropdown, openPDFPreview } from "./SuperAdminPage";
@@ -579,163 +580,268 @@ function CreateOrderModal({ initial, onSave, onClose }: { initial?: Order; onSav
     initial?.bookingExpiryDate ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   );
 
-  return (
-    <Modal title={initial ? "Edit Order" : "Create Order"} onClose={onClose}>
-      <div className="form-group"><label className="form-label">Customer</label>
-        <input
-          type="text"
-          className="form-input"
-          list="customers-datalist"
-          placeholder="Type or select customer name"
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-        />
-        <datalist id="customers-datalist">
-          {customers.map((c) => (
-            <option key={c.id} value={c.name} />
-          ))}
-        </datalist>
-      </div>
-      <div className="form-group"><label className="form-label">Product</label>
-        <select className="form-select" value={productId} onChange={(e) => setProductId(e.target.value)}>
-          {active.map((p) => <option key={p.id} value={p.id}>{p.name}{p.brand ? ` (${p.brand})` : ""}</option>)}
-        </select>
-        {productId && (
-          <div style={{ fontSize: 12, marginTop: 4, color: "var(--brown)", fontWeight: 600 }}>
-            Price: ₹{active.find(p => p.id === productId)?.price.toLocaleString() || 0}
+  const selectedProduct = active.find(p => p.id === productId);
+
+  /* ── Premium inline styles ── */
+  const sectionLabel: React.CSSProperties = { fontSize: "10px", fontWeight: 800, letterSpacing: "1.4px", textTransform: "uppercase" as const, color: "#4F46E5", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" };
+  const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", borderRadius: "12px", border: "1.5px solid #E0E7FF", background: "#EEF2FF", fontSize: "13.5px", fontWeight: 500, color: "#1E293B", outline: "none", transition: "border-color .2s, box-shadow .2s" };
+  const selectStyle: React.CSSProperties = { ...inputStyle, appearance: "none" as const, backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234F46E5' viewBox='0 0 16 16'%3E%3Cpath d='M1.5 5.5l6.5 6 6.5-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center" };
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0,
+        background: "rgba(15, 23, 42, 0.55)",
+        backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 999999, padding: "16px"
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "#FFFFFF",
+          borderRadius: "28px",
+          width: "100%", maxWidth: "520px",
+          maxHeight: "calc(100vh - 32px)",
+          display: "flex", flexDirection: "column",
+          overflow: "hidden",
+          boxShadow: "0 32px 72px rgba(79, 70, 229, 0.18), 0 2px 8px rgba(0,0,0,0.08)",
+          border: "1px solid #E0E7FF"
+        }}
+      >
+        {/* ── Gradient Header ── */}
+        <div style={{
+          background: "linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%)",
+          padding: "22px 26px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          flexShrink: 0
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{
+              width: "46px", height: "46px", borderRadius: "16px",
+              background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "22px", boxShadow: "0 4px 14px rgba(0,0,0,0.12)"
+            }}>🛒</div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.3px" }}>
+                {initial ? "Edit Order" : "Create Order"}
+              </h3>
+              <p style={{ margin: "3px 0 0", fontSize: "12px", color: "rgba(255,255,255,0.78)", fontWeight: 500 }}>
+                Fill the details below to create a new order
+              </p>
+            </div>
           </div>
-        )}
-      </div>
-      <div className="form-group"><label className="form-label">Quantity</label>
-        <input type="number" className="form-input" min={1} value={qty} onChange={(e) => setQty(+e.target.value)} />
-      </div>
-      <div className="form-group"><label className="form-label">Assign Employee</label>
-        <select className="form-select" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)}>
-          {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
-        </select>
-      </div>
-      <div className="form-group">
-        <label className="form-label">Document Type *</label>
-        <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
-          <label style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            border: docType === "Bill" ? "2px solid #0284c7" : "1px solid var(--border)",
-            background: docType === "Bill" ? "#f0f9ff" : "#fff",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "13px",
-            color: docType === "Bill" ? "#0369a1" : "inherit"
-          }}>
+          <button type="button" onClick={onClose} style={{
+            width: "36px", height: "36px", borderRadius: "50%",
+            background: "rgba(255,255,255,0.18)", backdropFilter: "blur(6px)",
+            border: "1px solid rgba(255,255,255,0.25)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", fontSize: "16px", color: "#fff", fontWeight: 700
+          }}>✕</button>
+        </div>
+
+        {/* ── Scrollable Body ── */}
+        <div style={{ flex: "1 1 auto", overflowY: "auto", padding: "22px 26px 10px" }}>
+
+          {/* CUSTOMER */}
+          <div style={{ marginBottom: "18px" }}>
+            <div style={sectionLabel}>👤 Customer</div>
             <input
-              type="radio"
-              name="docTypeSelectMgr"
-              value="Bill"
-              checked={docType === "Bill"}
-              onChange={() => setDocType("Bill")}
+              type="text"
+              list="customers-datalist-mgr"
+              placeholder="Type or select customer name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              style={inputStyle}
             />
-            🧾 Bill
-          </label>
-          <label style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            border: docType === "Order Copy" ? "2px solid #9333ea" : "1px solid var(--border)",
-            background: docType === "Order Copy" ? "#faf5ff" : "#fff",
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: "13px",
-            color: docType === "Order Copy" ? "#6b21a8" : "inherit"
-          }}>
-            <input
-              type="radio"
-              name="docTypeSelectMgr"
-              value="Order Copy"
-              checked={docType === "Order Copy"}
-              onChange={() => setDocType("Order Copy")}
+            <datalist id="customers-datalist-mgr">
+              {customers.map((c) => <option key={c.id} value={c.name} />)}
+            </datalist>
+          </div>
+
+          {/* PRODUCT */}
+          <div style={{ marginBottom: "18px" }}>
+            <div style={sectionLabel}>📦 Product</div>
+            <select value={productId} onChange={(e) => setProductId(e.target.value)} style={selectStyle}>
+              {active.map((p) => <option key={p.id} value={p.id}>{p.name}{p.brand ? ` (${p.brand})` : ""}</option>)}
+            </select>
+            {selectedProduct && (
+              <div style={{
+                marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "6px",
+                background: "linear-gradient(135deg, #EEF2FF, #E0E7FF)", padding: "6px 14px",
+                borderRadius: "20px", fontSize: "12px", fontWeight: 700, color: "#4338CA"
+              }}>
+                💰 ₹{selectedProduct.price.toLocaleString()}
+              </div>
+            )}
+          </div>
+
+          {/* QUANTITY */}
+          <div style={{ marginBottom: "18px" }}>
+            <div style={sectionLabel}>🔢 Quantity</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button type="button" onClick={() => setQty(Math.max(1, qty - 1))} style={{
+                width: "38px", height: "38px", borderRadius: "12px",
+                background: "#EEF2FF", border: "1.5px solid #C7D2FE",
+                fontSize: "18px", fontWeight: 700, color: "#4F46E5",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center"
+              }}>−</button>
+              <input
+                type="number" min={1} value={qty}
+                onChange={(e) => setQty(+e.target.value)}
+                style={{ ...inputStyle, textAlign: "center", maxWidth: "100px", fontWeight: 700, fontSize: "16px" }}
+              />
+              <button type="button" onClick={() => setQty(qty + 1)} style={{
+                width: "38px", height: "38px", borderRadius: "12px",
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)", border: "none",
+                fontSize: "18px", fontWeight: 700, color: "#fff",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 3px 10px rgba(79, 70, 229, 0.3)"
+              }}>+</button>
+            </div>
+          </div>
+
+          {/* ASSIGN EMPLOYEE */}
+          <div style={{ marginBottom: "18px" }}>
+            <div style={sectionLabel}>👨‍💼 Assign Employee</div>
+            <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} style={selectStyle}>
+              {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+            </select>
+          </div>
+
+          {/* DOCUMENT TYPE */}
+          <div style={{ marginBottom: "18px" }}>
+            <div style={sectionLabel}>📋 Document Type *</div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <label onClick={() => setDocType("Bill")} style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                padding: "10px 14px", borderRadius: "14px", cursor: "pointer",
+                fontWeight: 700, fontSize: "13px", transition: "all .2s",
+                background: docType === "Bill" ? "linear-gradient(135deg, #2563EB, #7C3AED)" : "#F8FAFC",
+                color: docType === "Bill" ? "#fff" : "#475569",
+                border: docType === "Bill" ? "none" : "1.5px solid #E2E8F0",
+                boxShadow: docType === "Bill" ? "0 4px 14px rgba(79, 70, 229, 0.3)" : "none"
+              }}>
+                <input type="radio" name="docTypeSelectMgr" value="Bill" checked={docType === "Bill"} onChange={() => setDocType("Bill")} style={{ display: "none" }} />
+                🧾 Bill
+              </label>
+              <label onClick={() => setDocType("Order Copy")} style={{
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                padding: "10px 14px", borderRadius: "14px", cursor: "pointer",
+                fontWeight: 700, fontSize: "13px", transition: "all .2s",
+                background: docType === "Order Copy" ? "linear-gradient(135deg, #7C3AED, #9333EA)" : "#F8FAFC",
+                color: docType === "Order Copy" ? "#fff" : "#475569",
+                border: docType === "Order Copy" ? "none" : "1.5px solid #E2E8F0",
+                boxShadow: docType === "Order Copy" ? "0 4px 14px rgba(124, 58, 237, 0.3)" : "none"
+              }}>
+                <input type="radio" name="docTypeSelectMgr" value="Order Copy" checked={docType === "Order Copy"} onChange={() => setDocType("Order Copy")} style={{ display: "none" }} />
+                📄 Order Copy
+              </label>
+            </div>
+          </div>
+
+          {/* ORDER COPY BOOKING EXPIRY */}
+          {docType === "Order Copy" && (
+            <div style={{
+              background: "linear-gradient(135deg, #F5F3FF, #EDE9FE)", padding: "16px",
+              borderRadius: "16px", border: "1.5px solid #DDD6FE",
+              marginBottom: "18px", display: "flex", flexDirection: "column", gap: "10px"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: "#6D28D9" }}>⏳ Booking Expiry Date *</span>
+                <span style={{
+                  fontSize: "12px", fontWeight: 700, color: "#7C3AED",
+                  background: "rgba(124, 58, 237, 0.1)", padding: "4px 10px", borderRadius: "8px"
+                }}>
+                  📅 {bookingExpiryDate ? new Date(bookingExpiryDate + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Select Date"}
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#6D28D9", alignSelf: "center", letterSpacing: "0.5px" }}>Quick Set:</span>
+                {[
+                  { label: "+7 Days", days: 7 },
+                  { label: "+15 Days", days: 15 },
+                  { label: "+30 Days", days: 30 },
+                  { label: "+60 Days", days: 60 },
+                ].map((preset) => {
+                  const targetDate = new Date();
+                  targetDate.setDate(targetDate.getDate() + preset.days);
+                  const iso = targetDate.toISOString().slice(0, 10);
+                  const isSelected = bookingExpiryDate === iso;
+                  return (
+                    <button key={preset.days} type="button" onClick={() => setBookingExpiryDate(iso)} style={{
+                      padding: "5px 12px", borderRadius: "10px",
+                      border: isSelected ? "none" : "1px solid #C4B5FD",
+                      background: isSelected ? "linear-gradient(135deg, #7C3AED, #9333EA)" : "#fff",
+                      color: isSelected ? "#fff" : "#6D28D9",
+                      fontSize: "11px", fontWeight: 700, cursor: "pointer",
+                      boxShadow: isSelected ? "0 3px 8px rgba(124, 58, 237, 0.3)" : "none",
+                      transition: "all .2s"
+                    }}>{preset.label}</button>
+                  );
+                })}
+              </div>
+
+              <input
+                type="date" value={bookingExpiryDate}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setBookingExpiryDate(e.target.value)}
+                style={{ ...inputStyle, background: "#fff", border: "1.5px solid #C4B5FD" }}
+              />
+              <span style={{ fontSize: "11px", color: "#7C3AED", fontWeight: 500 }}>
+                Expiration alert will be sent to Admin if not fulfilled by this date.
+              </span>
+            </div>
+          )}
+
+          {/* CUSTOMER BARGAINING */}
+          <div style={{ marginBottom: "18px" }}>
+            <div style={sectionLabel}>✍️ Customer Bargaining / Remarks</div>
+            <textarea
+              placeholder="E.g. Wants 10% discount or ₹80 off..."
+              value={customerBargain}
+              onChange={(e) => setCustomerBargain(e.target.value)}
+              rows={3}
+              style={{ ...inputStyle, resize: "vertical" }}
             />
-            📄 Order Copy
-          </label>
+          </div>
+        </div>
+
+        {/* ── Footer Buttons ── */}
+        <div style={{
+          padding: "16px 26px 20px",
+          borderTop: "1px solid #E0E7FF",
+          display: "flex", justifyContent: "flex-end", gap: "10px",
+          flexShrink: 0, background: "#FAFBFF"
+        }}>
+          <button type="button" onClick={onClose} style={{
+            padding: "10px 22px", borderRadius: "14px",
+            background: "#F1F5F9", border: "1.5px solid #E2E8F0",
+            fontWeight: 700, fontSize: "13px", color: "#64748B",
+            cursor: "pointer", display: "flex", alignItems: "center", gap: "6px"
+          }}>✕ Cancel</button>
+          <button type="button" onClick={() => {
+            if (customerName.trim() && productId && qty > 0 && assignedTo) {
+              const emp = employees.find((e) => e.id === assignedTo)!;
+              onSave(customerName.trim(), productId, qty, assignedTo, emp.name, customerBargain.trim(), docType, docType === "Order Copy" ? bookingExpiryDate : undefined);
+            }
+          }} style={{
+            padding: "10px 26px", borderRadius: "14px",
+            background: "linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%)",
+            border: "none",
+            fontWeight: 700, fontSize: "13px", color: "#fff",
+            cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+            boxShadow: "0 4px 16px rgba(79, 70, 229, 0.35)",
+            transition: "transform .15s, box-shadow .15s"
+          }}>🚀 {initial ? "Save Changes" : "Send for Approval"}</button>
         </div>
       </div>
-
-      {docType === "Order Copy" && (
-        <div className="form-group" style={{ background: "#faf5ff", padding: "12px", borderRadius: "10px", border: "1px solid #e9d5ff", display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label className="form-label" style={{ color: "#6b21a8", margin: 0 }}>⏳ Booking Expiry Date *</label>
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#7e22ce" }}>
-              📅 {bookingExpiryDate ? new Date(bookingExpiryDate + "T00:00:00").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Select Date"}
-            </span>
-          </div>
-
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", margin: "2px 0" }}>
-            <span style={{ fontSize: "11px", fontWeight: 600, color: "#6b21a8", alignSelf: "center" }}>Quick Set:</span>
-            {[
-              { label: "+7 Days", days: 7 },
-              { label: "+15 Days", days: 15 },
-              { label: "+30 Days (1 Month)", days: 30 },
-              { label: "+60 Days (2 Months)", days: 60 },
-            ].map((preset) => {
-              const targetDate = new Date();
-              targetDate.setDate(targetDate.getDate() + preset.days);
-              const iso = targetDate.toISOString().slice(0, 10);
-              const isSelected = bookingExpiryDate === iso;
-
-              return (
-                <button
-                  key={preset.days}
-                  type="button"
-                  onClick={() => setBookingExpiryDate(iso)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    border: isSelected ? "1.5px solid #7e22ce" : "1px solid #d8b4fe",
-                    background: isSelected ? "#7e22ce" : "#fff",
-                    color: isSelected ? "#fff" : "#6b21a8",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    cursor: "pointer"
-                  }}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <input
-            type="date"
-            className="form-input"
-            value={bookingExpiryDate}
-            min={new Date().toISOString().slice(0, 10)}
-            onChange={(e) => setBookingExpiryDate(e.target.value)}
-          />
-          <span style={{ fontSize: "11px", color: "#7e22ce", marginTop: "2px", display: "block" }}>
-            Expiration alert will be sent to Admin if not fulfilled by this date.
-          </span>
-        </div>
-      )}
-
-      <div className="form-group"><label className="form-label">Customer Bargaining / Remarks</label>
-        <input type="text" className="form-input" placeholder="E.g. Wants 10% discount or ₹80" value={customerBargain} onChange={(e) => setCustomerBargain(e.target.value)} />
-      </div>
-      <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" onClick={() => {
-          if (customerName.trim() && productId && qty > 0 && assignedTo) {
-            const emp = employees.find((e) => e.id === assignedTo)!;
-            onSave(customerName.trim(), productId, qty, assignedTo, emp.name, customerBargain.trim(), docType, docType === "Order Copy" ? bookingExpiryDate : undefined);
-          }
-        }}>{initial ? "Save Changes" : "Send for Approval"}</button>
-      </div>
-    </Modal>
+    </div>,
+    document.body
   );
 }
 
